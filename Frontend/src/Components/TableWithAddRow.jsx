@@ -1,8 +1,7 @@
 // TableWithAddRow.jsx
 import React, { useState } from 'react';
-import BotonPrincipal from './Boton'; // Botón personalizado
 
-const TableWithAddRow = ({ headers, initialRows, onSave }) => {
+const TableWithAddRow = ({ headers, initialRows, onSave, onDevolver }) => {
   const [rows, setRows] = useState(initialRows);
 
   // Agregar una nueva fila vacía
@@ -25,8 +24,8 @@ const TableWithAddRow = ({ headers, initialRows, onSave }) => {
   };
 
   return (
-    <div className="bg-white p-4 shadow-lg rounded-lg">
-      <table className="min-w-full table-auto">
+    <div className="bg-white p-4 rounded-lg">
+      <table className="min-w-full table-auto border border-gray-300 shadow-lg ">
         <thead>
           <tr className="bg-[#00A305] text-white">
             {headers.map((header, index) => (
@@ -83,7 +82,7 @@ const TableWithAddRow = ({ headers, initialRows, onSave }) => {
                 />
               </td>
               <td className="px-4 py-2 text-center">
-                {/* Mostrar el botón solo en la última fila */}
+                {/* Mostrar el botón "Agregar Fila" solo en la última fila dentro de la columna de "Acciones" */}
                 {rowIndex === rows.length - 1 && (
                   <button
                     onClick={handleAddRow}
@@ -98,10 +97,7 @@ const TableWithAddRow = ({ headers, initialRows, onSave }) => {
         </tbody>
       </table>
 
-      {/* Botón para guardar todas las filas */}
-      <div className="text-center mt-4">
-        <BotonPrincipal Text="Guardar" onClick={handleSave} />
-      </div>
+
     </div>
   );
 };

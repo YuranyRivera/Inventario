@@ -15,10 +15,10 @@ const Sidebar = () => {
 
       {/* Enlaces del menú */}
       <div className="flex flex-col space-y-4">
-        <a href="#dashboard" className="flex items-center text-lg hover:bg-[#41B646] p-2 rounded">
+        <a href="/Dashboard" className="flex items-center text-lg hover:bg-[#41B646] p-2 rounded">
           <i className="fas fa-chart-line mr-3"></i> Tablero
         </a>
-        <a href="#articulos" className="flex items-center text-lg hover:bg-[#41B646] p-2 rounded">
+        <a href="/Articulos" className="flex items-center text-lg hover:bg-[#41B646] p-2 rounded">
           <i className="fas fa-box mr-3"></i> Artículo
         </a>
         <a href="#contacto" className="flex items-center text-lg hover:bg-[#41B646] p-2 rounded">
