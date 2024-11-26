@@ -25,7 +25,7 @@ const TableWithAddRow = ({ headers, initialRows, onSave, onDevolver }) => {
 
   return (
     <div className="bg-white p-4 rounded-lg">
-      <table className="min-w-full table-auto border border-gray-300 shadow-lg ">
+   <table className="min-w-full table-auto rounded-lg overflow-hidden shadow-lg">
         <thead>
           <tr className="bg-[#00A305] text-white">
             {headers.map((header, index) => (
@@ -86,7 +86,7 @@ const TableWithAddRow = ({ headers, initialRows, onSave, onDevolver }) => {
                 {rowIndex === rows.length - 1 && (
                   <button
                     onClick={handleAddRow}
-                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                    className="bg-[#00A305] text-white px-4 py-2 rounded hover:bg-green-700"
                   >
                     <i className="fas fa-plus"></i> Agregar Fila
                   </button>

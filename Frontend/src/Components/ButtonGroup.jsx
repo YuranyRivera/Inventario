@@ -17,21 +17,24 @@ const ButtonGroup = ({ isStorageSelected, onActionClick }) => {
   return (
     <div>
       <div className="flex space-x-4">
-        <button className="bg-green-600 text-white py-2 px-4 rounded">
+        <button className="bg-[#00A305] text-white py-2 px-4 rounded hover:bg-green-700" >
           <i className="fas fa-file-excel mr-2"></i> Excel
         </button>
-        <button className="bg-white text-green-600 py-2 px-4 border-2 border-green-600 rounded">
+        <button className="bg-white text-green-600 py-2 px-4 border-2 border-green-600 rounded hover:text-white hover:bg-[#00A305]">
           <i className="fas fa-file-pdf mr-2"></i> PDF
         </button>
         <button
-          className="bg-green-600 text-white py-2 px-4 rounded"
+          className="  bg-white text-green-600 py-2 px-4 border-2 border-green-600 rounded hover:bg-[#00A305] "
           onClick={() => navigate(isStorageSelected ? '/AgregarAux' : '/AgregarAdmin')}
         >
-          <i className="fas fa-plus mr-2"></i> Agregar Artículo
+<span className="text-green-600 hover:text-white py-2 px-1   ">Agregar Artículo</span>
+ <i className="fas fa-plus ml-2 text-white bg-[#00A305] p-1 rounded-full hover:text-white   "></i>
+
+
         </button>
         {isStorageSelected && (
           <button
-            className="bg-white text-green-600 py-2 px-4 border-2 border-green-600 rounded"
+            className="bg-white text-green-600 py-2 px-4 border-2 border-green-600 rounded hover:text-white hover:bg-[#00A305]"
             onClick={handleOpenModal} // Muestra el modal al hacer clic
           >
             Hacer Tiquete

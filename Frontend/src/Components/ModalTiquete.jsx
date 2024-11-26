@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import Select, { components } from 'react-select';
+import BotonPrincipal from './Boton';
+import BotonSecundario from './BotonSecundario';
 
 const ModalTiquete = ({ isOpen, onClose }) => {
   const [selectedProducts, setSelectedProducts] = useState([]); // Productos seleccionados
@@ -67,7 +69,7 @@ const ModalTiquete = ({ isOpen, onClose }) => {
           <h3 className="text-xl font-semibold">Crear Tiquete</h3>
           <button
             onClick={onClose}
-            className="text-red-500 text-xl"
+            className="text-xl"
           >
             X
           </button>
@@ -96,7 +98,7 @@ const ModalTiquete = ({ isOpen, onClose }) => {
         <div className="mb-4">
           <table className="min-w-full table-auto">
             <thead>
-              <tr className="bg-gray-100">
+              <tr className="bg-[#00A305] text-white">
                 <th className="px-4 py-2">Producto</th>
                 <th className="px-4 py-2">Cantidad</th>
               </tr>
@@ -133,19 +135,21 @@ const ModalTiquete = ({ isOpen, onClose }) => {
 
         {/* Botón Guardar */}
         <div className="flex justify-end space-x-4">
-          <button
-            onClick={handleSave}
-            className="bg-green-600 text-white py-2 px-6 rounded hover:bg-green-700"
-          >
-            Guardar
-          </button>
-          <button
-            onClick={onClose}
-            className="bg-white text-green-600 border-2 border-green-600 py-2 px-6 rounded hover:bg-green-600 hover:text-white"
-          >
-            Cancelar
-          </button>
-        </div>
+  {/* Botón Guardar */}
+  <BotonPrincipal 
+    type="button" // Cambié a "button" para evitar el comportamiento por defecto del formulario
+    Text="Guardar"
+    onClick={handleSave} // Usar la lógica existente
+  />
+
+  {/* Botón Cancelar */}
+  <BotonSecundario 
+    type="button" // Cambié a "button" para evitar recargar la página
+    Text="Cancelar"
+    onClick={onClose} // Llamar directamente a onClose
+  />
+</div>
+
       </div>
     </div>
   );

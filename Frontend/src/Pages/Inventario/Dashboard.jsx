@@ -6,7 +6,7 @@ const Dashboard = () => {
   // Encabezados de las tablas sin filas de datos
 
   const resumenHeaders = ['Artículos Totales', 'Artículos Administrativos', 'Artículos Aux. Mantenimiento'];
-  const actividadHeaders = ['Fecha y Hora', 'Cantidad', 'Ubicación'];
+  const actividadHeaders = ['Fecha y Hora', 'Cantidad', 'Tipo de reoporte'];
 
   return (
     <DashboardLayout>

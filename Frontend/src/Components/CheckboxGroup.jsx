@@ -10,10 +10,15 @@ const CheckboxGroup = ({ selected, onChange }) => {
           id="administrativos" 
           name="tipoArticulo"
           checked={selected === 'administrativos'} // Marcado según el estado
-          className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2" 
+          className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2 cursor-pointer" 
           onChange={(e) => onChange(e, 'administrativos')} 
         />
-        <label htmlFor="administrativos" className="text-lg">Artículos Administrativos</label>
+        <label 
+          htmlFor="administrativos" 
+          className="text-lg cursor-pointer"
+        >
+          Artículos Administrativos
+        </label>
       </div>
       
       {/* Opción: Artículos de Almacenamiento */}
@@ -23,10 +28,15 @@ const CheckboxGroup = ({ selected, onChange }) => {
           id="almacenamiento" 
           name="tipoArticulo"
           checked={selected === 'almacenamiento'} // Marcado según el estado
-          className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2" 
+          className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2 cursor-pointer" 
           onChange={(e) => onChange(e, 'almacenamiento')} 
         />
-        <label htmlFor="almacenamiento" className="text-lg">Artículos de Almacenamiento</label>
+        <label 
+          htmlFor="almacenamiento" 
+          className="text-lg cursor-pointer"
+        >
+          Artículos de Almacenamiento
+        </label>
       </div>
     </div>
   );
