@@ -7,7 +7,7 @@ import BotonSecundario from '../../Components/BotonSecundario';
 
 const AuxMantenimiento = () => {
   const navigate = useNavigate();
-  const headers = ['Módulo', 'Estante', 'Cantidad', 'Producto/Detalle', 'Estado', 'Entrada', 'Salida', 'Restante', 'Acciones'];
+  const headers = ['Módulo', 'Estante', 'Cantidad', 'Producto/Detalle', 'Estado', 'Acciones'];
   const initialRows = [['Módulo 1', 'Estante 1', 10, 'Producto A', 'Disponible', 5, 3, 2]];
 
   const handleSave = (rows) => {

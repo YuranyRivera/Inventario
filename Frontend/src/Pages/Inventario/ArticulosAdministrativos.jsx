@@ -4,10 +4,10 @@ import CategorySelect from '../../Components/CategorySelect';
 import DateInput from '../../Components/DateInput';
 
 const ArticulosAdministrativos = () => {
-  const headers = ['Item', 'Fecha', 'Descripción', 'Ubicación', 'Estado', 'Acciones'];
+  const headers = ['ID', 'Item', 'Fecha', 'Descripción', 'Ubicación', 'Estado', 'Acciones'];
   const rows = [
-    ['Artículo 1', '2024-11-22', 'Descripción', 'Oficina', 'Disponible'],
-    ['Artículo 2', '2024-11-23', 'Descripción', 'Almacén', 'No Disponible'],
+    [ '1',  'Artículo 1', '2024-11-22', 'Descripción', 'Oficina', 'Disponible'],
+    [ '2', 'Artículo 2', '2024-11-23', 'Descripción', 'Almacén', 'No Disponible'],
   ];
 
   const [selectedCategory, setSelectedCategory] = useState('');
