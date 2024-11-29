@@ -31,7 +31,7 @@ const Articulos = () => {
           <CheckboxGroup selected={selected} onChange={handleCheckboxChange} />
           <ButtonGroup isStorageSelected={selected === 'almacenamiento'}  />
         </div>
-        {selected === 'almacenamiento' ? <ArticulosAlmacenamiento /> : <ArticulosAdministrativos />}
+        {selected === 'almacenamiento' ? <ArticulosAlmacenamiento />  : <ArticulosAdministrativos />}
       </div>
     </DashboardLayout>
   );

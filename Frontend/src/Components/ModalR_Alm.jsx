@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import Select, { components } from 'react-select';
+import Select from 'react-select';
+import EstadoSelect from './EstadoSelect';  // Importamos el componente EstadoSelect
 import BotonPrincipal from './Boton';
 import BotonSecundario from './BotonSecundario';
 
-const ModalTiquete = ({ isOpen, onClose }) => {
-  const [selectedProducts, setSelectedProducts] = useState([]); // Productos seleccionados
+const ModalEntrada = ({ isOpen, onClose }) => {
+  const [selectedProducts, setSelectedProducts] = useState([]);
   const [responsable, setResponsable] = useState('');
+  const [estado, setEstado] = useState('entrada'); // Estado para la selección de "Entrada" o "Salida"
+  
   const [products] = useState([
     { id: 1, name: 'Producto A' },
     { id: 2, name: 'Producto B' },
@@ -13,13 +16,11 @@ const ModalTiquete = ({ isOpen, onClose }) => {
     { id: 4, name: 'Producto D' },
   ]);
 
-  // Convertir productos en el formato adecuado para react-select
   const options = products.map((product) => ({
     value: product.id,
     label: product.name,
   }));
 
-  // Manejar la selección de productos
   const handleSelectProduct = (selectedOptions) => {
     setSelectedProducts(selectedOptions);
   };
@@ -33,72 +34,44 @@ const ModalTiquete = ({ isOpen, onClose }) => {
     );
   };
 
-  const handleResponsableChange = (e) => {
-    setResponsable(e.target.value);
-  };
-
   const handleSave = () => {
-    console.log('Productos seleccionados:', selectedProducts);
+    console.log('Entrada registrada:', selectedProducts);
     console.log('Responsable:', responsable);
+    console.log('Estado:', estado); // Imprimir el estado seleccionado
     onClose(); // Cerrar el modal
   };
 
   if (!isOpen) return null;
 
-  // Personalización de la opción del select con checkbox
-  const CustomOption = (props) => {
-    const { data, innerRef, innerProps, isSelected, selectOption } = props;
-
-    return (
-      <div ref={innerRef} {...innerProps} className="flex items-center p-2">
-        <input
-          type="checkbox"
-          checked={isSelected}
-          onChange={() => selectOption(data)} // Selección múltiple
-          className="mr-2"
-        />
-        {data.label}
-      </div>
-    );
-  };
-
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
       <div className="bg-white p-6 rounded-lg w-1/2">
         <div className="flex justify-between mb-4">
-          <h3 className="text-xl font-semibold">Crear Tiquete</h3>
-          <button
-            onClick={onClose}
-            className="text-xl"
-          >
-            X
-          </button>
+          <h3 className="text-xl font-semibold">Registro de Almacenamiento</h3>
+          <button onClick={onClose} className="text-xl">X</button>
         </div>
-
-        {/* Menú desplegable con react-select y checkboxes */}
+        
         <div className="mb-4">
           <label className="block text-lg mb-2">Selecciona los productos</label>
           <Select
             isMulti
-            name="products"
             options={options}
-            value={selectedProducts} // Mostrar los productos seleccionados
+            value={selectedProducts}
             onChange={handleSelectProduct}
-            getOptionLabel={(e) => e.label}
-            getOptionValue={(e) => e.value}
-            className="basic-multi-select"
-            classNamePrefix="select"
-            placeholder="Buscar y seleccionar productos..."
-            components={{ Option: CustomOption }} // Usamos el componente con checkbox
-            closeMenuOnSelect={false} // Evitar que el menú se cierre automáticamente
+            placeholder="Seleccionar productos..."
+            closeMenuOnSelect={false}
           />
         </div>
 
-        {/* Tabla con productos seleccionados */}
+        {/* Agregamos el EstadoSelect aquí */}
+        <div className="mb-4">
+          <EstadoSelect currentStatus={estado} onChange={setEstado} />
+        </div>
+
         <div className="mb-4">
           <table className="min-w-full table-auto">
             <thead>
-              <tr className="bg-[#00A305] text-white">
+              <tr className="bg-blue-500 text-white">
                 <th className="px-4 py-2">Producto</th>
                 <th className="px-4 py-2">Cantidad</th>
               </tr>
@@ -121,38 +94,24 @@ const ModalTiquete = ({ isOpen, onClose }) => {
           </table>
         </div>
 
-        {/* Campo de responsable */}
         <div className="mb-4">
-          <label className="block text-lg mb-2">A: Responsable</label>
+          <label className="block text-lg mb-2">Responsable</label>
           <input
             type="text"
             value={responsable}
-            onChange={handleResponsableChange}
+            onChange={(e) => setResponsable(e.target.value)}
             className="border p-2 w-full rounded"
             placeholder="Nombre del responsable"
           />
         </div>
 
-        {/* Botón Guardar */}
         <div className="flex justify-end space-x-4">
-  {/* Botón Guardar */}
-  <BotonPrincipal 
-    type="button" // Cambié a "button" para evitar el comportamiento por defecto del formulario
-    Text="Guardar"
-    onClick={handleSave} // Usar la lógica existente
-  />
-
-  {/* Botón Cancelar */}
-  <BotonSecundario 
-    type="button" // Cambié a "button" para evitar recargar la página
-    Text="Cancelar"
-    onClick={onClose} // Llamar directamente a onClose
-  />
-</div>
-
+          <BotonPrincipal Text="Guardar" onClick={handleSave} />
+          <BotonSecundario Text="Cancelar" onClick={onClose} />
+        </div>
       </div>
     </div>
   );
 };
 
-export default ModalTiquete;
+export default ModalEntrada;

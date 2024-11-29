@@ -1,16 +1,16 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom'; // Importar el hook para navegación
-import TableWithActions from '../../Components/TableWithActions';
+import AuxMaintenanceTable from '../../Components/AuxMaintenanceTable';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import BotonPrincipal from '../../Components/Boton';
 import BotonSecundario from '../../Components/BotonSecundario';
 
 const Example = () => {
   const navigate = useNavigate(); // Hook para manejar la navegación
-  const headers = ['Fecha', 'Descripcion', 'Ultima actualizacion', 'Cantidad', 'Acciones'];
+  const headers = ['Fecha De Solicitud', 'Descripcion del producto',  'Cantidad', 'Fecha de entrega', 'Firma de entrega', 'Acciones'];
   const rows = [
-    ['1', 'Producto A', '2024-11-25', 'Activo'],
-    ['2', 'Producto B', '2024-11-24', 'Inactivo'],
+    ['1', 'Producto A', '1', '2024-11-25', 'Activo'],
+    ['2', 'Producto B', '1', '2024-11-24', 'Inactivo'],
   ];
 
   const handleEdit = (row) => console.log('Editar', row);
@@ -24,7 +24,7 @@ const Example = () => {
 
   // Manejar la acción de devolver
   const handleDevolver = () => {
-    navigate('/tiquete'); // Ruta hacia la interfaz Tiquete.jsx
+    navigate('/Salidas'); // Ruta hacia la interfaz Tiquete.jsx
   };
 
   const CustomButtonGroup = () => (
@@ -42,7 +42,7 @@ const Example = () => {
     <DashboardLayout>
       <div className="mb-6 m-5">
         {/* Título */}
-        <h1 className="text-3xl font-bold text-center text-black mb-6">Tiquete-Central</h1>
+        <h1 className="text-3xl font-bold text-center text-black mb-6">Registro de Salida </h1>
         <CustomButtonGroup />
         <TableWithActions 
           title="Artículos Administrativos"

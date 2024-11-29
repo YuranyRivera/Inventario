@@ -2,8 +2,7 @@ import React from 'react';
 
 const CategorySelect = ({ selectedCategory, onChange }) => {
   return (
-    <div className="w-1/4">
-      <label className="block text-lg mb-2">Categoría</label>
+
       <select
         value={selectedCategory}
         onChange={onChange}
@@ -15,7 +14,7 @@ const CategorySelect = ({ selectedCategory, onChange }) => {
         <option value="disponible">Disponible</option>
         <option value="noDisponible">No Disponible</option>
       </select>
-    </div>
+
   );
 };
 

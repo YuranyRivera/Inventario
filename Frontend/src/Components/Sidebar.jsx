@@ -24,9 +24,10 @@ const Sidebar = () => {
         <a href="/Contacto" className="flex items-center text-lg hover:bg-[#41B646] p-2 rounded">
           <i className="fas fa-address-book mr-3"></i> Contacto
         </a>
-        <a href="/Tiquete" className="flex items-center text-lg hover:bg-[#41B646] p-2 rounded">
-          <i className="fas fa-file-alt mr-3"></i> Tiquete
+        <a href="/Entrada" className="flex items-center text-lg hover:bg-[#41B646] p-2 rounded">
+          <i className="fas fa-file-alt mr-3"></i> Registro
         </a>
+ 
         <a href="/EditarPerfil" className="flex items-center text-lg hover:bg-[#41B646] p-2 rounded">
           <i className="fas fa-user-edit mr-3"></i> Editar perfil
         </a>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
-import TableWithAddRow from '../../Components/TableWithAddRow';
+
 import BotonPrincipal from '../../Components/Boton';
 import BotonSecundario from '../../Components/BotonSecundario';
 
