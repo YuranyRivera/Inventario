@@ -57,7 +57,7 @@ const CustomTable = ({ headers, rows }) => {
       <ModalInforme
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        headers={['Fecha De Solicitud', 'Descripcion del producto', 'Cantidad', 'Fecha de entrega', 'Firma de entrega']}
+     
         rows={modalRows}
       />
     </div>

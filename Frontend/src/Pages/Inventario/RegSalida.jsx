@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom'; // Importar el hook para navegación
-import AuxMaintenanceTable from '../../Components/AuxMaintenanceTable';
+
 import DashboardLayout from '../../layouts/DashboardLayout';
 import BotonPrincipal from '../../Components/Boton';
 import BotonSecundario from '../../Components/BotonSecundario';

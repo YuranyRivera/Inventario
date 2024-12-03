@@ -5,7 +5,7 @@ import Dashboard from './Pages/Inventario/Dashboard';
 import Inicio from './Pages/Principal/Inicio'
 import Entrada from './Pages/Inventario/Registro'
 import Articulos from './Pages/Inventario/Articulos';
-import AgregarAux from './Pages/Inventario/AgregarAux'
+
 
 import RegSalida from './Pages/Inventario/RegSalida'
 
@@ -22,7 +22,7 @@ const App = () => {
         <Route path="/Inicio" element={<Inicio/>} />
         <Route path="/Dashboard" element={<Dashboard/>} />
         <Route path="/Entrada" element={<Entrada/>} />
-        <Route path="/AgregarAux" element={<AgregarAux/>} />
+
        
         <Route path="/Contacto" element={<Contactos/>} />
         <Route path="/RegSalida" element={<RegSalida/>} />

@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import ModalRAdm from './ModalR_Adm';   // Importa el modal administrativo
-import ModalRAlm from './ModalR_Alm';   // Importa el modal de almacenamiento
-import ModalAdmin from './ModalAdmin';  // Importa el modal administrativo
-import ModalAlm from './ModalAlm';      // Importa el modal de almacenamiento
+import ModalRAdm from './ModalR_Adm';   // Modal administrativo
+import ModalRAlm from './ModalR_Alm';   // Modal de almacenamiento
+import ModalAdmin from './ModalAdmin';  // Modal administrativo
+import ModalAlm from './ModalAlm';      // Modal de almacenamiento
 
-const ButtonGroup = ({ isStorageSelected }) => {
-  const [isModalEntradaOpen, setIsModalEntradaOpen] = useState(false); // Estado para el modal del reporte
-  const [isModalAdminOpen, setIsModalAdminOpen] = useState(false);     // Estado para el modal administrativo
-  const [isModalAlmOpen, setIsModalAlmOpen] = useState(false);         // Estado para el modal de almacenamiento
+const ButtonGroup = ({ isStorageSelected, onSave }) => {
+  const [isModalEntradaOpen, setIsModalEntradaOpen] = useState(false);  // Modal de Reporte
+  const [isModalAdminOpen, setIsModalAdminOpen] = useState(false);      // Modal de Administración
+  const [isModalAlmOpen, setIsModalAlmOpen] = useState(false);          // Modal de Almacenamiento
 
-  // Manejar apertura y cierre de modales
+  // Funciones para manejar apertura y cierre de modales
   const handleOpenEntradaModal = () => setIsModalEntradaOpen(true);
   const handleCloseEntradaModal = () => setIsModalEntradaOpen(false);
 
@@ -18,6 +18,11 @@ const ButtonGroup = ({ isStorageSelected }) => {
 
   const handleOpenAlmModal = () => setIsModalAlmOpen(true);
   const handleCloseAlmModal = () => setIsModalAlmOpen(false);
+
+  // Función para actualizar los artículos después de agregar uno nuevo
+  const refreshArticulos = () => {
+    onSave();  // Llama a la función onSave pasada por el componente padre (Articulos)
+  };
 
   return (
     <div>
@@ -50,7 +55,7 @@ const ButtonGroup = ({ isStorageSelected }) => {
         </button>
       </div>
 
-      {/* Modal del Reporte - Condicional según selección */}
+      {/* Modales Condicionales */}
       {isStorageSelected ? (
         <ModalRAlm isOpen={isModalEntradaOpen} onClose={handleCloseEntradaModal} />
       ) : (
@@ -61,7 +66,11 @@ const ButtonGroup = ({ isStorageSelected }) => {
       <ModalAdmin isOpen={isModalAdminOpen} onClose={handleCloseAdminModal} />
 
       {/* Modal de Almacenamiento */}
-      <ModalAlm isOpen={isModalAlmOpen} onClose={handleCloseAlmModal} />
+      <ModalAlm
+        isOpen={isModalAlmOpen}
+        onClose={() => setIsModalAlmOpen(false)}
+        onSave={refreshArticulos}  // Asegúrate de pasar la función
+      />
     </div>
   );
 };

@@ -1,19 +1,20 @@
 import React, { useState } from 'react';
+import useArticulos from '../hooks/useArticulos';
 
-const ModalAlm = ({ isOpen, onClose }) => {
-  if (!isOpen) return null; // Si el modal no está abierto, no renderiza nada
+const ModalAlm = ({ isOpen, onClose, onSave }) => {
+  if (!isOpen) return null;
+
+  const { addArticulos, loading, error } = useArticulos(onSave);
 
   const headers = ['Módulo', 'Estante', 'Cantidad', 'Producto/Detalle', 'Estado', 'Acciones'];
   const [rows, setRows] = useState([
     { modulo: '', estante: '', cantidad: '', producto: '', estado: '' },
   ]);
 
-  // Agregar una nueva fila vacía
   const handleAddRow = () => {
     setRows([...rows, { modulo: '', estante: '', cantidad: '', producto: '', estado: '' }]);
   };
 
-  // Manejar cambios en las celdas de una fila
   const handleRowChange = (e, rowIndex, field) => {
     const updatedRows = rows.map((row, index) =>
       index === rowIndex ? { ...row, [field]: e.target.value } : row
@@ -21,17 +22,28 @@ const ModalAlm = ({ isOpen, onClose }) => {
     setRows(updatedRows);
   };
 
-  // Guardar todas las filas
-  const handleSave = () => {
-    console.log('Artículos guardados:', rows);
+const handleSave = async () => {
+  try {
+    // Aquí se envían los artículos agregados
+    const response = await Promise.all(rows.map(row => addArticulos(row)));
+    onSave();  // Llama a la función onSave para actualizar los artículos en el componente padre
     onClose(); // Cierra el modal después de guardar
-  };
+
+    // Llama directamente a la función para agregar el artículo localmente
+    addArticulo(response[0]); // Aquí agregamos el artículo recién guardado
+  } catch (error) {
+    console.error('Error al guardar artículos:', error);
+  }
+};
+  
+
+  if (loading) return <div>Cargando...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
       <div className="bg-white w-[80%] p-6 rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold mb-4 text-center">Agregar Artículos de Almacenamiento</h2>
-
         <div className="bg-white p-4 rounded-lg">
           <table className="min-w-full table-auto rounded-lg overflow-hidden shadow-lg">
             <thead>

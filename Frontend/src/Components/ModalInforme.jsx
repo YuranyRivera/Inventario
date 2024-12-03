@@ -15,7 +15,7 @@ const ModalInforme = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   // Datos de ejemplo para las filas
-  const headers = ['Fecha De Solicitud', 'Descripcion del producto', 'Cantidad', 'Fecha de entrega', 'Firma de entrega'];
+  const headers = ['Fecha De Solicitud', 'Producto/Detalle', 'Cantidad', 'Fecha de entrega', 'Firma de entrega'];
   const rows = [
     ['2024-11-01', 'Laptop Dell XPS 13', '1', '2024-11-05', ''],
     ['2024-11-03', 'Monitor Samsung 24"', '2', '2024-11-10', ''],
