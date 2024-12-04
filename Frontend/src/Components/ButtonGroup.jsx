@@ -19,11 +19,11 @@ const ButtonGroup = ({ isStorageSelected, onSave }) => {
   const handleOpenAlmModal = () => setIsModalAlmOpen(true);
   const handleCloseAlmModal = () => setIsModalAlmOpen(false);
 
-  // Función para actualizar los artículos después de agregar uno nuevo
-  const refreshArticulos = () => {
-    onSave();  // Llama a la función onSave pasada por el componente padre (Articulos)
-  };
-
+// Función para manejar el guardado y recargar los datos
+const refreshArticulos = () => {
+  onSave(); // Recarga los datos
+  handleCloseAlmModal(); // Cierra el modal
+};
   return (
     <div>
       <div className="flex space-x-4">
@@ -38,13 +38,15 @@ const ButtonGroup = ({ isStorageSelected, onSave }) => {
         </button>
 
         {/* Botón para agregar artículo */}
+        <div className="flex space-x-4">
         <button
           className="bg-white text-green-600 py-2 px-4 border-2 border-green-600 rounded hover:bg-[#00A305]"
-          onClick={isStorageSelected ? handleOpenAlmModal : handleOpenAdminModal}
+          onClick={handleOpenAlmModal}
         >
           <span className="text-green-600 hover:text-white py-2 px-1">Agregar Artículo</span>
           <i className="fas fa-plus ml-2 text-white bg-[#00A305] p-1 rounded-full"></i>
         </button>
+      </div>
 
         {/* Botón para reporte, siempre visible */}
         <button
@@ -68,8 +70,8 @@ const ButtonGroup = ({ isStorageSelected, onSave }) => {
       {/* Modal de Almacenamiento */}
       <ModalAlm
         isOpen={isModalAlmOpen}
-        onClose={() => setIsModalAlmOpen(false)}
-        onSave={refreshArticulos}  // Asegúrate de pasar la función
+        onClose={handleCloseAlmModal}
+        onSave={refreshArticulos} // Recarga al guardar
       />
     </div>
   );

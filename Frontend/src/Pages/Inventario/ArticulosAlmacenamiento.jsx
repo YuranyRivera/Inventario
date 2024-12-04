@@ -1,16 +1,8 @@
-import React, { useState } from 'react';
-import useArticulo from '../../hooks/useArticulo';
-import ModalAlm from '../../Components/ModalAlm';
+import React from 'react';
 import AuxMaintenanceTable from '../../Components/AuxMaintenanceTable';
 
-const ArticulosAlmacenamiento = () => {
-  const { articulos, loading, error, reloadArticulos } = useArticulo();
-  const [isModalOpen, setModalOpen] = useState(false);
-  
+const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
   const headers = ['ID', 'Módulo', 'Estante', 'Cantidad', 'Producto/Detalle', 'Estado', 'Entrada', 'Salida', 'Restante'];
-
-  const handleOpenModal = () => setModalOpen(true);
-  const handleCloseModal = () => setModalOpen(false);
 
   const handleEdit = (row) => {
     console.log('Editar', row);
@@ -20,18 +12,8 @@ const ArticulosAlmacenamiento = () => {
     console.log('Eliminar', row);
   };
 
-  if (loading) return <div>Cargando...</div>;
-  if (error) return <div>Error: {error}</div>;
-
   return (
     <>
-      <button
-        onClick={handleOpenModal}
-        className="bg-[#00A305] text-white px-4 py-2 rounded hover:bg-green-700"
-      >
-        Agregar Artículo
-      </button>
-      
       <AuxMaintenanceTable
         headers={headers}
         rows={articulos.map((articulo) => [
@@ -47,11 +29,6 @@ const ArticulosAlmacenamiento = () => {
         ])}
         onEdit={handleEdit}
         onDelete={handleDelete}
-      />
-      <ModalAlm
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onSave={reloadArticulos}
       />
     </>
   );
