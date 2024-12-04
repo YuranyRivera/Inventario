@@ -1,24 +1,35 @@
-import React, { useState } from 'react';
-import Select from 'react-select';
-import EstadoSelect from './EstadoSelect';  // Importamos el componente EstadoSelect
+import React, { useState, useEffect } from 'react';
+import ProductSelect from './ProductSelect';
+import EstadoSelect from './EstadoSelect';  
 import BotonPrincipal from './Boton';
 import BotonSecundario from './BotonSecundario';
 
 const ModalEntrada = ({ isOpen, onClose }) => {
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [responsable, setResponsable] = useState('');
-  const [estado, setEstado] = useState('entrada'); // Estado para la selección de "Entrada" o "Salida"
-  
-  const [products] = useState([
-    { id: 1, name: 'Producto A' },
-    { id: 2, name: 'Producto B' },
-    { id: 3, name: 'Producto C' },
-    { id: 4, name: 'Producto D' },
-  ]);
+  const [estado, setEstado] = useState(2); // Estado inicial como número (2 para entrada)
+  const [products, setProducts] = useState([]); // Productos cargados desde la API
+
+  // Cargar productos desde la API
+  useEffect(() => {
+    const fetchProductos = async () => {
+      try {
+        const response = await fetch('http://localhost:4000/api/productos');
+        const data = await response.json();
+        setProducts(data); // Guardar productos en el estado
+      } catch (error) {
+        console.error('Error al obtener los productos', error);
+      }
+    };
+
+    if (isOpen) {
+      fetchProductos();
+    }
+  }, [isOpen]);
 
   const options = products.map((product) => ({
     value: product.id,
-    label: product.name,
+    label: product.producto, // Nombre del producto
   }));
 
   const handleSelectProduct = (selectedOptions) => {
@@ -26,7 +37,7 @@ const ModalEntrada = ({ isOpen, onClose }) => {
   };
 
   const handleQuantityChange = (e, productId) => {
-    const newQuantity = e.target.value;
+    const newQuantity = parseInt(e.target.value, 10) || 1; // Asegurarse de que sea un número
     setSelectedProducts((prevSelected) =>
       prevSelected.map((product) =>
         product.value === productId ? { ...product, quantity: newQuantity } : product
@@ -34,11 +45,45 @@ const ModalEntrada = ({ isOpen, onClose }) => {
     );
   };
 
-  const handleSave = () => {
-    console.log('Entrada registrada:', selectedProducts);
-    console.log('Responsable:', responsable);
-    console.log('Estado:', estado); // Imprimir el estado seleccionado
-    onClose(); // Cerrar el modal
+  const handleSave = async () => {
+    try {
+      // Verificar campos obligatorios
+      if (!responsable) {
+        alert('Debe ingresar el nombre del responsable.');
+        return;
+      }
+
+      if (selectedProducts.length === 0) {
+        alert('Debe seleccionar al menos un producto.');
+        return;
+      }
+
+      // Mapear productos seleccionados
+      const movimientos = selectedProducts.map(product => ({
+        articulo_id: product.value,        // ID del producto
+        tipo_movimiento: estado,          // 1 para salida, 2 para entrada
+        cantidad: product.quantity || 1,  // Cantidad seleccionada (por defecto 1)
+        solicitante: responsable          // Responsable
+      }));
+
+      // Enviar datos al backend
+      await Promise.all(
+        movimientos.map(async (movimiento) => {
+          await fetch('http://localhost:4000/api/movimientos', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(movimiento),
+          });
+        })
+      );
+
+      console.log('Movimientos registrados:', movimientos);
+      onClose(); // Cerrar modal después de guardar
+    } catch (error) {
+      console.error('Error al guardar movimientos:', error);
+    }
   };
 
   if (!isOpen) return null;
@@ -50,20 +95,15 @@ const ModalEntrada = ({ isOpen, onClose }) => {
           <h3 className="text-xl font-semibold">Registro de Almacenamiento</h3>
           <button onClick={onClose} className="text-xl">X</button>
         </div>
-        
-        <div className="mb-4">
-          <label className="block text-lg mb-2">Selecciona los productos</label>
-          <Select
-            isMulti
-            options={options}
-            value={selectedProducts}
-            onChange={handleSelectProduct}
-            placeholder="Seleccionar productos..."
-            closeMenuOnSelect={false}
-          />
-        </div>
 
-        {/* Agregamos el EstadoSelect aquí */}
+        {/* Componente ProductSelect */}
+        <ProductSelect
+          options={options}
+          value={selectedProducts}
+          onChange={handleSelectProduct}
+        />
+
+        {/* Componente EstadoSelect */}
         <div className="mb-4">
           <EstadoSelect currentStatus={estado} onChange={setEstado} />
         </div>
@@ -83,6 +123,7 @@ const ModalEntrada = ({ isOpen, onClose }) => {
                   <td className="px-4 py-2">
                     <input
                       type="number"
+                      min="1"
                       value={product.quantity || 1}
                       onChange={(e) => handleQuantityChange(e, product.value)}
                       className="border p-2 rounded w-full"

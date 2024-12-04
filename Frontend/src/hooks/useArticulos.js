@@ -1,14 +1,13 @@
 import { useState } from 'react';
 
 const useArticulos = (refreshArticulos) => {
+  const [articulos, setArticulos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const addArticulos = async (articuloData) => {
     setLoading(true);
     try {
-      console.log('Sending article data:', articuloData); // Debugging log
-
       const response = await fetch('http://localhost:4000/api/articulos', {
         method: 'POST',
         headers: {
@@ -17,22 +16,18 @@ const useArticulos = (refreshArticulos) => {
         body: JSON.stringify(articuloData),
       });
 
-      console.log('Add article response:', response); // Debugging log
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const newArticulo = await response.json();
-      console.log('Artículo agregado:', newArticulo);
+      // Aquí puedes actualizar el estado local con el nuevo artículo
+      setArticulos((prevArticulos) => [...prevArticulos, newArticulo.articulo]);
 
-      // Ensure refreshArticulos is a function before calling
+      // Llama a refreshArticulos si es necesario
       if (typeof refreshArticulos === 'function') {
         refreshArticulos();
-      } else {
-        console.warn('refreshArticulos is not a function');
       }
-
     } catch (error) {
       console.error('Add article error:', error);
       setError(error.message);
@@ -41,7 +36,7 @@ const useArticulos = (refreshArticulos) => {
     }
   };
 
-  return { loading, error, addArticulos };
+  return { articulos, loading, error, addArticulos };
 };
 
 export default useArticulos;

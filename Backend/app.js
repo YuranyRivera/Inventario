@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import dataRoutes from './routes/dataroutes.js';  // Rutas del nuevo proyecto
+import dataRoutes from './routes/dataroutes.js';  // Ruta correcta hacia tu archivo de rutas
 
 const app = express();
 const PORT = 4000;
@@ -10,8 +10,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
-// Rutas de la API
-app.use('/api', dataRoutes); // Rutas con el prefijo /api
+// Ruta principal que maneja todas las solicitudes a /api
+app.use('/api', dataRoutes); // Asegúrate de usar /api como prefijo para todas las rutas definidas en dataRoutes
 
 // Manejo de errores
 app.use((err, req, res, next) => {

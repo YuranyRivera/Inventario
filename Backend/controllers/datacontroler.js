@@ -3,11 +3,43 @@ import bcrypt from 'bcrypt';
 
 export const getArticulos = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM articulos_almacenamiento');
-    res.status(200).json(result.rows); // Devuelve todos los artículos almacenados
+    const result = await pool.query('SELECT * FROM articulos_almacenamiento ORDER BY id ASC');
+    res.status(200).json(result.rows); // Devuelve todos los artículos almacenados en orden
   } catch (error) {
     console.error('Error al obtener los artículos', error);
     res.status(500).json({ message: 'Error al obtener los artículos' });
+  }
+};
+
+// Endpoint para obtener el último ID insertado
+export const getLastId = async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id FROM articulos_almacenamiento ORDER BY id DESC LIMIT 1');
+    if (result.rows.length > 0) {
+      res.status(200).json({ id: result.rows[0].id });
+    } else {
+      res.status(200).json({ id: 0 });  // Si no hay registros, devuelve 0
+    }
+  } catch (err) {
+    console.error('Error al obtener el último ID:', err);
+    res.status(500).json({ error: 'Error al obtener el último ID' });
+  }
+};
+
+export const deleteArticulo = async (req, res) => {
+  const { id } = req.params;
+  try {
+    // Eliminar el artículo de la base de datos
+    const result = await pool.query('DELETE FROM articulos_almacenamiento WHERE id = $1', [id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: `Artículo con id ${id} no encontrado` });
+    }
+
+    res.status(200).json({ message: `Artículo con id ${id} eliminado` });
+  } catch (error) {
+    console.error('Error al eliminar el artículo', error);
+    res.status(500).json({ message: 'Error al eliminar el artículo' });
   }
 };
 
@@ -21,6 +53,32 @@ export const getProductos = async (req, res) => {
   }
 };
 
+export const createMovimiento = async (req, res) => {
+  const { articulo_id, tipo_movimiento, cantidad, solicitante } = req.body;
+
+  if (!articulo_id || !tipo_movimiento || !cantidad || !solicitante) {
+    return res.status(400).json({ message: 'Todos los campos son obligatorios' });
+  }
+
+  try {
+    const insertQuery = `
+      INSERT INTO movimientos_almacen (articulo_id, tipo_movimiento, cantidad, solicitante)
+      VALUES ($1, $2, $3, $4)
+      RETURNING *;
+    `;
+    const result = await pool.query(insertQuery, [articulo_id, tipo_movimiento, cantidad, solicitante]);
+
+    res.status(201).json({
+      message: 'Movimiento registrado con éxito',
+      movimiento: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Error al registrar el movimiento:', error);
+    res.status(500).json({ message: 'Error al registrar el movimiento' });
+  }
+};
+
+
 export const createArticulo = async (req, res) => {
   const { modulo, estante, producto, cantidad, estado } = req.body;
 
@@ -32,11 +90,10 @@ export const createArticulo = async (req, res) => {
   try {
     // Insertar el nuevo artículo en la base de datos
     const insertArticuloQuery = `
-      INSERT INTO articulos_almacenamiento (modulo, estante, producto, cantidad, estado)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, modulo, estante, producto, cantidad, estado, created_at
-    `;
-
+    INSERT INTO articulos_almacenamiento (modulo, estante, producto, cantidad, estado)
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING id, modulo, estante, producto, cantidad, estado, created_at
+  `;
     const result = await pool.query(insertArticuloQuery, [modulo, estante, producto, cantidad, estado]);
 
     // Responder con el artículo insertado

@@ -1,29 +1,26 @@
 import React, { useState } from 'react';
-import ModalRAdm from './ModalR_Adm';   // Modal administrativo
-import ModalRAlm from './ModalR_Alm';   // Modal de almacenamiento
+import ModalRAdm from './ModalR_Adm';   // Modal reporte administrativo
+import ModalRAlm from './ModalR_Alm';   // Modal reporte almacenamiento
 import ModalAdmin from './ModalAdmin';  // Modal administrativo
-import ModalAlm from './ModalAlm';      // Modal de almacenamiento
+import ModalAlm from './ModalAlm';      // Modal almacenamiento
 
 const ButtonGroup = ({ isStorageSelected, onSave }) => {
   const [isModalEntradaOpen, setIsModalEntradaOpen] = useState(false);  // Modal de Reporte
-  const [isModalAdminOpen, setIsModalAdminOpen] = useState(false);      // Modal de Administración
-  const [isModalAlmOpen, setIsModalAlmOpen] = useState(false);          // Modal de Almacenamiento
+  const [isModalAddOpen, setIsModalAddOpen] = useState(false);          // Modal de Agregar Artículo
 
   // Funciones para manejar apertura y cierre de modales
   const handleOpenEntradaModal = () => setIsModalEntradaOpen(true);
   const handleCloseEntradaModal = () => setIsModalEntradaOpen(false);
 
-  const handleOpenAdminModal = () => setIsModalAdminOpen(true);
-  const handleCloseAdminModal = () => setIsModalAdminOpen(false);
+  const handleOpenAddModal = () => setIsModalAddOpen(true);
+  const handleCloseAddModal = () => setIsModalAddOpen(false);
 
-  const handleOpenAlmModal = () => setIsModalAlmOpen(true);
-  const handleCloseAlmModal = () => setIsModalAlmOpen(false);
+  // Función para manejar el guardado y recargar los datos
+  const refreshArticulos = () => {
+    onSave(); // Recarga los datos
+    handleCloseAddModal(); // Cierra el modal
+  };
 
-// Función para manejar el guardado y recargar los datos
-const refreshArticulos = () => {
-  onSave(); // Recarga los datos
-  handleCloseAlmModal(); // Cierra el modal
-};
   return (
     <div>
       <div className="flex space-x-4">
@@ -38,17 +35,15 @@ const refreshArticulos = () => {
         </button>
 
         {/* Botón para agregar artículo */}
-        <div className="flex space-x-4">
         <button
           className="bg-white text-green-600 py-2 px-4 border-2 border-green-600 rounded hover:bg-[#00A305]"
-          onClick={handleOpenAlmModal}
+          onClick={handleOpenAddModal}
         >
           <span className="text-green-600 hover:text-white py-2 px-1">Agregar Artículo</span>
           <i className="fas fa-plus ml-2 text-white bg-[#00A305] p-1 rounded-full"></i>
         </button>
-      </div>
 
-        {/* Botón para reporte, siempre visible */}
+        {/* Botón para reporte */}
         <button
           className="bg-white text-green-600 py-2 px-4 border-2 border-green-600 rounded hover:text-white hover:bg-[#00A305]"
           onClick={handleOpenEntradaModal}
@@ -57,22 +52,30 @@ const refreshArticulos = () => {
         </button>
       </div>
 
-      {/* Modales Condicionales */}
+      {/* Modales */}
       {isStorageSelected ? (
-        <ModalRAlm isOpen={isModalEntradaOpen} onClose={handleCloseEntradaModal} />
+        <>
+          {/* Modal de Reporte para Almacenamiento */}
+          <ModalRAlm isOpen={isModalEntradaOpen} onClose={handleCloseEntradaModal} />
+          {/* Modal de Agregar Artículo para Almacenamiento */}
+          <ModalAlm
+            isOpen={isModalAddOpen}
+            onClose={handleCloseAddModal}
+            onSave={refreshArticulos}
+          />
+        </>
       ) : (
-        <ModalRAdm isOpen={isModalEntradaOpen} onClose={handleCloseEntradaModal} />
+        <>
+          {/* Modal de Reporte para Administrativos */}
+          <ModalRAdm isOpen={isModalEntradaOpen} onClose={handleCloseEntradaModal} />
+          {/* Modal de Agregar Artículo para Administrativos */}
+          <ModalAdmin
+            isOpen={isModalAddOpen}
+            onClose={handleCloseAddModal}
+            onSave={refreshArticulos}
+          />
+        </>
       )}
-
-      {/* Modal de Administración */}
-      <ModalAdmin isOpen={isModalAdminOpen} onClose={handleCloseAdminModal} />
-
-      {/* Modal de Almacenamiento */}
-      <ModalAlm
-        isOpen={isModalAlmOpen}
-        onClose={handleCloseAlmModal}
-        onSave={refreshArticulos} // Recarga al guardar
-      />
     </div>
   );
 };

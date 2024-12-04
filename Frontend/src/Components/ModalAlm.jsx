@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import useArticulos from '../hooks/useArticulos';
 
 const ModalAlm = ({ isOpen, onClose, onSave }) => {
@@ -6,13 +6,28 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
 
   const { addArticulos, loading, error } = useArticulos(onSave);
 
-  const headers = ['Módulo', 'Estante', 'Cantidad', 'Producto/Detalle', 'Estado', 'Acciones'];
+  const headers = ['ID', 'Módulo', 'Estante', 'Cantidad', 'Producto/Detalle', 'Estado', 'Acciones'];
   const [rows, setRows] = useState([
-    { modulo: '', estante: '', cantidad: '', producto: '', estado: '' },
+    { id: null, modulo: '', estante: '', cantidad: '', producto: '', estado: '' },
   ]);
 
+  useEffect(() => {
+    // Supongamos que el último ID en la base de datos es el máximo
+    const fetchLastId = async () => {
+      const response = await fetch('http://localhost:4000/api/articulos/last-id'); // Asegúrate de tener esta ruta en tu backend
+      const data = await response.json();
+      const lastId = data.id; // Suponiendo que el backend devuelve el último ID
+      setRows([{ id: lastId + 1, modulo: '', estante: '', cantidad: '', producto: '', estado: '' }]);
+    };
+
+    if (isOpen) {
+      fetchLastId();
+    }
+  }, [isOpen]);
+
   const handleAddRow = () => {
-    setRows([...rows, { modulo: '', estante: '', cantidad: '', producto: '', estado: '' }]);
+    const lastId = rows[rows.length - 1]?.id || 1;
+    setRows([...rows, { id: lastId + 1, modulo: '', estante: '', cantidad: '', producto: '', estado: '' }]);
   };
 
   const handleRowChange = (e, rowIndex, field) => {
@@ -22,20 +37,27 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
     setRows(updatedRows);
   };
 
-const handleSave = async () => {
-  try {
-    // Aquí se envían los artículos agregados
-    const response = await Promise.all(rows.map(row => addArticulos(row)));
-    onSave();  // Llama a la función onSave para actualizar los artículos en el componente padre
-    onClose(); // Cierra el modal después de guardar
-
-    // Llama directamente a la función para agregar el artículo localmente
-    addArticulo(response[0]); // Aquí agregamos el artículo recién guardado
-  } catch (error) {
-    console.error('Error al guardar artículos:', error);
-  }
-};
-  
+  const handleSave = async () => {
+    try {
+      // Enviar los artículos con el ID al backend
+      const response = await Promise.all(
+        rows.map((row) => {
+          return addArticulos({
+            id: row.id,  // Asegúrate de que el ID esté incluido
+            modulo: row.modulo,
+            estante: row.estante,
+            producto: row.producto,
+            cantidad: row.cantidad,
+            estado: row.estado
+          });
+        })
+      );
+      onSave();  // Llama a la función onSave para actualizar los artículos en el componente padre
+      onClose(); // Cierra el modal después de guardar
+    } catch (error) {
+      console.error('Error al guardar artículos:', error);
+    }
+  };
 
   if (loading) return <div>Cargando...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -55,7 +77,8 @@ const handleSave = async () => {
             </thead>
             <tbody>
               {rows.map((row, rowIndex) => (
-                <tr key={rowIndex} className="border-t">
+                <tr key={row.id} className="border-t">
+                  <td className="px-4 py-2">{row.id}</td>
                   <td className="px-4 py-2">
                     <input
                       type="text"

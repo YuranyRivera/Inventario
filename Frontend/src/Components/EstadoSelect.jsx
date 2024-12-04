@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 
 // Componente para el menú desplegable
 const EstadoSelect = ({ onChange, currentStatus }) => {
-  const [selectedValue, setSelectedValue] = useState(currentStatus || 'entrada'); // Estado local para la opción seleccionada
+  const [selectedValue, setSelectedValue] = useState(currentStatus || 1); // Estado local para la opción seleccionada
 
   const handleChange = (event) => {
-    const selected = event.target.value;  // Obtén el valor seleccionado
+    const selected = Number(event.target.value);  // Convierte el valor seleccionado a número
     setSelectedValue(selected);  // Actualiza el estado local
     onChange(selected);  // Llama la función onChange pasada desde el componente padre para actualizar el estado en la base de datos
   };
@@ -20,8 +20,8 @@ const EstadoSelect = ({ onChange, currentStatus }) => {
         value={selectedValue}
         onChange={handleChange}
       >
-        <option value="entrada">Entrada</option>
-        <option value="salida">Salida</option>
+        <option value={2}>Entrada</option>
+        <option value={1}>Salida</option>
       </select>
     </div>
   );
