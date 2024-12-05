@@ -6,7 +6,7 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
 
   const { addArticulos, loading, error } = useArticulos(onSave);
 
-  const headers = ['ID', 'Módulo', 'Estante', 'Cantidad', 'Producto/Detalle', 'Estado', 'Acciones'];
+  const headers = ['ID', 'Producto/Detalle', 'Cantidad', 'Módulo', 'Estante', 'Estado', 'Acciones'];
   const [rows, setRows] = useState([
     { id: null, modulo: '', estante: '', cantidad: '', producto: '', estado: '' },
   ]);
@@ -37,26 +37,27 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
     setRows(updatedRows);
   };
 
-const handleSave = async () => {
-  try {
-    // Enviar los artículos EN EL ORDEN EXACTO que fueron creados
-    for (const row of rows) {
-      await addArticulos({
-        id: row.id,
-        modulo: row.modulo,
-        estante: row.estante,
-        producto: row.producto,
-        cantidad: row.cantidad,
-        estado: row.estado
-      });
+  const handleSave = async () => {
+    try {
+      // Enviar los artículos EN EL ORDEN EXACTO que fueron creados
+      for (const row of rows) {
+        await addArticulos({
+          id: row.id,
+          modulo: row.modulo,
+          estante: row.estante,
+          producto: row.producto,
+          cantidad: row.cantidad,
+          estado: row.estado
+        });
+      }
+      
+      onSave();  // Actualizar la lista de artículos
+      onClose(); // Cerrar el modal
+    } catch (error) {
+      console.error('Error al guardar artículos:', error);
     }
-    
-    onSave();  // Actualizar la lista de artículos
-    onClose(); // Cerrar el modal
-  } catch (error) {
-    console.error('Error al guardar artículos:', error);
-  }
-};
+  };
+
   if (loading) return <div>Cargando...</div>;
   if (error) return <div>Error: {error}</div>;
 
@@ -80,19 +81,10 @@ const handleSave = async () => {
                   <td className="px-4 py-2">
                     <input
                       type="text"
-                      value={row.modulo}
-                      onChange={(e) => handleRowChange(e, rowIndex, 'modulo')}
+                      value={row.producto}
+                      onChange={(e) => handleRowChange(e, rowIndex, 'producto')}
                       className="border px-2 py-1 w-full"
-                      placeholder="Módulo"
-                    />
-                  </td>
-                  <td className="px-4 py-2">
-                    <input
-                      type="text"
-                      value={row.estante}
-                      onChange={(e) => handleRowChange(e, rowIndex, 'estante')}
-                      className="border px-2 py-1 w-full"
-                      placeholder="Estante"
+                      placeholder="Producto/Detalle"
                     />
                   </td>
                   <td className="px-4 py-2">
@@ -107,10 +99,19 @@ const handleSave = async () => {
                   <td className="px-4 py-2">
                     <input
                       type="text"
-                      value={row.producto}
-                      onChange={(e) => handleRowChange(e, rowIndex, 'producto')}
+                      value={row.modulo}
+                      onChange={(e) => handleRowChange(e, rowIndex, 'modulo')}
                       className="border px-2 py-1 w-full"
-                      placeholder="Producto/Detalle"
+                      placeholder="Módulo"
+                    />
+                  </td>
+                  <td className="px-4 py-2">
+                    <input
+                      type="text"
+                      value={row.estante}
+                      onChange={(e) => handleRowChange(e, rowIndex, 'estante')}
+                      className="border px-2 py-1 w-full"
+                      placeholder="Estante"
                     />
                   </td>
                   <td className="px-4 py-2">

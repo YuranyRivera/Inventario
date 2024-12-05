@@ -2,7 +2,8 @@ import React from 'react';
 import AuxMaintenanceTable from '../../Components/AuxMaintenanceTable';
 
 const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
-  const headers = ['ID', 'Módulo', 'Estante', 'Cantidad', 'Producto/Detalle', 'Estado', 'Entrada', 'Salida', 'Restante'];
+  // Actualizar el orden de los encabezados
+  const headers = ['ID', 'Producto/Detalle', 'Cantidad', 'Módulo', 'Estante', 'Estado', 'Entrada', 'Salida', 'Restante'];
 
   const handleEdit = (row) => {
     console.log('Editar', row);
@@ -18,11 +19,11 @@ const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
         headers={headers}
         rows={articulos.map((articulo) => [
           articulo.id,
-          articulo.modulo,
-          articulo.estante,
-          articulo.cantidad,
-          articulo.producto,
-          articulo.estado,
+          articulo.producto, // Producto/Detalle primero
+          articulo.cantidad, // Luego cantidad
+          articulo.modulo,   // Luego módulo
+          articulo.estante,  // Luego estante
+          articulo.estado, 
           articulo.entrada,
           articulo.salida,
           articulo.restante,
