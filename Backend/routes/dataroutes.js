@@ -1,5 +1,5 @@
 import express from 'express';
-import { getLastId, createMovimiento, getArticulos, deleteArticulo, getProductos, createUser, createArticulo } from '../controllers/datacontroler.js';
+import { getLastId, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createUser, createArticulo } from '../controllers/datacontroler.js';
 
 const router = express.Router();
 
@@ -10,6 +10,8 @@ router.get('/articulos/last-id', getLastId); // Cambié el nombre de la ruta a /
 router.post('/articulos', createArticulo);
 router.get('/articulos', getArticulos); 
 router.get('/productos', getProductos); 
+// Ruta para obtener los movimientos
+router.get('/movimientos', getMovimientos);
 // Ruta para crear un nuevo movimiento
 router.post('/movimientos', createMovimiento);
 router.delete('/articulos/:id', deleteArticulo);

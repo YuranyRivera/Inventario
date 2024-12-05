@@ -37,28 +37,26 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
     setRows(updatedRows);
   };
 
-  const handleSave = async () => {
-    try {
-      // Enviar los artículos con el ID al backend
-      const response = await Promise.all(
-        rows.map((row) => {
-          return addArticulos({
-            id: row.id,  // Asegúrate de que el ID esté incluido
-            modulo: row.modulo,
-            estante: row.estante,
-            producto: row.producto,
-            cantidad: row.cantidad,
-            estado: row.estado
-          });
-        })
-      );
-      onSave();  // Llama a la función onSave para actualizar los artículos en el componente padre
-      onClose(); // Cierra el modal después de guardar
-    } catch (error) {
-      console.error('Error al guardar artículos:', error);
+const handleSave = async () => {
+  try {
+    // Enviar los artículos EN EL ORDEN EXACTO que fueron creados
+    for (const row of rows) {
+      await addArticulos({
+        id: row.id,
+        modulo: row.modulo,
+        estante: row.estante,
+        producto: row.producto,
+        cantidad: row.cantidad,
+        estado: row.estado
+      });
     }
-  };
-
+    
+    onSave();  // Actualizar la lista de artículos
+    onClose(); // Cerrar el modal
+  } catch (error) {
+    console.error('Error al guardar artículos:', error);
+  }
+};
   if (loading) return <div>Cargando...</div>;
   if (error) return <div>Error: {error}</div>;
 

@@ -13,7 +13,7 @@ const Example = () => {
     <DashboardLayout>
       <div className="mb-6 m-5">
         {/* Título */}
-        <h1 className="text-3xl font-bold text-center text-black mb-6">Registro</h1>
+        <h1 className="text-3xl font-bold text-center text-black mb-6">Registro general</h1>
 
         {/* Tabla personalizada */}
         <TableEntrada headers={headers} rows={rows} />

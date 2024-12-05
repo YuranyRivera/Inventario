@@ -78,23 +78,58 @@ export const createMovimiento = async (req, res) => {
   }
 };
 
+// Función para obtener todos los movimientos
+export const getMovimientos = async (req, res) => {
+  try {
+    // Realizamos la consulta a la base de datos
+    const result = await pool.query(`
+      SELECT 
+        m.id,
+        m.fecha,
+        m.cantidad,
+        m.tipo_registro,
+        a.estado
+      FROM 
+        movimientos_almacen m
+      JOIN 
+        articulos_almacenamiento a ON m.articulo_id = a.id
+      ORDER BY 
+        m.fecha DESC;
+    `);
+    
+    // Retornamos los resultados como JSON
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error al obtener los movimientos:', error);
+    res.status(500).send('Error en el servidor');
+  }
+};
+
 
 export const createArticulo = async (req, res) => {
-  const { modulo, estante, producto, cantidad, estado } = req.body;
+  const { id, modulo, estante, producto, cantidad, estado } = req.body;
 
-  // Validar que los campos necesarios estén presentes
+  // Validaciones
   if (!modulo || !estante || !producto || cantidad === undefined || !estado) {
     return res.status(400).json({ error: 'Todos los campos son obligatorios' });
   }
 
+  const client = await pool.connect();
+
   try {
-    // Insertar el nuevo artículo en la base de datos
+    // Iniciar transacción
+    await client.query('BEGIN');
+
+    // Insertar el nuevo artículo
     const insertArticuloQuery = `
-    INSERT INTO articulos_almacenamiento (modulo, estante, producto, cantidad, estado)
-    VALUES ($1, $2, $3, $4, $5)
-    RETURNING id, modulo, estante, producto, cantidad, estado, created_at
-  `;
-    const result = await pool.query(insertArticuloQuery, [modulo, estante, producto, cantidad, estado]);
+      INSERT INTO articulos_almacenamiento (id, modulo, estante, producto, cantidad, estado)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id, modulo, estante, producto, cantidad, estado, created_at
+    `;
+    const result = await client.query(insertArticuloQuery, [id, modulo, estante, producto, cantidad, estado]);
+
+    // Confirmar transacción
+    await client.query('COMMIT');
 
     // Responder con el artículo insertado
     res.status(201).json({
@@ -102,8 +137,14 @@ export const createArticulo = async (req, res) => {
       articulo: result.rows[0],
     });
   } catch (err) {
+    // Revertir transacción en caso de error
+    await client.query('ROLLBACK');
+    
     console.error('Error al crear el artículo:', err);
     res.status(500).json({ error: 'Error al crear el artículo' });
+  } finally {
+    // Liberar el cliente
+    client.release();
   }
 };
 

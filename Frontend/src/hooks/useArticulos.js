@@ -15,15 +15,20 @@ const useArticulos = (refreshArticulos) => {
         },
         body: JSON.stringify(articuloData),
       });
-
+  
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
+  
       const newArticulo = await response.json();
-      // Aquí puedes actualizar el estado local con el nuevo artículo
-      setArticulos((prevArticulos) => [...prevArticulos, newArticulo.articulo]);
-
+      
+      // Añadir el nuevo artículo al estado local
+      setArticulos((prevArticulos) => {
+        // Verificar si el artículo ya existe para evitar duplicados
+        const exists = prevArticulos.some(art => art.id === newArticulo.articulo.id);
+        return exists ? prevArticulos : [...prevArticulos, newArticulo.articulo];
+      });
+  
       // Llama a refreshArticulos si es necesario
       if (typeof refreshArticulos === 'function') {
         refreshArticulos();
