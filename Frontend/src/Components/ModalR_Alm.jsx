@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ProductSelect from './ProductSelect';
-import EstadoSelect from './EstadoSelect';  
+import EstadoSelect from './EstadoSelect';
 import BotonPrincipal from './Boton';
 import BotonSecundario from './BotonSecundario';
 
@@ -12,30 +12,34 @@ const ModalEntrada = ({ isOpen, onClose }) => {
 
   // Cargar productos desde la API
   useEffect(() => {
-    const fetchProductos = async () => {
-      try {
-        const response = await fetch('http://localhost:4000/api/productos');
-        const data = await response.json();
-        setProducts(data); // Guardar productos en el estado
-      } catch (error) {
-        console.error('Error al obtener los productos', error);
-      }
-    };
-
     if (isOpen) {
       fetchProductos();
     }
   }, [isOpen]);
 
+  // Función para cargar productos desde la API
+  const fetchProductos = async () => {
+    try {
+      const response = await fetch('http://localhost:4000/api/productos');
+      const data = await response.json();
+      setProducts(data); // Guardar productos en el estado
+    } catch (error) {
+      console.error('Error al obtener los productos', error);
+    }
+  };
+
+  // Opciones para el selector de productos
   const options = products.map((product) => ({
     value: product.id,
     label: product.producto, // Nombre del producto
   }));
 
+  // Manejar la selección de productos
   const handleSelectProduct = (selectedOptions) => {
     setSelectedProducts(selectedOptions);
   };
 
+  // Manejar el cambio de cantidad para un producto
   const handleQuantityChange = (e, productId) => {
     const newQuantity = parseInt(e.target.value, 10) || 1; // Asegurarse de que sea un número
     setSelectedProducts((prevSelected) =>
@@ -45,46 +49,53 @@ const ModalEntrada = ({ isOpen, onClose }) => {
     );
   };
 
-  const handleSave = async () => {
-    try {
-      // Verificar campos obligatorios
-      if (!responsable) {
-        alert('Debe ingresar el nombre del responsable.');
-        return;
-      }
-
-      if (selectedProducts.length === 0) {
-        alert('Debe seleccionar al menos un producto.');
-        return;
-      }
-
-      // Mapear productos seleccionados
-      const movimientos = selectedProducts.map(product => ({
-        articulo_id: product.value,        // ID del producto
-        tipo_movimiento: estado,          // 1 para salida, 2 para entrada
-        cantidad: product.quantity || 1,  // Cantidad seleccionada (por defecto 1)
-        solicitante: responsable          // Responsable
-      }));
-
-      // Enviar datos al backend
-      await Promise.all(
-        movimientos.map(async (movimiento) => {
-          await fetch('http://localhost:4000/api/movimientos', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(movimiento),
-          });
-        })
-      );
-
-      console.log('Movimientos registrados:', movimientos);
-      onClose(); // Cerrar modal después de guardar
-    } catch (error) {
-      console.error('Error al guardar movimientos:', error);
+  // Manejar la acción de guardar
+const handleSave = async () => {
+  try {
+    // Validar campos obligatorios
+    if (!responsable) {
+      alert('Debe ingresar el nombre del responsable.');
+      return;
     }
-  };
+
+    if (selectedProducts.length === 0) {
+      alert('Debe seleccionar al menos un producto.');
+      return;
+    }
+
+    // Mapear los productos seleccionados a los movimientos
+    const movimientos = selectedProducts.map((product) => ({
+      articulo_id: product.value, // Asumiendo que 'product.value' es el 'articulo_id'
+      tipo_movimiento: estado, // Tipo de movimiento (2 para entrada)
+      cantidad: product.quantity || 1, // Cantidad seleccionada (por defecto 1)
+      solicitante: responsable, // Nombre del responsable
+      id_productos: selectedProducts.map(p => p.value).join(','), // IDs de productos separados por comas
+    }));
+
+    // Enviar los movimientos al backend
+    await Promise.all(
+      movimientos.map(async (movimiento) => {
+        const response = await fetch('http://localhost:4000/api/movimientos', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(movimiento),
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al registrar movimiento');
+        }
+      })
+    );
+
+    console.log('Movimientos registrados');
+    onClose(); // Cerrar el modal al guardar
+  } catch (error) {
+    console.error('Error al guardar movimientos:', error);
+    alert('Hubo un error al guardar los movimientos');
+  }
+};
 
   if (!isOpen) return null;
 

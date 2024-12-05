@@ -52,29 +52,22 @@ export const getProductos = async (req, res) => {
     res.status(500).json({ message: 'Error al obtener los productos' });
   }
 };
-
 export const createMovimiento = async (req, res) => {
-  const { articulo_id, tipo_movimiento, cantidad, solicitante } = req.body;
-
-  if (!articulo_id || !tipo_movimiento || !cantidad || !solicitante) {
-    return res.status(400).json({ message: 'Todos los campos son obligatorios' });
-  }
+  const { articulo_id, tipo_movimiento, cantidad, solicitante, id_productos } = req.body; // Usar id_productos en lugar de session_id
 
   try {
-    const insertQuery = `
-      INSERT INTO movimientos_almacen (articulo_id, tipo_movimiento, cantidad, solicitante)
-      VALUES ($1, $2, $3, $4)
+    const query = `
+      INSERT INTO movimientos_almacen (articulo_id, tipo_movimiento, cantidad, solicitante, id_productos)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING *;
     `;
-    const result = await pool.query(insertQuery, [articulo_id, tipo_movimiento, cantidad, solicitante]);
+    const values = [articulo_id, tipo_movimiento, cantidad, solicitante, id_productos]; // Asegúrate de pasar id_productos
+    const result = await pool.query(query, values);
 
-    res.status(201).json({
-      message: 'Movimiento registrado con éxito',
-      movimiento: result.rows[0],
-    });
+    res.status(201).json(result.rows[0]);
   } catch (error) {
-    console.error('Error al registrar el movimiento:', error);
-    res.status(500).json({ message: 'Error al registrar el movimiento' });
+    console.error('Error al crear el movimiento:', error);
+    res.status(500).json({ error: 'Error al crear el movimiento' });
   }
 };
 
