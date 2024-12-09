@@ -16,35 +16,34 @@ const ModalInforme = ({ isOpen, onClose, data }) => {
         item.producto,
         item.cantidad,
         item.fechaEntrega,
-        item.firmaEntrega,
+        '', // Deja la columna firmaEntrega vacía
       ]),
     ];
-
+  
     const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Informe Detallado");
     XLSX.writeFile(workbook, "InformeDetallado.xlsx");
   };
-
   const exportToPDF = () => {
     const doc = new jsPDF({
       orientation: 'landscape', // Orientación horizontal
       unit: 'mm',
       format: 'a4',
     });
-
+  
     doc.setFontSize(14);
     doc.text("Informe Detallado", 14, 15); // Título del PDF
-
+  
     const tableColumn = headers;
     const tableRows = data.map((item) => [
       item.fechaSolicitud,
       item.producto,
       item.cantidad,
       item.fechaEntrega,
-      item.firmaEntrega,
+      '', // Deja la columna firmaEntrega vacía
     ]);
-
+  
     // Agregar tabla al PDF
     doc.autoTable({
       head: [tableColumn],
@@ -60,7 +59,7 @@ const ModalInforme = ({ isOpen, onClose, data }) => {
       },
       margin: { top: 20 },
     });
-
+  
     doc.save("InformeDetallado.pdf"); // Guardar el archivo PDF
   };
 

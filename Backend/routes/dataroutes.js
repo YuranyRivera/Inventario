@@ -1,5 +1,5 @@
 import express from 'express';
-import { getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createUser, createArticulo } from '../controllers/datacontroler.js';
+import {  editarArticulo, eliminarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createUser, createArticulo } from '../controllers/datacontroler.js';
 
 const router = express.Router();
 
@@ -10,6 +10,11 @@ router.get('/articulos/last-id', getLastId); // Cambié el nombre de la ruta a /
 router.post('/articulos', createArticulo);
 router.get('/articulos', getArticulos); 
 // Define la ruta para obtener detalles de un movimiento específico
+// Ruta para editar un artículo
+router.put('/articulos/:id', editarArticulo);
+
+// Ruta para eliminar un artículo
+router.delete('/articulos/:id', eliminarArticulo);
 
 
 // Ruta para obtener el reporte general

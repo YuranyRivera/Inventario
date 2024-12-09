@@ -2,6 +2,54 @@ import { pool } from '../config/db.js';
 import bcrypt from 'bcrypt';
 
 
+
+export const editarArticulo = async (req, res) => {
+  const { id } = req.params; // Obtener ID desde la URL
+  const { producto, cantidad, modulo, estante, estado, entrada, salida, restante } = req.body; // Obtener datos desde el body
+
+  try {
+    // Actualizar el artículo en la base de datos
+    const articulo = await Articulo.findByIdAndUpdate(id, {
+      producto,
+      cantidad,
+      modulo,
+      estante,
+      estado,
+      entrada,
+      salida,
+      restante
+    }, { new: true });
+
+    if (!articulo) {
+      return res.status(404).json({ message: "Artículo no encontrado" });
+    }
+
+    return res.json(articulo); // Devolver el artículo actualizado
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Error al editar el artículo" });
+  }
+};
+
+// Función para eliminar un artículo
+export const eliminarArticulo = async (req, res) => {
+  const { id } = req.params; // Obtener ID desde la URL
+
+  try {
+    // Eliminar el artículo de la base de datos
+    const articulo = await Articulo.findByIdAndDelete(id);
+
+    if (!articulo) {
+      return res.status(404).json({ message: "Artículo no encontrado" });
+    }
+
+    return res.json({ message: "Artículo eliminado" }); // Respuesta de éxito
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Error al eliminar el artículo" });
+  }
+};
+
 export const getReporteGeneral = async (req, res) => {
   try {
     // Consulta para obtener los movimientos de la tabla movimientos_almacen
@@ -56,14 +104,13 @@ export const getArticulos = async (req, res) => {
 };
 
 // Controlador para obtener los detalles de un movimiento específico
-// Controlador para obtener los detalles de un movimiento específico
 export const getDetallesMovimiento = async (req, res) => {
   const { id } = req.params; // Obtener el id desde los parámetros de la URL
 
   try {
     // Obtener el movimiento con el ID especificado
     const query = `
-      SELECT cantidad_productos, fecha
+      SELECT id_productos, cantidad_productos, fecha, solicitante
       FROM movimientos_almacen
       WHERE id = $1;
     `;
@@ -73,21 +120,38 @@ export const getDetallesMovimiento = async (req, res) => {
       return res.status(404).json({ error: 'Movimiento no encontrado' });
     }
 
-    const { cantidad_productos, fecha } = result.rows[0];
+    const { id_productos, cantidad_productos, fecha, solicitante } = result.rows[0];
 
-    // Verificar si cantidad_productos es null y asignar un valor por defecto si es necesario
-    const cantidadArray = (cantidad_productos && cantidad_productos !== null) ? cantidad_productos.split(',').map(cantidad => parseInt(cantidad, 10)) : [0];
+    // Formatear la fecha para mostrar solo día, mes y año
+    const formattedDate = new Date(fecha).toISOString().split('T')[0];
 
-    // Crear el array de detalles sin id_productos
-    const detalles = cantidadArray.map((cantidad, index) => {
-      return {
-        fechaSolicitud: fecha, // Usar la fecha de la tabla
-        producto: `Producto ${index + 1}`, // Aquí puedes agregar la lógica para obtener el nombre de los productos si los tienes en la base de datos
-        cantidad: cantidad,
-        fechaEntrega: fecha, // Si la fecha de entrega es igual a la fecha de solicitud, puedes usar la misma
-        firmaEntrega: 'Firma de responsable', // Este campo puede ser ajustado según tus necesidades
-      };
-    });
+    // Convertir `id_productos` y `cantidad_productos` a arrays
+    const idArray = id_productos ? id_productos.split(',') : [];
+    const cantidadArray = cantidad_productos
+      ? cantidad_productos.split(',').map((cantidad) => parseInt(cantidad, 10))
+      : [];
+
+    // Obtener nombres de productos desde la base de datos
+    const productsQuery = `
+    SELECT id, producto FROM articulos_almacenamiento
+      WHERE id = ANY($1::int[]);
+    `;
+    const productsResult = await pool.query(productsQuery, [idArray]);
+
+    // Crear un mapa de id_producto a su nombre
+    const productMap = productsResult.rows.reduce((map, product) => {
+      map[product.id] = product.producto;
+      return map;
+    }, {});
+
+    // Crear los detalles del movimiento
+    const detalles = idArray.map((id, index) => ({
+      fechaSolicitud: formattedDate,
+      producto: productMap[id] || `Producto ${index + 1}`, // Usar el nombre o un fallback
+      cantidad: cantidadArray[index] || 0,
+      fechaEntrega: formattedDate, // Usar la misma fecha de solicitud como ejemplo
+      firmaEntrega: solicitante || 'Firma de responsable', // Usar el nombre del solicitante
+    }));
 
     res.status(200).json(detalles);
   } catch (error) {
