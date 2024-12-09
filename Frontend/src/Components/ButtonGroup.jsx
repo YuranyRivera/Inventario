@@ -4,12 +4,16 @@ import ModalRAlm from './ModalR_Alm';   // Modal reporte almacenamiento
 import ModalAdmin from './ModalAdmin';  // Modal administrativo
 import ModalAlm from './ModalAlm';      // Modal almacenamiento
 
-const ButtonGroup = ({ isStorageSelected, onSave }) => {
+const ButtonGroup = ({ isStorageSelected, onSave, reloadArticulos }) => {
   const [isModalEntradaOpen, setIsModalEntradaOpen] = useState(false);  // Modal de Reporte
   const [isModalAddOpen, setIsModalAddOpen] = useState(false);          // Modal de Agregar Artículo
 
   // Funciones para manejar apertura y cierre de modales
-  const handleOpenEntradaModal = () => setIsModalEntradaOpen(true);
+  const handleOpenEntradaModal = () => {
+    setIsModalEntradaOpen(true);
+    // Recargar artículos cuando se abre el modal de reporte
+    reloadArticulos();
+  };
   const handleCloseEntradaModal = () => setIsModalEntradaOpen(false);
 
   const handleOpenAddModal = () => setIsModalAddOpen(true);
@@ -56,7 +60,10 @@ const ButtonGroup = ({ isStorageSelected, onSave }) => {
       {isStorageSelected ? (
         <>
           {/* Modal de Reporte para Almacenamiento */}
-          <ModalRAlm isOpen={isModalEntradaOpen} onClose={handleCloseEntradaModal} />
+          <ModalRAlm
+            isOpen={isModalEntradaOpen}
+            onClose={handleCloseEntradaModal}
+            reloadArticulos={reloadArticulos}  />
           {/* Modal de Agregar Artículo para Almacenamiento */}
           <ModalAlm
             isOpen={isModalAddOpen}

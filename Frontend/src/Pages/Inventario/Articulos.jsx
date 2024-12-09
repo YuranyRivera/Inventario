@@ -13,13 +13,19 @@ const Articulos = () => {
   const { articulos, reloadArticulos } = useArticulo(); // Hook para manejar los artículos
 
   useEffect(() => {
-    if (location.state?.selected) {
+    // Al cargar, recuperamos el valor de 'selected' desde el localStorage (si existe)
+    const storedSelected = localStorage.getItem('selectedCategory');
+    if (storedSelected) {
+      setSelected(storedSelected);
+    } else if (location.state?.selected) {
       setSelected(location.state.selected);
     }
   }, [location.state]);
 
   const handleCheckboxChange = (e, category) => {
     setSelected(category);
+    localStorage.setItem('selectedCategory', category); 
+    console.log('Categoría seleccionada y guardada:', category); 
   };
 
   return (
@@ -30,7 +36,12 @@ const Articulos = () => {
           <CheckboxGroup selected={selected} onChange={handleCheckboxChange} />
           <ButtonGroup
             isStorageSelected={selected === 'almacenamiento'}
-            onSave={reloadArticulos}
+            onSave={() => {
+              console.log('Estado actual guardado:', selected); // Muestra el estado en la consola
+              localStorage.setItem('selectedCategory', selected); // Guardamos el estado en localStorage
+              reloadArticulos(); // Recarga los artículos
+            }}
+            reloadArticulos={reloadArticulos}  // Pasar reloadArticulos a ButtonGroup
           />
         </div>
         {selected === 'almacenamiento' ? (
