@@ -1,7 +1,7 @@
 import { pool } from '../config/db.js';
 import bcrypt from 'bcrypt';
 
-
+import jwt from 'jsonwebtoken';
 
 export const editarArticulo = async (req, res) => {
   const { id } = req.params; // ID del artículo a editar
@@ -391,40 +391,47 @@ export const createArticulo = async (req, res) => {
   }
 };
 
-export const createUser = async (req, res) => {
-  const { correo, contraseña, nombre = '' } = req.body; // Valor predeterminado para nombre
 
-  if (!correo || !contraseña) {
-    return res.status(400).json({ error: 'Correo y contraseña son obligatorios' });
-  }
 
+export const loginUser = async (correo, contraseña) => {
   try {
-    // Verificar si el correo ya existe
-    const checkEmailQuery = 'SELECT * FROM usuarios WHERE correo = $1';
-    const emailResult = await pool.query(checkEmailQuery, [correo]);
+    const client = await pool.connect();
 
-    if (emailResult.rows.length > 0) {
-      return res.status(400).json({ error: 'El correo ya está registrado' });
+    const result = await client.query(
+      'SELECT id, correo, contraseña, rol FROM usuarios WHERE correo = $1', 
+      [correo]
+    );
+    client.release();
+
+    if (result.rows.length > 0) {
+      const user = result.rows[0];
+
+      if (!user.contraseña) {
+        console.error('Error: contraseña no encontrada en la base de datos');
+        return null;
+      }
+
+      const match = await bcrypt.compare(contraseña, user.contraseña);
+      if (match) {
+        const token = jwt.sign(
+          { id: user.id, rol: user.rol, correo: user.correo },
+          'tu_clave_secreta',
+          { expiresIn: '1h' }
+        );
+        return { 
+          id: user.id,  
+          correo: user.correo,
+          rol: user.rol,
+          token
+        };
+      } else {
+        return null;
+      }
+    } else {
+      return null;
     }
-
-    // Encriptar la contraseña
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(contraseña, salt);
-
-    // Insertar el nuevo usuario
-    const insertUserQuery = `
-      INSERT INTO usuarios (nombre, correo, contraseña)
-      VALUES ($1, $2, $3)
-      RETURNING id, correo, nombre
-    `;
-    const result = await pool.query(insertUserQuery, [nombre, correo, hashedPassword]);
-
-    res.status(201).json({
-      message: 'Usuario creado con éxito',
-      user: result.rows[0],
-    });
-  } catch (err) {
-    console.error('Error al crear usuario:', err);
-    res.status(500).json({ error: 'Error al crear el usuario' });
+  } catch (error) {
+    console.error('Error al iniciar sesión:', error);
+    throw error;
   }
 };

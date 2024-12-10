@@ -1,7 +1,37 @@
 import express from 'express';
-import {  editarArticulo, eliminarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createUser, createArticulo } from '../controllers/datacontroler.js';
+import { createUser,  loginUser, editarArticulo, eliminarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createArticulo } from '../controllers/datacontroler.js';
 
 const router = express.Router();
+router.post('/usuarios', createUser);  
+router.post('/login', async (req, res) => {
+    console.log(req.body); // Verifica los datos que llegan al servidor
+    const { correo, contraseña } = req.body;
+
+    if (!correo || !contraseña) {
+      return res.status(400).json({ error: 'Correo y contraseña son obligatorios' });
+    }
+
+    try {
+      const user = await loginUser(correo, contraseña);
+      if (user) {
+        res.status(200).json({
+          message: 'Inicio de sesión exitoso',
+          user: {
+            id: user.id,
+            nombre: user.nombre,
+            correo: user.correo,
+            rol: user.rol
+          },
+          token: user.token
+        });
+      } else {
+        res.status(400).json({ error: 'Correo o contraseña incorrectos' });
+      }
+    } catch (error) {
+      console.error('Error al iniciar sesión:', error);
+      res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
 
 // Ruta para obtener el último ID
 router.get('/articulos/last-id', getLastId); // Cambié el nombre de la ruta a /articulos/ultimo-id
@@ -26,6 +56,6 @@ router.get('/movimientos', getMovimientos);
 // Ruta para crear un nuevo movimiento
 router.post('/movimientos', createMovimiento);
 router.delete('/articulos/:id', deleteArticulo);
-router.post('/usuarios', createUser);  // Endpoint POST para crear un usuario
+
 
 export default router;
