@@ -13,7 +13,7 @@ const ModalInforme = ({ isOpen, onClose, data }) => {
       headers, // Encabezados
       ...data.map((item) => [
         item.fechaSolicitud,
-        item.producto,
+        item.producto, // Nombre del producto
         item.cantidad,
         item.fechaEntrega,
         '', // Deja la columna firmaEntrega vacía
@@ -25,6 +25,7 @@ const ModalInforme = ({ isOpen, onClose, data }) => {
     XLSX.utils.book_append_sheet(workbook, worksheet, "Informe Detallado");
     XLSX.writeFile(workbook, "InformeDetallado.xlsx");
   };
+
   const exportToPDF = () => {
     const doc = new jsPDF({
       orientation: 'landscape', // Orientación horizontal
@@ -38,7 +39,7 @@ const ModalInforme = ({ isOpen, onClose, data }) => {
     const tableColumn = headers;
     const tableRows = data.map((item) => [
       item.fechaSolicitud,
-      item.producto,
+      item.producto, // Nombre del producto
       item.cantidad,
       item.fechaEntrega,
       '', // Deja la columna firmaEntrega vacía
@@ -107,7 +108,7 @@ const ModalInforme = ({ isOpen, onClose, data }) => {
                 className={`border-t ${index % 2 === 0 ? 'bg-gray-100' : 'bg-gray-200'} hover:bg-gray-300 transition-colors`}
               >
                 <td className="px-4 py-2">{item.fechaSolicitud}</td>
-                <td className="px-4 py-2">{item.producto}</td>
+                <td className="px-4 py-2">{item.producto}</td> {/* Mostrar nombre del producto */}
                 <td className="px-4 py-2">{item.cantidad}</td>
                 <td className="px-4 py-2">{item.fechaEntrega}</td>
                 <td className="px-4 py-2">{item.firmaEntrega}</td>

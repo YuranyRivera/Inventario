@@ -3,7 +3,7 @@ import TableEntrada from '../../Components/TableEntrada';
 import DashboardLayout from '../../layouts/DashboardLayout';
 
 const Example = () => {
-  const headers = ['ID', 'Fecha de entrada', 'Cantidad de productos', 'Tipo de Registro', 'Estado'];
+  const headers = ['ID', 'Fecha', 'Cantidad de productos', 'Tipo de Registro', 'Estado'];
   const [rows, setRows] = useState([]); // Estado para las filas de la tabla
 
   // Obtener datos del reporte general
@@ -18,7 +18,8 @@ const Example = () => {
         // Mapear datos al formato de la tabla
         const mappedRows = data.map((item) => [
           item.id,
-          item.fechaEntrada,
+          item.fechaEntrada,  // Solo la fecha
+     
           item.cantidadProductos,
           item.tipoRegistro,
           item.estado,

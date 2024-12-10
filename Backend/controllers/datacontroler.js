@@ -4,30 +4,37 @@ import bcrypt from 'bcrypt';
 
 
 export const editarArticulo = async (req, res) => {
-  const { id } = req.params; // Obtener ID desde la URL
-  const { producto, cantidad, modulo, estante, estado, entrada, salida, restante } = req.body; // Obtener datos desde el body
+  const { id } = req.params; // ID del artículo a editar
+  const { producto, cantidad, modulo, estante, estado, entrada, salida, restante } = req.body; // Datos enviados desde el cliente
 
   try {
-    // Actualizar el artículo en la base de datos
-    const articulo = await Articulo.findByIdAndUpdate(id, {
-      producto,
-      cantidad,
-      modulo,
-      estante,
-      estado,
-      entrada,
-      salida,
-      restante
-    }, { new: true });
+    // Consulta para actualizar el artículo en la base de datos
+    const result = await pool.query(
+      `UPDATE articulos_almacenamiento 
+       SET 
+         producto = $1, 
+         cantidad = $2, 
+         modulo = $3, 
+         estante = $4, 
+         estado = $5, 
+         entrada = $6, 
+         salida = $7, 
+         restante = $8 
+       WHERE id = $9 
+       RETURNING *`, // Devuelve el artículo actualizado
+      [producto, cantidad, modulo, estante, estado, entrada, salida, restante, id]
+    );
 
-    if (!articulo) {
-      return res.status(404).json({ message: "Artículo no encontrado" });
+    // Verifica si se actualizó algún artículo
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Artículo no encontrado' });
     }
 
-    return res.json(articulo); // Devolver el artículo actualizado
+    // Devuelve el artículo actualizado
+    res.status(200).json(result.rows[0]);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Error al editar el artículo" });
+    console.error('Error al editar el artículo:', error);
+    res.status(500).json({ message: 'Error al editar el artículo' });
   }
 };
 
@@ -37,16 +44,23 @@ export const eliminarArticulo = async (req, res) => {
 
   try {
     // Eliminar el artículo de la base de datos
-    const articulo = await Articulo.findByIdAndDelete(id);
+    const result = await pool.query(
+      `DELETE FROM articulos_almacenamiento 
+       WHERE id = $1 
+       RETURNING *`, // Devuelve el artículo eliminado
+      [id]
+    );
 
-    if (!articulo) {
+    // Verifica si se eliminó algún artículo
+    if (result.rowCount === 0) {
       return res.status(404).json({ message: "Artículo no encontrado" });
     }
 
-    return res.json({ message: "Artículo eliminado" }); // Respuesta de éxito
+    // Devuelve el artículo eliminado
+    res.status(200).json({ message: "Artículo eliminado" });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Error al eliminar el artículo" });
+    console.error('Error al eliminar el artículo:', error);
+    res.status(500).json({ message: "Error al eliminar el artículo" });
   }
 };
 
@@ -77,9 +91,15 @@ export const getReporteGeneral = async (req, res) => {
       // Determinar el estado según el tipo de movimiento (1 = salida, 2 = entrada)
       const estado = row.tipo_movimiento === 2 ? 'Activo' : 'Inactivo'; // Entrada es activo, salida es inactivo
 
+      // Formatear la fecha en día/mes/año y la hora en formato 12 horas
+      const fecha = new Date(row.fecha);
+      const fechaEntrada = fecha.toLocaleDateString('es-ES'); // Fecha en formato día/mes/año
+       // Hora en formato 12 horas
+
       return {
         id: row.id,
-        fechaEntrada: row.fecha, // Fecha de entrada
+        fechaEntrada, // Fecha de entrada
+      
         cantidadProductos, // Número de productos (cantidad de registros)
         tipoRegistro: row.rol, // Rol (tipo de registro)
         estado, // Estado (activo o inactivo)
@@ -93,6 +113,7 @@ export const getReporteGeneral = async (req, res) => {
     res.status(500).json({ error: 'Error al obtener el reporte general' });
   }
 };
+
 export const getArticulos = async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM articulos_almacenamiento ORDER BY id ASC');
@@ -110,7 +131,7 @@ export const getDetallesMovimiento = async (req, res) => {
   try {
     // Obtener el movimiento con el ID especificado
     const query = `
-      SELECT id_productos, cantidad_productos, fecha, solicitante
+      SELECT id_productos, cantidad_productos, fecha, solicitante, nombre_productos
       FROM movimientos_almacen
       WHERE id = $1;
     `;
@@ -120,10 +141,10 @@ export const getDetallesMovimiento = async (req, res) => {
       return res.status(404).json({ error: 'Movimiento no encontrado' });
     }
 
-    const { id_productos, cantidad_productos, fecha, solicitante } = result.rows[0];
+    const { id_productos, cantidad_productos, fecha, solicitante, nombre_productos } = result.rows[0];
 
-    // Formatear la fecha para mostrar solo día, mes y año
-    const formattedDate = new Date(fecha).toISOString().split('T')[0];
+    // Formatear la fecha para mostrar en formato día/mes/año
+    const formattedDate = new Date(fecha).toLocaleDateString('es-ES');
 
     // Convertir `id_productos` y `cantidad_productos` a arrays
     const idArray = id_productos ? id_productos.split(',') : [];
@@ -131,23 +152,13 @@ export const getDetallesMovimiento = async (req, res) => {
       ? cantidad_productos.split(',').map((cantidad) => parseInt(cantidad, 10))
       : [];
 
-    // Obtener nombres de productos desde la base de datos
-    const productsQuery = `
-    SELECT id, producto FROM articulos_almacenamiento
-      WHERE id = ANY($1::int[]);
-    `;
-    const productsResult = await pool.query(productsQuery, [idArray]);
-
-    // Crear un mapa de id_producto a su nombre
-    const productMap = productsResult.rows.reduce((map, product) => {
-      map[product.id] = product.producto;
-      return map;
-    }, {});
+    // Obtener los nombres de los productos directamente desde el campo `nombre_productos`
+    const nombreArray = nombre_productos ? nombre_productos.split(',') : [];
 
     // Crear los detalles del movimiento
     const detalles = idArray.map((id, index) => ({
       fechaSolicitud: formattedDate,
-      producto: productMap[id] || `Producto ${index + 1}`, // Usar el nombre o un fallback
+      producto: nombreArray[index] || `Producto ${index + 1}`, // Usar nombre de producto guardado o fallback
       cantidad: cantidadArray[index] || 0,
       fechaEntrega: formattedDate, // Usar la misma fecha de solicitud como ejemplo
       firmaEntrega: solicitante || 'Firma de responsable', // Usar el nombre del solicitante
@@ -202,52 +213,6 @@ export const getProductos = async (req, res) => {
     res.status(500).json({ message: 'Error al obtener los productos' });
   }
 };
-const handleSave = async () => {
-  try {
-    // Validar campos obligatorios
-    if (!responsable) {
-      alert('Debe ingresar el nombre del responsable.');
-      return;
-    }
-
-    if (selectedProducts.length === 0) {
-      alert('Debe seleccionar al menos un producto.');
-      return;
-    }
-
-    const storedCategory = localStorage.getItem('selectedCategory');
-    
-    // Simplificar la estructura del movimiento - IMPORTANTE: Removemos articulo_id individual
-    const movimiento = {
-      tipo_movimiento: estado,
-      solicitante: responsable,
-      id_productos: selectedProducts.map(p => p.value).join(','),
-      cantidad_productos: selectedProducts
-        .map(p => p.quantity || 1)
-        .join(','),
-      rol: storedCategory
-    };
-
-    // Enviar un solo movimiento al backend
-    const response = await fetch('http://localhost:4000/api/movimientos', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(movimiento),
-    });
-
-    if (!response.ok) {
-      throw new Error('Error al registrar movimiento');
-    }
-
-    console.log('Movimiento registrado');
-    onClose();
-  } catch (error) {
-    console.error('Error al guardar movimiento:', error);
-    alert('Hubo un error al guardar el movimiento');
-  }
-};
 
 // Backend - createMovimiento.js
 export const createMovimiento = async (req, res) => {
@@ -257,17 +222,20 @@ export const createMovimiento = async (req, res) => {
     await pool.query('BEGIN');
 
     try {
-      // 1. Crear el registro del movimiento
+      // 1. Obtener los nombres de los productos
+      const productosIds = id_productos.split(',').map(id => parseInt(id, 10));
+      const nombresProductos = await obtenerNombresProductos(productosIds);
+      
+      // 2. Crear el registro del movimiento
       const movimientoQuery = `
-        INSERT INTO movimientos_almacen (tipo_movimiento, solicitante, id_productos, cantidad_productos, rol)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO movimientos_almacen (tipo_movimiento, solicitante, id_productos, cantidad_productos, rol, nombre_productos)
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *;
       `;
-      const movimientoValues = [tipo_movimiento, solicitante, id_productos, cantidad_productos, rol];
+      const movimientoValues = [tipo_movimiento, solicitante, id_productos, cantidad_productos, rol, nombresProductos.join(',')];
       const movimientoResult = await pool.query(movimientoQuery, movimientoValues);
 
-      // 2. Procesar los productos
-      const productosIds = id_productos.split(',').map(id => parseInt(id, 10));
+      // 3. Procesar los productos
       const cantidades = cantidad_productos.split(',').map(cantidad => parseInt(cantidad, 10));
 
       if (productosIds.length !== cantidades.length) {
@@ -275,7 +243,7 @@ export const createMovimiento = async (req, res) => {
         return res.status(400).json({ error: 'Los IDs de productos y las cantidades no coinciden' });
       }
 
-      // 3. Actualizar cada producto
+      // 4. Actualizar cada producto
       for (let i = 0; i < productosIds.length; i++) {
         const productoId = productosIds[i];
         const cantidad = cantidades[i];
@@ -340,6 +308,16 @@ export const createMovimiento = async (req, res) => {
   }
 };
 
+// Función para obtener los nombres de los productos
+const obtenerNombresProductos = async (productosIds) => {
+  const query = `
+    SELECT producto
+    FROM articulos_almacenamiento
+    WHERE id = ANY($1::int[]);
+  `;
+  const result = await pool.query(query, [productosIds]);
+  return result.rows.map(row => row.producto);
+};
 
 
 

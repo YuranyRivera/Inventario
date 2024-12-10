@@ -9,10 +9,10 @@ const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
 
   // Actualiza el estado cuando se edita un campo
   const handleInputChange = (e, field) => {
-    setEditedRowData({
-      ...editedRowData,
+    setEditedRowData((prev) => ({
+      ...prev,
       [field]: e.target.value,
-    });
+    }));
   };
 
   // Maneja la edición de una fila
@@ -26,8 +26,8 @@ const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
     try {
       const response = await fetch(`http://localhost:4000/api/articulos/${editedRowData.id}`, {
         method: 'PUT',
-        body: JSON.stringify(editedRowData),
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editedRowData), // Envía los datos editados
       });
 
       if (!response.ok) {
@@ -35,9 +35,8 @@ const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
       }
 
       const updatedArticulo = await response.json();
-      console.log('Artículo actualizado:', updatedArticulo);
       reloadArticulos(); // Recargar los artículos después de la edición
-      setEditingRowIndex(null); // Terminar la edición
+      setEditingRowIndex(null); // Finalizar la edición
     } catch (error) {
       console.error('Error al editar:', error);
     }
@@ -50,7 +49,7 @@ const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
 
   // Maneja la eliminación de una fila
   const handleDelete = async (row) => {
-    const id = row[0]; // Suponiendo que el primer campo es el ID
+    const id = row.id; // Usamos el ID directamente
 
     try {
       const response = await fetch(`http://localhost:4000/api/articulos/${id}`, {
@@ -73,17 +72,17 @@ const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
     <>
       <AuxMaintenanceTable
         headers={headers}
-        rows={articulos.map((articulo, index) => [
-          articulo.id,
-          articulo.producto,
-          articulo.cantidad,
-          articulo.modulo,
-          articulo.estante,
-          articulo.estado,
-          articulo.entrada,
-          articulo.salida,
-          articulo.restante,
-        ])}
+        rows={articulos.map((articulo) => ({
+          id: articulo.id,
+          producto: articulo.producto,
+          cantidad: articulo.cantidad,
+          modulo: articulo.modulo,
+          estante: articulo.estante,
+          estado: articulo.estado,
+          entrada: articulo.entrada,
+          salida: articulo.salida,
+          restante: articulo.restante,
+        }))}
         onEdit={handleEdit}
         onDelete={handleDelete}
         editingRowIndex={editingRowIndex}

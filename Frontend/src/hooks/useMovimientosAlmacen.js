@@ -68,7 +68,8 @@ const useMovimientosAlmacen = (isOpen, onClose, reloadArticulos) => {
         solicitante: responsable,
         id_productos: selectedProducts.map(p => p.value).join(','),
         cantidad_productos: selectedProducts.map(p => p.quantity || 1).join(','),
-        rol: storedCategory
+        rol: storedCategory,
+        nombre_productos: selectedProducts.map(p => p.label).join(','), // Añadir los nombres de los productos
       };
   
       // Enviar un solo movimiento al backend
