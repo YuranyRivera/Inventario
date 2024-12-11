@@ -1,8 +1,8 @@
 import express from 'express';
-import { createUser,  loginUser, editarArticulo, eliminarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createArticulo } from '../controllers/datacontroler.js';
+import {   loginUser, editarArticulo, eliminarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createArticulo } from '../controllers/datacontroler.js';
 
 const router = express.Router();
-router.post('/usuarios', createUser);  
+
 router.post('/login', async (req, res) => {
     console.log(req.body); // Verifica los datos que llegan al servidor
     const { correo, contraseña } = req.body;
