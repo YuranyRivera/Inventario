@@ -42,8 +42,8 @@ const ModalEntrada = ({ isOpen, onClose, reloadArticulos }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-      <div className="bg-white p-6 rounded-lg w-1/2">
+<div className="modal z-50 fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+  <div className="bg-white p-6 rounded-lg w-1/2 max-h-[90vh] overflow-auto">
         <div className="flex justify-between mb-4">
           <h3 className="text-xl font-semibold">Registro de Almacenamiento</h3>
           <button 
@@ -76,7 +76,7 @@ const ModalEntrada = ({ isOpen, onClose, reloadArticulos }) => {
           />
         </div>
 
-        <div className="mb-4">
+        <div className="mb-4 overflow-y-auto max-h-[300px]">
           <table className="min-w-full table-auto">
             <thead>
               <tr className="bg-[#00A305] text-white">
@@ -116,18 +116,18 @@ const ModalEntrada = ({ isOpen, onClose, reloadArticulos }) => {
           />
         </div>
 
-        <div className="flex justify-end space-x-4">
-          <BotonPrincipal 
-            Text={loading ? "Guardando..." : "Guardar"} 
-            onClick={handleGuardar}
-            disabled={loading}
-          />
-          <BotonSecundario 
-            Text="Cancelar" 
-            onClick={onClose}
-            disabled={loading}
-          />
-        </div>
+        <div className="flex justify-end mt-4 space-x-4">
+  <BotonPrincipal 
+    Text={loading ? "Guardando..." : "Guardar"} 
+    onClick={handleGuardar}
+    disabled={loading}
+  />
+  <BotonSecundario 
+    Text="Cancelar" 
+    onClick={onClose}
+    disabled={loading}
+  />
+</div>
       </div>
 
       <ModalConfirmacion 

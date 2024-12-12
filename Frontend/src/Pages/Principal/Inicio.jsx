@@ -13,7 +13,7 @@ const Login = () => {
   
   const [successMessage, setSuccessMessage] = useState('');
   const [mostrarContrasena, setMostrarContrasena] = useState(false);
-  const { setUser } = useUser();
+  const { loginUser } = useUser(); // Destructure loginUser from context
   const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
@@ -22,66 +22,32 @@ const Login = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setCorreoError('');
-    setContrasenaError('');
-    setGlobalError('');
-  
     try {
       const response = await fetch('http://localhost:4000/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ correo, contraseña: contrasena }), // Enviar correo y contraseña
+        credentials: 'include', // Muy importante
+        body: JSON.stringify({ correo, contraseña: contrasena }),
       });
   
-      const result = await response.json();
-      console.log(result);  // Verifica qué se está recibiendo
-  
+      console.log('Login response status:', response.status);
+      
       if (response.ok) {
-        if (result.token && result.rol) {
-          const userData = {
-            id: result.id || null,
-            nombre: result.nombre || 'Usuario',
-            rol: result.rol,
-          };
-          setUser(userData);
-  
-          localStorage.setItem('user', JSON.stringify(userData));
-          localStorage.setItem('token', result.token);
-  
-          setSuccessMessage('Inicio de sesión exitoso');
-  
-          setTimeout(() => {
-            switch (result.rol) {
-              case 1:
-                navigate('/VistaAdmin');
-                break;
-              case 2:
-                navigate('/Usuario/VistaUsuario');
-                break;
-              case 3:
-                navigate('/SuperAdmin/dashboard');
-                break;
-              case 4:
-                navigate('/Aprendiz/VistaAprendiz');
-                break;
-              default:
-                setGlobalError('Rol de usuario desconocido');
-                break;
-            }
-          }, 2000);
-        } 
+        const result = await response.json();
+        console.log('Login result:', result);
+        
+        loginUser(result.user, result.token);
+        navigate('/Dashboard');
       } else {
-        if (response.status === 401) {
-          setGlobalError('Correo o contraseña incorrectos');
-        } else {
-          setGlobalError('Error en el servidor. Intenta nuevamente.');
-        }
+        const errorResult = await response.json();
+        console.error('Login error:', errorResult);
+        setGlobalError(errorResult.error || 'Error de inicio de sesión');
       }
     } catch (error) {
-      console.error('Error en el inicio de sesión:', error);
-      setGlobalError('Error en la conexión. Intenta nuevamente.');
+      console.error('Login network error:', error);
+      setGlobalError('Error de conexión');
     }
   };
 

@@ -3,8 +3,10 @@ import { useState, useEffect } from 'react';
 const useMovimientosAlmacen = (isOpen, onClose, reloadArticulos) => {
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [responsable, setResponsable] = useState('');
-  const [estado, setEstado] = useState(2); // Estado inicial como número (2 para entrada)
-  const [products, setProducts] = useState([]); // Productos cargados desde la API
+  const [estado, setEstado] = useState(2);
+  const [products, setProducts] = useState([]);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -12,31 +14,43 @@ const useMovimientosAlmacen = (isOpen, onClose, reloadArticulos) => {
     }
   }, [isOpen]);
 
-  // Función para cargar productos desde la API
   const fetchProductos = async () => {
     try {
+      setLoading(true);
       const response = await fetch('http://localhost:4000/api/productos');
+      if (!response.ok) {
+        throw new Error('Error al obtener productos');
+      }
       const data = await response.json();
-      setProducts(data); // Guardar productos en el estado
+      setProducts(data);
     } catch (error) {
       console.error('Error al obtener los productos', error);
+      setError('Error al cargar los productos');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Opciones para el selector de productos
   const options = products.map((product) => ({
     value: product.id,
-    label: product.producto, // Nombre del producto
+    label: product.producto,
   }));
 
-  // Manejar la selección de productos
   const handleSelectProduct = (selectedOptions) => {
-    setSelectedProducts(selectedOptions);
+    // Asegurarse de que selectedOptions sea siempre un array
+    const newSelectedProducts = selectedOptions ? 
+      selectedOptions.map(product => ({
+        ...product,
+        quantity: product.quantity || 1
+      })) : [];
+    
+    setSelectedProducts(newSelectedProducts);
   };
 
-  // Manejar el cambio de cantidad para un producto
   const handleQuantityChange = (e, productId) => {
     const newQuantity = parseInt(e.target.value, 10) || 1;
+    if (newQuantity < 1) return; // No permitir cantidades menores a 1
+
     setSelectedProducts((prevSelected) =>
       prevSelected.map((product) =>
         product.value === productId
@@ -46,33 +60,44 @@ const useMovimientosAlmacen = (isOpen, onClose, reloadArticulos) => {
     );
   };
 
-  // Manejar la acción de guardar
+  const validateData = () => {
+    if (!responsable.trim()) {
+      throw new Error('Debe ingresar el nombre del responsable');
+    }
+    
+    if (selectedProducts.length === 0) {
+      throw new Error('Debe seleccionar al menos un producto');
+    }
+
+    if (selectedProducts.some(p => !p.quantity || p.quantity < 1)) {
+      throw new Error('Todas las cantidades deben ser mayores a 0');
+    }
+  };
+
   const handleSave = async () => {
     try {
-      // Validar campos obligatorios
-      if (!responsable) {
-        alert('Debe ingresar el nombre del responsable.');
-        return;
-      }
-  
-      if (selectedProducts.length === 0) {
-        alert('Debe seleccionar al menos un producto.');
-        return;
-      }
-  
+      setError(null);
+      setLoading(true);
+
+      // Validar datos
+      validateData();
+
       const storedCategory = localStorage.getItem('selectedCategory');
-      
-      // Simplificar la estructura del movimiento
+      if (!storedCategory) {
+        throw new Error('No se encontró la categoría seleccionada');
+      }
+
       const movimiento = {
         tipo_movimiento: estado,
-        solicitante: responsable,
+        solicitante: responsable.trim(),
         id_productos: selectedProducts.map(p => p.value).join(','),
-        cantidad_productos: selectedProducts.map(p => p.quantity || 1).join(','),
+        cantidad_productos: selectedProducts.map(p => p.quantity).join(','),
         rol: storedCategory,
-        nombre_productos: selectedProducts.map(p => p.label).join(','), // Añadir los nombres de los productos
+        nombre_productos: selectedProducts.map(p => p.label).join(',')
       };
-  
-      // Enviar un solo movimiento al backend
+
+      console.log('Enviando movimiento:', movimiento);
+
       const response = await fetch('http://localhost:4000/api/movimientos', {
         method: 'POST',
         headers: {
@@ -80,20 +105,30 @@ const useMovimientosAlmacen = (isOpen, onClose, reloadArticulos) => {
         },
         body: JSON.stringify(movimiento),
       });
-  
+
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Error al registrar movimiento');
+        throw new Error(data.error || 'Error al registrar movimiento');
       }
 
-      // Llamar a reloadArticulos después de guardar el movimiento
-      reloadArticulos();
+      await reloadArticulos();
+      return true;
 
-      console.log('Movimiento registrado');
-      onClose();
     } catch (error) {
       console.error('Error al guardar movimiento:', error);
-      alert('Hubo un error al guardar el movimiento');
+      setError(error.message || 'Error al guardar el movimiento');
+      return false;
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const resetForm = () => {
+    setSelectedProducts([]);
+    setResponsable('');
+    setEstado(2);
+    setError(null);
   };
 
   return {
@@ -102,11 +137,14 @@ const useMovimientosAlmacen = (isOpen, onClose, reloadArticulos) => {
     estado,
     products,
     options,
+    error,
+    loading,
     handleSelectProduct,
     handleQuantityChange,
     handleSave,
     setResponsable,
     setEstado,
+    resetForm,
   };
 };
 

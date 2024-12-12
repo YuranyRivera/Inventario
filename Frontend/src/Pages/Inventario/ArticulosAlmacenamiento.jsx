@@ -1,18 +1,53 @@
 import React, { useState } from 'react';
 import AuxMaintenanceTable from '../../Components/AuxMaintenanceTable';
-
+import { Search } from 'lucide-react';
 const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
-  const headers = ['ID', 'Producto/Detalle', 'Cantidad', 'Módulo', 'Estante', 'Estado', 'Entrada', 'Salida', 'Restante'];
-
+  const headers = ['ID', 'Producto/Detalle',  'Cantidad Inicial',  'Módulo', 'Estante', 'Estado', 'Entrada', 'Salida', 'Restante'];
+  const [searchTerm, setSearchTerm] = useState('');
   const [editingRowIndex, setEditingRowIndex] = useState(null);
   const [editedRowData, setEditedRowData] = useState({});
+  
+// Función para filtrar artículos basado en el término de búsqueda
+const filteredArticulos = articulos.filter(articulo =>
+  articulo.producto.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  articulo.modulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  articulo.estante.toLowerCase().includes(searchTerm.toLowerCase())
+);
 
+// Manejador para el cambio en el campo de búsqueda
+const handleSearchChange = (e) => {
+  setSearchTerm(e.target.value);
+};
   // Actualiza el estado cuando se edita un campo
   const handleInputChange = (e, field) => {
-    setEditedRowData((prev) => ({
-      ...prev,
-      [field]: e.target.value,
-    }));
+    const value = e.target.value;
+     // Ignorar cambios en campos no editables
+  if (field === 'id' || field === 'cantidad') {
+    return;
+  }
+
+  
+    setEditedRowData((prev) => {
+      const updatedData = {
+        ...prev,
+        [field]: value,
+      };
+  
+      // Recalcular el restante solo si los campos entrada o salida cambian
+      if (field === 'entrada' || field === 'salida') {
+        const entrada = parseInt(updatedData.entrada || 0, 10);
+        const salida = parseInt(updatedData.salida || 0, 10);
+        const cantidadInicial = parseInt(prev.cantidad_productos || 0, 10);
+  
+        updatedData.cantidad = cantidadInicial + entrada - salida;
+      }
+  
+      return updatedData;
+    });
+  };
+  const handleSearchClick = () => {
+    // Aquí puedes agregar lógica adicional para la búsqueda si es necesario
+    console.log('Búsqueda realizada:', searchTerm);
   };
 
   // Maneja la edición de una fila
@@ -70,27 +105,61 @@ const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
 
   return (
     <>
+   <div className="space-y-4">
+        {/* Buscador con botón */}
+        <div className="flex items-center space-x-2">
+          <div className="relative flex-1 max-w-md">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Buscar por nombre de producto..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+            />
+          </div>
+          <button
+            onClick={handleSearchClick}
+            className="px-4 py-2 bg-[#00A305] text-white rounded-lg hover:bg-[#00A305] focus:outline-none focus:ring-2 focus:blue-600 focus:ring-offset-2"
+          >
+            Buscar
+          </button>
+        </div>
+
+      {/* Tabla */}
       <AuxMaintenanceTable
         headers={headers}
-        rows={articulos.map((articulo) => ({
+        rows={filteredArticulos.map((articulo) => ({
           id: articulo.id,
           producto: articulo.producto,
-          cantidad: articulo.cantidad,
+          cantidad_productos: articulo.cantidad_productos,
           modulo: articulo.modulo,
           estante: articulo.estante,
           estado: articulo.estado,
           entrada: articulo.entrada,
           salida: articulo.salida,
-          restante: articulo.restante,
+          cantidad: articulo.cantidad,
         }))}
         onEdit={handleEdit}
         onDelete={handleDelete}
         editingRowIndex={editingRowIndex}
         editedRowData={editedRowData}
-        handleInputChange={handleInputChange}
+        handleInputChange={(e, field) => {
+          if (['id', 'cantidad', 'cantidad_productos'].includes(field)) {
+            e.preventDefault();
+          } else {
+            handleInputChange(e, field);
+          }
+        }}
         handleSave={handleSave}
         handleCancel={handleCancel}
+        disableFields={['id', 'cantidad', 'cantidad_productos']}
       />
+    </div>
+ 
+
     </>
   );
 };

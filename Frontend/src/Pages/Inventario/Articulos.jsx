@@ -9,7 +9,7 @@ import useArticulo from '../../hooks/useArticulo'; // Hook para manejar lógica
 
 const Articulos = () => {
   const location = useLocation();
-  const [selected, setSelected] = useState('administrativos');
+  const [selected, setSelected] = useState('administrativo');
   const { articulos, reloadArticulos } = useArticulo(); // Hook para manejar los artículos
 
   useEffect(() => {

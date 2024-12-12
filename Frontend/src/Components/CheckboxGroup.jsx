@@ -11,7 +11,7 @@ const CheckboxGroup = ({ selected, onChange }) => {
           name="tipoArticulo"
           checked={selected === 'administrativos'} // Marcado según el estado
           className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2 cursor-pointer" 
-          onChange={(e) => onChange(e, 'administrativos')} 
+          onChange={(e) => onChange(e, 'administrativo')} 
         />
         <label 
           htmlFor="administrativos" 

@@ -3,12 +3,90 @@ import bcrypt from 'bcrypt';
 
 import jwt from 'jsonwebtoken';
 
-export const editarArticulo = async (req, res) => {
-  const { id } = req.params; // ID del artículo a editar
-  const { producto, cantidad, modulo, estante, estado, entrada, salida, restante } = req.body; // Datos enviados desde el cliente
+export const crearUsuario = async (req, res) => {
+  const { fullName, email, password, role } = req.body;
+  
+  console.log('Datos recibidos en el backend:', req.body); // Verificar qué datos están llegando
+
+  // Cifrar la contraseña
+  const salt = await bcrypt.genSalt(10); // Genera un "salt" con 10 rondas de cifrado
+  const hashedPassword = await bcrypt.hash(password, salt); // Cifra la contraseña
 
   try {
-    // Consulta para actualizar el artículo en la base de datos
+    const result = await pool.query(
+      `INSERT INTO usuarios (nombre, correo, contraseña, rol)
+       VALUES ($1, $2, $3, $4)
+       RETURNING *`, 
+      [fullName, email, hashedPassword, role] // Usamos la contraseña cifrada
+    );
+    res.status(201).json(result.rows[0]); // Devuelve el usuario creado
+  } catch (error) {
+    console.error('Error al crear el usuario:', error);
+    res.status(500).json({ message: 'Error al crear el usuario', details: error.message });
+  }
+};
+
+// Obtener todos los usuarios
+export const obtenerUsuarios = async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM usuarios');  // Obtiene todos los usuarios
+    res.status(200).json(result.rows);  // Devuelve los usuarios
+  } catch (error) {
+    console.error('Error al obtener los usuarios:', error);
+    res.status(500).json({ message: 'Error al obtener los usuarios', details: error.message });
+  }
+};
+
+// Eliminar un usuario por su ID
+export const eliminarUsuario = async (req, res) => {
+  const { id } = req.params; // Obtener el ID desde la URL
+
+  try {
+    const result = await pool.query(
+      `DELETE FROM usuarios WHERE id = $1 RETURNING *`, 
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    res.status(200).json({ message: "Usuario eliminado", usuario: result.rows[0] });
+  } catch (error) {
+    console.error('Error al eliminar el usuario:', error);
+    res.status(500).json({ message: "Error al eliminar el usuario" });
+  }
+};
+
+export const editarPerfil = async (req, res) => {
+  const { id } = req.params; // Obtener el ID del usuario desde los parámetros de la URL
+  const { fullName, email, password, role } = req.body; // Los nuevos datos del usuario
+
+  try {
+    // Consulta SQL para actualizar los datos del usuario
+    const result = await pool.query(
+      `UPDATE usuarios SET fullName = $1, email = $2, password = $3, role = $4 WHERE id = $5 RETURNING *`,
+      [fullName, email, password, role, id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    // Respuesta con los datos actualizados
+    res.status(200).json({ message: "Perfil actualizado", usuario: result.rows[0] });
+  } catch (error) {
+    console.error('Error al actualizar el perfil del usuario:', error);
+    res.status(500).json({ message: "Error al actualizar el perfil del usuario" });
+  }
+};
+
+export const editarArticulo = async (req, res) => {
+  const { id } = req.params; // ID del artículo a editar
+  const { producto, cantidad, modulo, estante, estado, entrada, salida } = req.body; // Datos enviados desde el cliente
+
+  try {
+    // Actualiza el artículo y recalcula el campo restante en la consulta
     const result = await pool.query(
       `UPDATE articulos_almacenamiento 
        SET 
@@ -19,10 +97,10 @@ export const editarArticulo = async (req, res) => {
          estado = $5, 
          entrada = $6, 
          salida = $7, 
-         restante = $8 
-       WHERE id = $9 
+         restante = cantidad + $6 - $7 
+       WHERE id = $8 
        RETURNING *`, // Devuelve el artículo actualizado
-      [producto, cantidad, modulo, estante, estado, entrada, salida, restante, id]
+      [producto, cantidad, modulo, estante, estado, entrada, salida, id]
     );
 
     // Verifica si se actualizó algún artículo
@@ -217,114 +295,135 @@ export const getProductos = async (req, res) => {
 // Backend - createMovimiento.js
 export const createMovimiento = async (req, res) => {
   const { tipo_movimiento, solicitante, id_productos, cantidad_productos, rol, nombre_productos } = req.body;
-
+  
   // Validaciones iniciales
   if (!tipo_movimiento || !solicitante || !id_productos || !cantidad_productos || !rol) {
-    return res.status(400).json({
+    return res.status(400).json({ 
       error: 'Todos los campos son requeridos',
-      recibido: { tipo_movimiento, solicitante, id_productos, cantidad_productos, rol },
+      received: { tipo_movimiento, solicitante, id_productos, cantidad_productos, rol }
     });
   }
-
+  
   try {
     await pool.query('BEGIN');
 
-    // 1. Obtener los nombres de los productos
-    const productosIds = id_productos.split(',').map(id => parseInt(id, 10));
-    const nombresProductos = await obtenerNombresProductos(productosIds);
-
-    // 2. Crear el registro del movimiento
-    const movimientoQuery = `
-      INSERT INTO movimientos_almacen (tipo_movimiento, solicitante, id_productos, cantidad_productos, rol, nombre_productos)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *;
-    `;
-    const movimientoValues = [tipo_movimiento, solicitante, id_productos, cantidad_productos, rol, nombresProductos.join(',')];
-    const movimientoResult = await pool.query(movimientoQuery, movimientoValues);
-
-    // 3. Procesar los productos
-    const cantidades = cantidad_productos.split(',').map(cantidad => parseInt(cantidad, 10));
-
-    if (productosIds.length !== cantidades.length) {
-      await pool.query('ROLLBACK');
-      return res.status(400).json({ error: 'Los ID de productos y las cantidades no coinciden' });
-    }
-
-    // 4. Actualizar cada producto
-    for (let i = 0; i < productosIds.length; i++) {
-      const productoId = productosIds[i];
-      const cantidad = cantidades[i];
-
-      // Obtener estado actual del producto
-      const stockQuery = `
-        SELECT cantidad, entrada, salida, restante
-        FROM articulos_almacenamiento
-        WHERE id = $1
-        FOR UPDATE;
+    try {
+      // 1. Obtener los nombres de los productos
+      const productosIds = id_productos.split(',').map(id => parseInt(id, 10));
+      const nombresProductos = await obtenerNombresProductos(productosIds);
+      
+      // 2. Crear el registro del movimiento
+      const movimientoQuery = `
+        INSERT INTO movimientos_almacen (tipo_movimiento, solicitante, id_productos, cantidad_productos, rol, nombre_productos)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *;
       `;
-      const stockResult = await pool.query(stockQuery, [productoId]);
+      const movimientoValues = [tipo_movimiento, solicitante, id_productos, cantidad_productos, rol, nombresProductos.join(',')];
+      const movimientoResult = await pool.query(movimientoQuery, movimientoValues);
 
-      if (stockResult.rows.length === 0) {
+      // 3. Procesar los productos
+      const cantidades = cantidad_productos.split(',').map(cantidad => parseInt(cantidad, 10));
+
+      if (productosIds.length !== cantidades.length) {
         await pool.query('ROLLBACK');
-        return res.status(404).json({ error: `Producto ${productoId} no encontrado` });
+        return res.status(400).json({ error: 'Los IDs de productos y las cantidades no coinciden' });
       }
 
-      const stockActual = stockResult.rows[0];
+      // 4. Actualizar cada producto
+      for (let i = 0; i < productosIds.length; i++) {
+        const productoId = productosIds[i];
+        const cantidad = cantidades[i];
 
-      if (tipo_movimiento === 2) { // Entrada
-        // Calcular nuevos valores para entrada
-        const nuevaEntrada = (currentStock.entrada || 0) + cantidad;
-        const nuevaCantidad = currentStock.cantidad + cantidad; // MODIFICACIÓN: Incrementar cantidad
-        const nuevaSalida = currentStock.salida || 0;
-        const nuevoRestante = nuevaEntrada - nuevaSalida;
-      
-        const updateQuery = `
-          UPDATE articulos_almacenamiento
-          SET 
-            entrada = $1,
-            cantidad = $2,  // Modificar cantidad
-            salida = $3,
-            restante = $4
-          WHERE id = $5;
+        // Obtener estado actual del producto
+        const stockQuery = `
+          SELECT cantidad, entrada, salida, restante 
+          FROM articulos_almacenamiento 
+          WHERE id = $1 FOR UPDATE;
         `;
-        await pool.query(updateQuery, [
-          nuevaEntrada,
-          nuevaCantidad,  // Usar la nueva cantidad incrementada
-          nuevaSalida,
-          nuevoRestante,
-          productoId
-        ]);
-      } else if (tipo_movimiento === 1) { // Salida
-        // Verificar si hay suficiente stock disponible
-        const stockDisponible = stockActual.cantidad;
+        const stockResult = await pool.query(stockQuery, [productoId]);
 
-        if (stockDisponible < cantidad) {
+        if (stockResult.rows.length === 0) {
           await pool.query('ROLLBACK');
-          return res.status(400).json({
-            error: `Stock insuficiente para el producto ${productoId}. Stock disponible: ${stockDisponible}, Cantidad solicitada: ${cantidad}`,
-          });
+          return res.status(404).json({ error: `Producto ${productoId} no encontrado` });
         }
 
-        // Calcular nuevos valores para salida
-        const nuevaSalida = (stockActual.salida || 0) + cantidad;
-        const nuevaCantidad = stockActual.cantidad - cantidad;
-        const nuevaEntrada = stockActual.entrada || 0;
-        const nuevoRestante = nuevaEntrada - nuevaSalida;
+        const currentStock = stockResult.rows[0];
 
-        const updateQuery = `
-          UPDATE articulos_almacenamiento
-          SET salida = $1, cantidad = $2, entrada = $3, restante = $4
-          WHERE id = $5;
-        `;
-        await pool.query(updateQuery, [nuevaSalida, nuevaCantidad, nuevaEntrada, nuevoRestante, productoId]);
+        if (tipo_movimiento === 2) { // Entrada
+          // Calcular nuevos valores para entrada
+          const nuevaEntrada = (currentStock.entrada || 0) + cantidad;
+          const nuevaCantidad = currentStock.cantidad + cantidad; // MODIFICACIÓN: Incrementar cantidad
+          const nuevaSalida = currentStock.salida || 0;
+          const nuevoRestante = nuevaEntrada - nuevaSalida;
+        
+          const updateQuery = `
+            UPDATE articulos_almacenamiento
+            SET 
+              entrada = $1,
+              cantidad = $2,  -- Modificar cantidad
+              salida = $3,
+              restante = $4
+            WHERE id = $5;
+          `;
+          await pool.query(updateQuery, [
+            nuevaEntrada,
+            nuevaCantidad,  // Usar la nueva cantidad incrementada
+            nuevaSalida,
+            nuevoRestante,
+            productoId
+          ]);
+        
+        } 
+        else if (tipo_movimiento === 1) { // Salida
+          // Verificar si hay suficiente stock disponible
+          const stockDisponible = currentStock.cantidad; // Usar cantidad en lugar de (entrada - salida)
+  
+          if (stockDisponible < cantidad) {
+            await pool.query('ROLLBACK');
+            return res.status(400).json({ 
+              error: `Stock insuficiente para el producto ${productoId}. 
+                     Stock disponible: ${stockDisponible}, 
+                     Cantidad solicitada: ${cantidad}` 
+            });
+          }
+        
+          // Calcular nuevos valores para salida
+          const nuevaSalida = (currentStock.salida || 0) + cantidad;
+          const nuevaCantidad = currentStock.cantidad - cantidad; // Reducir la cantidad
+          const nuevaEntrada = currentStock.entrada || 0;
+          const nuevoRestante = nuevaEntrada - nuevaSalida;
+        
+          const updateQuery = `
+            UPDATE articulos_almacenamiento
+            SET 
+              salida = $1,
+              cantidad = $2,
+              entrada = $3,
+              restante = $4
+            WHERE id = $5;
+          `;
+          await pool.query(updateQuery, [
+            nuevaSalida,
+            nuevaCantidad, // Cantidad reducida
+            nuevaEntrada,
+            nuevoRestante,
+            productoId
+          ]);
+        }
       }
+
+      await pool.query('COMMIT');
+
+      res.status(201).json({
+        message: 'Movimiento registrado exitosamente',
+        movimiento: movimientoResult.rows[0]
+      });
+
+    } catch (error) {
+      await pool.query('ROLLBACK');
+      throw error;
     }
-
-    await pool.query('COMMIT');
-    res.status(201).json({ message: 'Movimiento registrado exitosamente', movimiento: movimientoResult.rows[0] });
-
   } catch (error) {
-    await pool.query('ROLLBACK');
     console.error('Error en la operación:', error);
     res.status(500).json({ error: 'Error al procesar el movimiento' });
   }
@@ -337,11 +436,9 @@ const obtenerNombresProductos = async (productosIds) => {
     FROM articulos_almacenamiento
     WHERE id = ANY($1::int[]);
   `;
-  const resultado = await pool.query(query, [productosIds]);
-  return resultado.rows.map(fila => fila.producto);
+  const result = await pool.query(query, [productosIds]);
+  return result.rows.map(row => row.producto);
 };
-
-
 
 
 // Función para obtener todos los movimientos
@@ -383,15 +480,27 @@ export const createArticulo = async (req, res) => {
   const client = await pool.connect();
 
   try {
+    // Verificar si ya existe un artículo con los mismos valores de modulo, estante y producto
+    const checkArticuloQuery = `
+    SELECT * FROM articulos_almacenamiento
+    WHERE modulo = $1 OR estante = $2 OR producto = $3 
+  `;
+    const checkResult = await client.query(checkArticuloQuery, [modulo, estante, producto]);
+
+    if (checkResult.rows.length > 0) {
+      return res.status(400).json({ error: 'Ya existe un artículo con los mismos valores de módulo, estante y producto' });
+    }
+
     // Iniciar transacción
     await client.query('BEGIN');
 
     // Insertar el nuevo artículo
     const insertArticuloQuery = `
-      INSERT INTO articulos_almacenamiento (id, modulo, estante, producto, cantidad, estado)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING id, modulo, estante, producto, cantidad, estado, created_at
-    `;
+    INSERT INTO articulos_almacenamiento 
+      (id, modulo, estante, producto, cantidad, cantidad_productos, estado, entrada, salida, restante)
+    VALUES ($1, $2, $3, $4, $5, $5, $6, 0, 0, 0)
+    RETURNING id, modulo, estante, producto, cantidad, cantidad_productos, estado, created_at
+  `;
     const result = await client.query(insertArticuloQuery, [id, modulo, estante, producto, cantidad, estado]);
 
     // Confirmar transacción
@@ -415,7 +524,6 @@ export const createArticulo = async (req, res) => {
 };
 
 
-
 export const loginUser = async (correo, contraseña) => {
   try {
     const client = await pool.connect();
@@ -424,6 +532,7 @@ export const loginUser = async (correo, contraseña) => {
       'SELECT id, correo, contraseña, rol FROM usuarios WHERE correo = $1', 
       [correo]
     );
+    console.log(result); 
     client.release();
 
     if (result.rows.length > 0) {

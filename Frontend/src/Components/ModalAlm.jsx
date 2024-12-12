@@ -62,7 +62,7 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+    <div className=" modal z-50 fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
       <div className="bg-white w-[80%] p-6 rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold mb-4 text-center">Agregar Artículos de Almacenamiento</h2>
         <div className="bg-white p-4 rounded-lg">
