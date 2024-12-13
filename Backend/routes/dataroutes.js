@@ -1,10 +1,70 @@
 import express from 'express';
 import { pool } from '../config/db.js';
-import { editarPerfil, crearUsuario, obtenerUsuarios, eliminarUsuario,   loginUser, editarArticulo, eliminarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createArticulo } from '../controllers/datacontroler.js';
+import {  updateProfile, updatePassword, sendResetPasswordLink, checkEmailExists,editarPerfil, crearUsuario, obtenerUsuarios, eliminarUsuario,   loginUser, editarArticulo, eliminarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createArticulo } from '../controllers/datacontroler.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { verifyToken } from '../middleware/authMiddleware.js';
 const router = express.Router();
+
+// Ruta para actualizar el perfil del usuario
+router.post('/update-profile', async (req, res) => {
+  const { id, nombre, correo, contraseña } = req.body;
+
+  try {
+      const user = await updateProfile(id, nombre, correo, contraseña);
+      if (user) {
+          res.status(200).json({ message: 'Perfil actualizado con éxito', user });
+      } else {
+          res.status(404).json({ error: 'Usuario no encontrado' });
+      }
+  } catch (error) {
+      console.error('Error al actualizar el perfil:', error);
+      res.status(500).json({ error: error.message });
+  }
+});
+
+// Ruta para actualizar la contraseña del usuario
+router.post('/update-password', async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  try {
+      const user = await updatePassword(email, newPassword);
+      res.status(200).json({ message: 'Contraseña actualizada con éxito', user });
+  } catch (error) {
+      console.error('Error al actualizar la contraseña:', error);
+      res.status(500).json({ error: 'Error al actualizar la contraseña', details: error.message });
+  }
+});
+
+// Ruta para solicitar el enlace de recuperación de contraseña
+router.post('/reset-password', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+      await sendResetPasswordLink(email);
+      res.status(200).json({ message: 'Enlace de restablecimiento enviado' });
+  } catch (error) {
+      console.error('Error al enviar el enlace de restablecimiento:', error);
+      res.status(500).json({ error: `Error al enviar el enlace de restablecimiento: ${error.message}` });
+  }
+});
+
+// Ruta para verificar si el correo electrónico ya está registrado
+router.post('/check-email', async (req, res) => {
+  const { correo } = req.body;
+
+  if (!correo) {
+      return res.status(400).json({ error: 'Correo electrónico es requerido.' });
+  }
+
+  try {
+      const exists = await checkEmailExists(correo);
+      res.json({ exists });
+  } catch (error) {
+      console.error('Error en el endpoint check-email:', error);
+      res.status(500).json({ error: error.message });
+  }
+});
 
 
 router.post('/update-profile', verifyToken, async (req, res) => {

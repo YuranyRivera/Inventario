@@ -1,22 +1,26 @@
 import React, { useState } from 'react';
-import DashboardLayout from '../../layouts/DashboardLayout';
+import DashboardLayout from '../../layouts/MainLayout';
 import InputField from '../../Components/InputField';
 import Boton from '../../Components/Boton';
 import { useUser } from '../../Context/UserContext';
 
 const EditarPerfil = () => {
-  const { user } = useUser(); // Obtener el usuario autenticado del contexto
-  const token = localStorage.getItem('token'); // Obtener el token del almacenamiento local
+  const { user } = useUser(); 
+  const token = localStorage.getItem('token'); 
   const [formData, setFormData] = useState({
-    fullName: user?.nombre || '', // Prellenar con los datos del usuario
+    fullName: user?.nombre || '',
     email: user?.correo || '',
-    currentPassword: '', // Campo obligatorio
+    currentPassword: '', 
     newPassword: '',
     confirmPassword: '',
   });
   const [message, setMessage] = useState(null);
+  const [showPassword, setShowPassword] = useState({
+    currentPassword: false,
+    newPassword: false,
+    confirmPassword: false,
+  });
 
-  // Maneja los cambios en los inputs
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -25,25 +29,30 @@ const EditarPerfil = () => {
     }));
   };
 
-  // Envía el formulario
+  const handlePasswordToggle = (field) => {
+    setShowPassword((prevState) => ({
+      ...prevState,
+      [field]: !prevState[field],
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
   
-    // Validar que las contraseñas coincidan
     if (formData.newPassword && formData.newPassword !== formData.confirmPassword) {
       setMessage('Las contraseñas no coinciden');
       return;
     }
   
     console.log('Enviando formulario con los siguientes datos:', formData);
-    console.log('Token de autorización:', token); // Aquí ya está el token desde localStorage
+    console.log('Token de autorización:', token);
   
     try {
       const response = await fetch('http://localhost:4000/api/update-profile', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`, // Incluir el token en el encabezado
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           currentPassword: formData.currentPassword,
@@ -67,10 +76,11 @@ const EditarPerfil = () => {
       setMessage('Error interno del servidor');
     }
   };
+
   return (
     <DashboardLayout>
       <div className="flex justify-center items-center h-screen">
-        <div className="w-full max-w-lg p-8 bg-gray-100 shadow-md rounded-lg">
+        <div className="w-full max-w-lg p-8  shadow-md rounded-lg">
           <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">Editar Perfil</h1>
           {message && <p className="text-center text-red-500 mb-4">{message}</p>}
           <form onSubmit={handleSubmit}>
@@ -90,31 +100,52 @@ const EditarPerfil = () => {
               onChange={handleChange}
               placeholder="Ingresa tu correo"
             />
-            <InputField
-              label="Contraseña Actual"
-              type="password"
-              name="currentPassword"
-              value={formData.currentPassword}
-              onChange={handleChange}
-              placeholder="Ingresa tu contraseña actual"
-              required
-            />
-            <InputField
-              label="Nueva Contraseña"
-              type="password"
-              name="newPassword"
-              value={formData.newPassword}
-              onChange={handleChange}
-              placeholder="Ingresa tu nueva contraseña"
-            />
-            <InputField
-              label="Confirmar Nueva Contraseña"
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              placeholder="Confirma tu nueva contraseña"
-            />
+            <div className="relative">
+              <InputField
+                label="Contraseña Actual"
+                type={showPassword.currentPassword ? "text" : "password"}
+                name="currentPassword"
+                value={formData.currentPassword}
+                onChange={handleChange}
+                placeholder="Ingresa tu contraseña actual"
+                required
+              />
+              <span 
+                onClick={() => handlePasswordToggle('currentPassword')} 
+                className="absolute top-1/2 right-2 transform -translate-y-1/2 text-gray-500">
+                <i className={`bx ${showPassword.currentPassword ? 'bx-show' : 'bx-hide'} cursor-pointer mt-[30px] text-[20px]`}></i>
+              </span>
+            </div>
+            <div className="relative">
+              <InputField
+                label="Nueva Contraseña"
+                type={showPassword.newPassword ? "text" : "password"}
+                name="newPassword"
+                value={formData.newPassword}
+                onChange={handleChange}
+                placeholder="Ingresa tu nueva contraseña"
+              />
+              <span 
+                onClick={() => handlePasswordToggle('newPassword')} 
+                className="absolute top-1/2 right-2 transform -translate-y-1/2 text-gray-500">
+                <i className={`bx ${showPassword.newPassword ? 'bx-show' : 'bx-hide'} cursor-pointer mt-[30px] text-[20px]`}></i>
+              </span>
+            </div>
+            <div className="relative">
+              <InputField
+                label="Confirmar Nueva Contraseña"
+                type={showPassword.confirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="Confirma tu nueva contraseña"
+              />
+              <span 
+                onClick={() => handlePasswordToggle('confirmPassword')} 
+                className="absolute top-1/2 right-2 transform -translate-y-1/2 text-gray-500">
+                <i className={`bx ${showPassword.confirmPassword ? 'bx-show' : 'bx-hide'} cursor-pointer mt-[30px] text-[20px]`}></i>
+              </span>
+            </div>
             <div className="flex justify-center">
               <Boton type="submit" Text="Actualizar" />
             </div>

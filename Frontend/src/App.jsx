@@ -10,6 +10,8 @@ import Articulos from './Pages/Inventario/Articulos';
 import RegSalida from './Pages/Inventario/RegSalida';
 import Contactos from './Pages/Inventario/Contacto';
 import EditarPerfil from './Pages/Inventario/EditarPerfil';
+import OlvidarContraseña from './Pages/Principal/OlvidarContraseña';
+import ActualizarContrasena from './Pages/Principal/ActualizarContrasena';
 import { UserProvider } from './Context/UserContext';
 
 
@@ -72,6 +74,24 @@ const App = () => {
               </ProtectedRoute>
             } 
           />
+
+<Route 
+            path="/OlvidarContraseña" 
+            element={
+              <ProtectedRoute>
+                <OlvidarContraseña/>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/ActualizarContrasena" 
+            element={
+              <ProtectedRoute>
+                <ActualizarContrasena/>
+              </ProtectedRoute>
+            } 
+          />
+
 
           {/* Ruta por defecto */}
           <Route path="/" element={<Navigate to="/Inicio" replace />} />

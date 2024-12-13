@@ -2,6 +2,108 @@ import { pool } from '../config/db.js';
 import bcrypt from 'bcrypt';
 
 import jwt from 'jsonwebtoken';
+import transporter from '../config/nodemailerConfig.js';
+import { v4 as uuidv4 } from 'uuid';
+
+// Función para actualizar el perfil del usuario
+export const updateProfile = async (id, nombre, correo, contraseña) => {
+  try {
+      const result = await pool.query(
+          `UPDATE usuarios 
+           SET nombre = $1, correo = $2, contraseña = $3
+           WHERE id = $4 RETURNING *`,
+          [nombre, correo, contraseña, id]
+      );
+      return result.rows.length > 0 ? result.rows[0] : null;
+  } catch (error) {
+      throw new Error('Error al actualizar el perfil');
+  }
+};
+
+// Función para verificar si el usuario existe
+export const checkIfUserExists = async (correo) => {
+  try {
+      const client = await pool.connect();
+      const result = await client.query(
+          'SELECT * FROM usuarios WHERE correo = $1',
+          [correo]
+      );
+      client.release();
+
+      return result.rows.length > 0;
+  } catch (error) {
+      console.error('Error al verificar si el usuario existe:', error);
+      throw error;
+  }
+};
+
+// Función para actualizar la contraseña
+export const updatePassword = async (correo, nuevaContraseña) => {
+  try {
+      const hashedPassword = await bcrypt.hash(nuevaContraseña, 10);
+
+      const client = await pool.connect();
+      const result = await client.query(
+          'UPDATE usuarios SET contraseña = $1 WHERE correo = $2 RETURNING *',
+          [hashedPassword, correo]
+      );
+      client.release();
+
+      if (result.rows.length > 0) {
+          return result.rows[0];
+      } else {
+          throw new Error('Usuario no encontrado');
+      }
+  } catch (error) {
+      console.error('Error al actualizar la contraseña:', error);
+      throw error;
+  }
+};
+
+// Función para verificar si el correo electrónico ya existe
+export const checkEmailExists = async (correo) => {
+  if (!correo) {
+      throw new Error('El correo electrónico es requerido.');
+  }
+  try {
+      const client = await pool.connect();
+      const result = await client.query('SELECT COUNT(*) FROM usuarios WHERE correo = $1', [correo]);
+      client.release();
+      
+      return result.rows[0].count > 0;
+  } catch (error) {
+      console.error('Error en checkEmailExists:', error);
+      throw new Error('Error en la base de datos al verificar el correo electrónico.');
+  }
+};
+
+// Función para enviar el enlace de recuperación de contraseña
+export const sendResetPasswordLink = async (correo) => {
+  try {
+      const userExists = await checkIfUserExists(correo);
+
+      if (!userExists) {
+          throw new Error('Por favor regístrate para hacer el cambio de contraseña.');
+      }
+
+      const resetToken = uuidv4();
+      const resetLink = `http://localhost:5173/ActualizarContrasena?token=${resetToken}&email=${encodeURIComponent(correo)}`;
+
+      const mailOptions = {
+          from: 'inventario263@gmail.com',
+          to: correo,
+          subject: 'Recuperación de Contraseña',
+          html: `<p>Haga clic en el siguiente enlace para restablecer su contraseña: <a href="${resetLink}">Restablecer Contraseña</a></p>`
+      };
+
+      await transporter.sendMail(mailOptions);
+  } catch (error) {
+      console.error('Error al enviar el enlace de restablecimiento:', error);
+      throw new Error('Error al enviar el enlace de restablecimiento');
+  }
+};
+
+
 
 export const crearUsuario = async (req, res) => {
   const { fullName, email, password, role } = req.body;
