@@ -2,7 +2,7 @@ import React from 'react';
 
 const InputField = ({ label, type, value, onChange, placeholder, name }) => {
   return (
-    <div className="mb-6 w-full">
+    <div className="w-full">
       <label className="block text-gray-700 text-lg font-semibold mb-2">
         {label}
       </label>

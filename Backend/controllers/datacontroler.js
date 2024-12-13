@@ -37,9 +37,8 @@ export const obtenerUsuarios = async (req, res) => {
   }
 };
 
-// Eliminar un usuario por su ID
 export const eliminarUsuario = async (req, res) => {
-  const { id } = req.params; // Obtener el ID desde la URL
+  const { id } = req.params;
 
   try {
     const result = await pool.query(
@@ -51,7 +50,17 @@ export const eliminarUsuario = async (req, res) => {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
 
-    res.status(200).json({ message: "Usuario eliminado", usuario: result.rows[0] });
+    // Verificar si hay registros en la tabla y ajustar la secuencia
+    const checkEmpty = await pool.query(`SELECT COUNT(*) FROM usuarios`);
+    if (checkEmpty.rows[0].count == 0) {
+      // Si está vacía, reiniciar desde 1
+      await pool.query(`ALTER SEQUENCE usuarios_id_seq RESTART WITH 1`);
+    } else {
+      // Ajustar la secuencia al valor máximo actual de ID
+      await pool.query(`SELECT setval('usuarios_id_seq', COALESCE((SELECT MAX(id) FROM usuarios), 0))`);
+    }
+
+    res.status(200).json({ message: "Usuario eliminado y secuencia ajustada", usuario: result.rows[0] });
   } catch (error) {
     console.error('Error al eliminar el usuario:', error);
     res.status(500).json({ message: "Error al eliminar el usuario" });
@@ -565,5 +574,88 @@ export const loginUser = async (correo, contraseña) => {
   } catch (error) {
     console.error('Error al iniciar sesión:', error);
     throw error;
+  }
+};
+
+export const updateUserProfile = async (userId, currentPassword, newPassword, nombre = null, correo = null) => {
+  const client = await pool.connect();
+
+  try {
+    // First, verify the current password
+    const userVerificationQuery = 'SELECT contraseña FROM usuarios WHERE id = $1';
+    const userVerificationResult = await client.query(userVerificationQuery, [userId]);
+
+    if (userVerificationResult.rows.length === 0) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    const storedHashedPassword = userVerificationResult.rows[0].contraseña;
+    
+    // Verify current password
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, storedHashedPassword);
+    if (!isCurrentPasswordValid) {
+      throw new Error('Contraseña actual incorrecta');
+    }
+
+    // Prepare update query
+    let query = '';
+    let values = [];
+
+    // Hash new password if provided
+    const hashedNewPassword = newPassword ? await bcrypt.hash(newPassword, 10) : null;
+
+    // Construct dynamic update query
+    const updateFields = [];
+    const queryValues = [];
+    let paramCount = 1;
+
+    if (nombre) {
+      updateFields.push(`nombre = $${paramCount}`);
+      queryValues.push(nombre);
+      paramCount++;
+    }
+    if (correo) {
+      updateFields.push(`correo = $${paramCount}`);
+      queryValues.push(correo);
+      paramCount++;
+    }
+    if (hashedNewPassword) {
+      updateFields.push(`contraseña = $${paramCount}`);
+      queryValues.push(hashedNewPassword);
+      paramCount++;
+    }
+
+    queryValues.push(userId);
+
+    query = `
+      UPDATE usuarios 
+      SET ${updateFields.join(', ')}
+      WHERE id = $${paramCount}
+      RETURNING id, correo, nombre
+    `;
+
+    const result = await client.query(query, queryValues);
+
+    // Generate a new token
+    const updatedUser = result.rows[0];
+    const token = jwt.sign(
+      { 
+        id: updatedUser.id, 
+        correo: updatedUser.correo,
+        ...(updatedUser.nombre && { nombre: updatedUser.nombre }) 
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    return {
+      user: updatedUser,
+      token
+    };
+  } catch (error) {
+    console.error('Error actualizando perfil:', error);
+    throw error;
+  } finally {
+    client.release();
   }
 };

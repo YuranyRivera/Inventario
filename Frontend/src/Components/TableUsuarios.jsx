@@ -22,7 +22,7 @@ const Table = ({ title, headers, rows, onDelete }) => {
                 <td className="px-4 py-2">{row.rol}</td>
                 <td className="px-4 py-2">
                   <button
-                    className="bg-red-500 text-white py-1 px-3 rounded"
+                    className="bg-[#00A305]  text-white py-1 px-3 rounded"
                     onClick={() => onDelete(row.id)} // Llamar a la función onDelete al hacer clic
                   >
                     Eliminar

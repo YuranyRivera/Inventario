@@ -1,7 +1,91 @@
 import express from 'express';
+import { pool } from '../config/db.js';
 import { editarPerfil, crearUsuario, obtenerUsuarios, eliminarUsuario,   loginUser, editarArticulo, eliminarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createArticulo } from '../controllers/datacontroler.js';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import { verifyToken } from '../middleware/authMiddleware.js';
 const router = express.Router();
+
+
+router.post('/update-profile', verifyToken, async (req, res) => {
+  console.log('Update profile request body:', req.body);
+
+  const { 
+    currentPassword, 
+    newPassword, 
+    nombre = null, 
+    correo = null 
+  } = req.body;
+
+  // Validar que se proporcione la contraseña actual
+  if (!currentPassword) {
+    return res.status(400).json({ error: 'Contraseña actual es obligatoria' });
+  }
+
+  try {
+    // Verificar la contraseña actual del usuario
+    const client = await pool.connect();
+    const result = await client.query('SELECT contraseña FROM usuarios WHERE id = $1', [req.user.id]);
+    client.release();
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, result.rows[0].contraseña);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Contraseña actual incorrecta' });
+    }
+
+    // Construir la consulta de actualización
+    let query = 'UPDATE usuarios SET';
+    const values = [];
+    let valueIndex = 1;
+
+    if (nombre) {
+      query += ` nombre = $${valueIndex},`;
+      values.push(nombre);
+      valueIndex++;
+    }
+
+    if (correo) {
+      query += ` correo = $${valueIndex},`;
+      values.push(correo);
+      valueIndex++;
+    }
+
+    if (newPassword) {
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      query += ` contraseña = $${valueIndex},`;
+      values.push(hashedPassword);
+      valueIndex++;
+    }
+
+    // Eliminar la última coma y agregar la cláusula WHERE
+    query = query.slice(0, -1) + ` WHERE id = $${valueIndex} RETURNING id, nombre, correo`;
+    values.push(req.user.id);
+
+    // Ejecutar la consulta
+    const updateClient = await pool.connect();
+    const updateResult = await updateClient.query(query, values);
+    updateClient.release();
+
+    if (updateResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    // Responder con los datos actualizados
+    const updatedUser = updateResult.rows[0];
+    res.status(200).json({
+      message: 'Perfil actualizado exitosamente',
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 router.post('/login', async (req, res) => {
   console.log('Login request body:', req.body);
   const { correo, contraseña } = req.body;
