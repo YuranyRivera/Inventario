@@ -49,8 +49,8 @@ const Sidebar = () => {
           <i className="fas fa-file-alt mr-3"></i> Registro
         </Link>
         <Link to="/EditarPerfil" className="flex items-center text-lg hover:bg-[#41B646] p-2 rounded">
-          <i className="fas fa-user-edit mr-3"></i> Editar perfil
-        </Link>
+  <i className="fas fa-user-edit mr-3"></i> Editar perfil
+</Link>
       </div>
       {/* Opción de salir */}
       <div 

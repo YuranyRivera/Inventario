@@ -7,7 +7,7 @@ dotenv.config();
 
 const app = express();
 const PORT = 4000;
-
+app.use(express.urlencoded({ extended: true }));
 // Define allowed origins
 const allowedOrigins = [
   'http://localhost:5173',   // Local development
@@ -35,7 +35,8 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Middleware
-app.use(express.json());
+app.use(express.json()); // Para procesar JSON en el cuerpo de la solicitud
+
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 

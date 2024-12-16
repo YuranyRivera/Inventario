@@ -3,6 +3,7 @@ import Input from '../../Components/Input';
 import Boton from '../../Components/Boton';
 import { useUser } from '../../Context/UserContext';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom'; // Importa Link para la navegación
 
 const Login = () => {
   const [correo, setCorreo] = useState('');
@@ -119,6 +120,14 @@ const Login = () => {
             <div className="flex justify-center">
               <Boton type="submit" Text="Iniciar sesión" />
             </div>
+
+            {/* Enlace de Olvidar Contraseña */}
+            <div className="mt-4 text-center">
+            <Link to="/OlvidarContraseña" className="text-blue-500 hover:underline">
+  ¿Olvidaste tu contraseña?
+</Link>
+            </div>
+
           </form>
         </div>
       </div>

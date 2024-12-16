@@ -66,30 +66,18 @@ const App = () => {
               </ProtectedRoute>
             } 
           />
-          <Route 
-            path="/EditarPerfil" 
-            element={
-              <ProtectedRoute>
-                <EditarPerfil />
-              </ProtectedRoute>
-            } 
-          />
+        <Route 
+  path="/EditarPerfil" 
+  element={
+    
+    <ProtectedRoute>
+      <EditarPerfil />
+    </ProtectedRoute>
+  } 
+/>
 
-<Route 
-            path="/OlvidarContraseña" 
-            element={
-              <ProtectedRoute>
-                <OlvidarContraseña/>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/ActualizarContrasena" 
-            element={
-              <ProtectedRoute>
-                <ActualizarContrasena/>
-              </ProtectedRoute>
-            } 
+       <Route path="/OlvidarContraseña" element={<OlvidarContraseña />} />
+          <Route path="/ActualizarContrasena" element={  <ActualizarContrasena/>  } 
           />
 
 
