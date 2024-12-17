@@ -132,10 +132,15 @@ const [contactos, setContactos] = useState([]);
   
     axios.post('http://localhost:4000/api/usuarios', nuevoContacto)
       .then(response => {
-        fetchContactos(); 
-        setMessage('Usuario guardado exitosamente!');  
-        setIsConfirmModalOpen(true);  
-        
+        fetchContactos();
+        setMessage('Usuario guardado exitosamente!');
+        setIsConfirmModalOpen(true);
+  
+        // Cerrar el modal automáticamente después de 2 segundos
+        setTimeout(() => {
+          setIsConfirmModalOpen(false);
+        }, 2000);
+  
         // Resetear el formulario
         setFormData({
           fullName: '',
@@ -152,7 +157,6 @@ const [contactos, setContactos] = useState([]);
         if (error.response) {
           switch (error.response.status) {
             case 400:
-              // Revisar si el error es por un correo duplicado
               if (error.response.data.error && error.response.data.error.includes('correo')) {
                 errorMsg = 'El correo electrónico ya está registrado.';
               }
@@ -170,10 +174,15 @@ const [contactos, setContactos] = useState([]);
   
         // Abrir modal de error
         setErrorMessage(errorMsg);
-        setIsErrorModalOpen(true); 
+        setIsErrorModalOpen(true);
+  
+        // Cerrar el modal automáticamente después de 2 segundos
+        setTimeout(() => {
+          setIsErrorModalOpen(false);
+        }, 2000);
       });
   };
-
+  
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };

@@ -6,6 +6,10 @@ const ModalError = ({ isOpen, onClose, message }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
       <div className="bg-white p-6 rounded-lg w-1/3 shadow-lg">
+      
+        <div className="text-center mt-4">
+          <p className="text-xl text-gray-700">{message}</p>
+        </div>
         <div className="flex justify-center items-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -22,17 +26,7 @@ const ModalError = ({ isOpen, onClose, message }) => {
             />
           </svg>
         </div>
-        <div className="text-center mt-4">
-          <p className="text-xl text-gray-700">{message}</p>
-        </div>
-        <div className="flex justify-center mt-4">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-          >
-            Cerrar
-          </button>
-        </div>
+
       </div>
     </div>
   );

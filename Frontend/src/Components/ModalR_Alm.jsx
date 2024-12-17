@@ -219,18 +219,21 @@ if (!responsable || !responsable.trim()) {
                 <tr key={product.value}>
                   <td className="px-4 py-2">{product.label}</td>
                   <td className="px-4 py-2">
-                    <input
-                      type="number"
-                      min="1"
-                      max="99999"
-                      value={product.quantity || ''}
-                      onChange={(e) => handleQuantityUpdate(e, product.value)}
-                      className={`border p-2 rounded w-full ${
-                        errors.cantidad ? 'border-red-500' : ''
-                      }`}
-                      disabled={loading}
-                      placeholder="Ingrese cantidad"
-                    />
+                  <input
+  type="number"
+  min="0"
+  max="99999"
+  value={product.quantity === 0 ? '' : product.quantity || ''}
+  onChange={(e) => {
+    const value = e.target.value === '' ? 0 : Number(e.target.value);
+    handleQuantityUpdate(value, product.value);
+  }}
+  className={`border p-2 rounded w-full ${
+    errors.cantidad ? 'border-red-500' : ''
+  }`}
+  disabled={loading}
+  placeholder="Ingrese cantidad"
+/>
                   </td>
                 </tr>
               ))}
