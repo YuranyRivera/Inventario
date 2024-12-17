@@ -1,7 +1,7 @@
 import express from 'express';
 import { pool } from '../config/db.js';
 import transporter from '../config/nodemailerConfig.js';
-import {  updateProfile, updatePassword, checkEmailExists,editarPerfil, crearUsuario, obtenerUsuarios, eliminarUsuario,   loginUser, editarArticulo, eliminarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createArticulo } from '../controllers/datacontroler.js';
+import {  updateProfile, updatePassword, checkIfUserExists, checkEmailExists,editarPerfil, crearUsuario, obtenerUsuarios, eliminarUsuario,   loginUser, editarArticulo, eliminarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createArticulo } from '../controllers/datacontroler.js';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
@@ -11,34 +11,46 @@ const router = express.Router();
 
 router.post('/update-password', updatePassword);
 
+import jwt from 'jsonwebtoken';
+import { v4 as uuidv4 } from 'uuid';
+
 // Ruta para solicitar el enlace de recuperación de contraseña
 router.post('/reset-password', async (req, res) => {
   const { email } = req.body;
 
   try {
-      // Generar un token único para la recuperación de contraseña
-      const resetToken = uuidv4();
-      const resetLink = `http://localhost:5173/ActualizarContrasena?token=${resetToken}&email=${encodeURIComponent(email)}`;
+    // Verificar si el usuario existe
+    const userExists = await checkIfUserExists(email);
 
-      // Configurar los detalles del correo
-      const mailOptions = {
-          from: 'inventario263@gmail.com',
-          to: email,
-          subject: 'Recuperación de Contraseña',
-          html: `<p>Haga clic en el siguiente enlace para restablecer su contraseña:</p>
-                 <a href="${resetLink}">Restablecer Contraseña</a>
-                 <p>Este enlace es válido solo por un tiempo limitado.</p>`
-      };
+    if (!userExists) {
+      return res.status(404).json({ error: 'Por favor regístrate para hacer el cambio de contraseña.' });
+    }
 
-      // Enviar el correo
-      await transporter.sendMail(mailOptions);
-      console.log('Correo de restablecimiento enviado correctamente a:', email);
-      res.status(200).json({ message: 'Enlace de restablecimiento enviado' });
+    // Generar un token con expiración para la recuperación de contraseña
+    const resetToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '1h' }); // Token válido por 1 hora
+    const resetLink = `http://localhost:5173/ActualizarContrasena?token=${resetToken}&email=${encodeURIComponent(email)}`;
+
+    // Configurar los detalles del correo
+    const mailOptions = {
+      from: 'inventario263@gmail.com',
+      to: email,
+      subject: 'Recuperación de Contraseña',
+      html: `<p>Haga clic en el siguiente enlace para restablecer su contraseña:</p>
+             <a href="${resetLink}">Restablecer Contraseña</a>
+             <p>Este enlace es válido solo por un tiempo limitado.</p>`
+    };
+
+    // Enviar el correo
+    await transporter.sendMail(mailOptions);
+    console.log('Correo de restablecimiento enviado correctamente a:', email);
+    res.status(200).json({ message: 'Enlace de restablecimiento enviado' });
+
   } catch (error) {
-      console.error('Error al enviar el enlace de restablecimiento:', error);
-      res.status(500).json({ error: `Error al enviar el enlace de restablecimiento: ${error.message}` });
+    console.error('Error al enviar el enlace de restablecimiento:', error);
+    res.status(500).json({ error: `Error al enviar el enlace de restablecimiento: ${error.message}` });
   }
 });
+
 
 
 // Ruta para verificar si el correo electrónico ya está registrado

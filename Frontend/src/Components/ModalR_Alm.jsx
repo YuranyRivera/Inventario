@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ProductSelect from './ProductSelect';
 import EstadoSelect from './EstadoSelect';
 import BotonPrincipal from './Boton';
 import BotonSecundario from './BotonSecundario';
 import useMovimientosAlmacen from '../hooks/useMovimientosAlmacen';
 import ModalConfirmacion from './ModalConfirmacion';
-import { useNavigate } from 'react-router-dom'; // Importar useNavigate
+import { useNavigate } from 'react-router-dom';
 
 const ModalEntrada = ({ isOpen, onClose, reloadArticulos }) => {
   const {
@@ -31,7 +31,19 @@ const ModalEntrada = ({ isOpen, onClose, reloadArticulos }) => {
   });
 
   const [isModalConfirmacionOpen, setIsModalConfirmacionOpen] = useState(false);
-  const navigate = useNavigate(); // Inicializar el hook useNavigate
+  const navigate = useNavigate();
+
+  // Efecto para limpiar errores cuando se cierra el modal
+  useEffect(() => {
+    if (!isOpen) {
+      setErrors({
+        responsable: '',
+        productos: '',
+        cantidad: '',
+        estado: '',
+      });
+    }
+  }, [isOpen]);
 
   const handleConfirmacionClose = () => {
     setErrors({
@@ -45,75 +57,109 @@ const ModalEntrada = ({ isOpen, onClose, reloadArticulos }) => {
     onClose();
   };
 
-  const handleGuardar = async () => {
-    if (loading) return; // Prevenir múltiples envíos
-  
-    // Inicializa el estado de errores
+  const validateForm = () => {
     const newErrors = {
       responsable: '',
       productos: '',
       cantidad: '',
       estado: '',
     };
-  
     let isValid = true;
-  
-    // Validar responsable
-    if (!responsable.trim()) {
-      newErrors.responsable = 'El responsable es obligatorio.';
+
+// Validar responsable
+if (!responsable || !responsable.trim()) {
+  newErrors.responsable = 'El responsable es obligatorio.';
+  isValid = false;
+} else if (responsable.trim().length < 3) {
+  newErrors.responsable = 'El nombre del responsable debe tener al menos 3 caracteres.';
+  isValid = false;
+} else if (responsable.trim().length > 50) {
+  newErrors.responsable = 'El nombre del responsable no puede exceder 50 caracteres.';
+  isValid = false;
+} else if (/[^A-Za-zÁáÉéÍíÓóÚúÑñ\s]/.test(responsable)) {  // Verificar que solo contenga letras y espacios
+  newErrors.responsable = 'El nombre del responsable no debe contener números ni caracteres especiales.';
+  isValid = false;
+}
+    // Validar estado (entrada/salida)
+    if (!estado) {
+      newErrors.estado = 'Debe seleccionar un tipo de movimiento (Entrada o Salida).';
       isValid = false;
     }
-  
+
     // Validar productos
-    if (selectedProducts.length === 0) {
+    if (!selectedProducts || selectedProducts.length === 0) {
       newErrors.productos = 'Debe seleccionar al menos un producto.';
       isValid = false;
     } else {
       // Validar cantidad de productos
-      selectedProducts.forEach((product) => {
-        if (!product.quantity || product.quantity <= 0) {
-          newErrors.cantidad = 'La cantidad debe ser mayor que 0.';
-          isValid = false;
-        }
-      });
+      const invalidProducts = selectedProducts.filter(
+        (product) => !product.quantity || product.quantity <= 0 || !Number.isInteger(Number(product.quantity))
+      );
+
+      if (invalidProducts.length > 0) {
+        newErrors.cantidad = 'La cantidad debe ser un número entero mayor que 0.';
+        isValid = false;
+      }
+
+      // Validar límites de cantidad
+      const exceedingProducts = selectedProducts.filter(
+        (product) => product.quantity > 99999
+      );
+
+      if (exceedingProducts.length > 0) {
+        newErrors.cantidad = 'La cantidad no puede exceder 99,999 unidades.';
+        isValid = false;
+      }
     }
 
-    // Validar estado (entrada/salida)
-    if (!estado) {
-      newErrors.estado = 'Debe seleccionar un estado (Entrada o Salida).';
-      isValid = false;
-    }
-  
-    // Si hay errores, actualizar el estado de los errores y evitar el guardado
-    if (!isValid) {
-      setErrors(newErrors);
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  const handleGuardar = async () => {
+    if (loading) return;
+
+    if (!validateForm()) {
       return;
     }
-  
-    // Si es válido, proceder a guardar
+
     const saveSuccessful = await handleSave();
     if (saveSuccessful) {
       setIsModalConfirmacionOpen(true);
-  
-      // Redirigir después de 2 segundos
       setTimeout(() => {
-        navigate('/Registro'); // Cambia '/pagina-destino' por la ruta que desees
-      }, 1000); // 2 segundos
+        navigate('/Registro');
+      }, 1000);
     }
   };
 
-  // Limpiar errores cuando el usuario escribe
+  // Limpiar errores al escribir o seleccionar
   const handleInputChange = (e, field) => {
+    const value = e?.target?.value ?? e;
+    
     setErrors((prevErrors) => ({
       ...prevErrors,
-      [field]: '', // Limpiar el error del campo correspondiente
+      [field]: '',
     }));
 
     if (field === 'responsable') {
-      setResponsable(e.target.value);
+      setResponsable(value);
     } else if (field === 'estado') {
-      setEstado(e.target.value);
+      setEstado(value);
+      // Limpiar error de estado específicamente
+      setErrors(prev => ({ ...prev, estado: '' }));
     }
+  };
+
+  // Manejador específico para la selección de productos
+  const handleProductSelection = (selectedOptions) => {
+    handleSelectProduct(selectedOptions);
+    setErrors(prev => ({ ...prev, productos: '', cantidad: '' }));
+  };
+
+  // Manejador específico para cambios de cantidad
+  const handleQuantityUpdate = (e, productId) => {
+    handleQuantityChange(e, productId);
+    setErrors(prev => ({ ...prev, cantidad: '' }));
   };
 
   if (!isOpen) return null;
@@ -138,22 +184,26 @@ const ModalEntrada = ({ isOpen, onClose, reloadArticulos }) => {
           </div>
         )}
 
-        <ProductSelect
-          options={options}
-          value={selectedProducts}
-          onChange={handleSelectProduct}
-          isDisabled={loading}
-        />
-        {errors.productos && <p className="text-red-500 text-sm">{errors.productos}</p>}
-
         <div className="mb-4">
           <EstadoSelect 
             currentStatus={estado} 
-            onChange={(value) => handleInputChange({ target: { value } }, 'estado')}
+            onChange={(value) => handleInputChange(value, 'estado')}
             disabled={loading}
           />
-          {errors.estado && <p className="text-red-500 text-sm">{errors.estado}</p>}
+          {errors.estado && (
+            <p className="text-red-500 text-sm mt-1">{errors.estado}</p>
+          )}
         </div>
+
+        <ProductSelect
+          options={options}
+          value={selectedProducts}
+          onChange={handleProductSelection}
+          isDisabled={loading}
+        />
+        {errors.productos && (
+          <p className="text-red-500 text-sm mt-1 mb-2">{errors.productos}</p>
+        )}
 
         {/* Producto y cantidad */}
         <div className="mb-4 overflow-y-auto max-h-[300px]">
@@ -172,32 +222,43 @@ const ModalEntrada = ({ isOpen, onClose, reloadArticulos }) => {
                     <input
                       type="number"
                       min="1"
-                      value={product.quantity || 1}
-                      onChange={(e) => handleQuantityChange(e, product.value)}
-                      className={`border p-2 rounded w-full ${errors.cantidad ? 'border-red-500' : ''}`}
+                      max="99999"
+                      value={product.quantity || ''}
+                      onChange={(e) => handleQuantityUpdate(e, product.value)}
+                      className={`border p-2 rounded w-full ${
+                        errors.cantidad ? 'border-red-500' : ''
+                      }`}
                       disabled={loading}
+                      placeholder="Ingrese cantidad"
                     />
                   </td>
                 </tr>
               ))}
             </tbody>
-            {errors.cantidad && <p className="text-red-500 text-sm">{errors.cantidad}</p>}
           </table>
+          {errors.cantidad && (
+            <p className="text-red-500 text-sm mt-1">{errors.cantidad}</p>
+          )}
         </div>
 
         {/* Campo Responsable */}
         <div className="mb-4">
-          <label className="block text-lg mb-2">Responsable</label>
-          <input
-            type="text"
-            value={responsable}
-            onChange={(e) => handleInputChange(e, 'responsable')}
-            className={`border p-2 w-full rounded ${errors.responsable ? 'border-red-500' : ''}`}
-            placeholder="Nombre del responsable"
-            disabled={loading}
-          />
-          {errors.responsable && <p className="text-red-500 text-sm">{errors.responsable}</p>}
-        </div>
+  <label className="block text-lg mb-2">Responsable</label>
+  <input
+    type="text"
+    value={responsable}
+    onChange={(e) => handleInputChange(e, 'responsable')}
+    className={`border p-2 w-full rounded ${
+      errors.responsable ? 'border-red-500' : ''
+    }`}
+    placeholder="Nombre del responsable"
+    disabled={loading}
+    maxLength={50}
+  />
+  {errors.responsable && (
+    <p className="text-red-500 text-sm mt-1">{errors.responsable}</p>
+  )}
+</div>
 
         <div className="flex justify-end mt-4 space-x-4">
           <BotonPrincipal 

@@ -3,7 +3,7 @@ import Select from 'react-select';
 
 const ProductSelect = ({ options, value, onChange }) => {
   return (
-    <div >
+    <div className="mb-3">
       <label className="block text-lg mb-2">Selecciona los productos</label>
       <Select
         isMulti

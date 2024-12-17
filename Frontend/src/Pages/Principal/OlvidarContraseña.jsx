@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import Input from '../../Components/Input';
 import Boton from '../../Components/Boton';
+import ModalConfirmacion from '../../Components/ModalConfirmacion';  // Importación del modal
 
 const OlvidarContrasena = () => {
   const [correo, setCorreo] = useState('');
   const [correoError, setCorreoError] = useState('');
   const [globalError, setGlobalError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false); // Estado para abrir/cerrar el modal
+  const [modalMessage, setModalMessage] = useState(''); // Mensaje del modal
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -38,8 +41,17 @@ const OlvidarContrasena = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Mostrar mensaje de éxito
-        alert(data.message);  // O puedes mostrar un mensaje en la UI
+        // Mostrar mensaje de éxito en el modal
+        setModalMessage(data.message);
+        setModalOpen(true);
+        
+        // Limpiar el correo después de enviar el formulario
+        setCorreo(''); 
+
+        // Cerrar el modal automáticamente después de 2 segundos
+        setTimeout(() => {
+          setModalOpen(false);
+        }, 2000);
       } else {
         // Mostrar errores globales
         setGlobalError(data.error);
@@ -92,7 +104,11 @@ const OlvidarContrasena = () => {
                 className="w-full p-10 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Ingresa tu correo"
                 value={correo}
-                onChange={(e) => setCorreo(e.target.value)}
+                onChange={(e) => {
+                  setCorreo(e.target.value);
+                  setCorreoError(''); // Limpiar el error de correo al escribir
+                  setGlobalError(''); // Limpiar el error global al escribir
+                }}
               />
               {correoError && <span className="text-red-500">{correoError}</span>}
             </div>
@@ -102,13 +118,25 @@ const OlvidarContrasena = () => {
             <div className="flex justify-center">
               <Boton 
                 type="submit" 
-                Text={loading ? 'Cargando...' : 'Recuperar Contraseña'} 
+                Text={loading ? 'Cargando...' : 'Recuperar'} 
                 disabled={loading} 
               />
             </div>
           </form>
         </div>
       </div>
+
+      {/* Mostrar modal de confirmación si el estado modalOpen es true */}
+      <ModalConfirmacion 
+        isOpen={modalOpen} 
+        onClose={() => {
+          setModalOpen(false);
+          setCorreo(''); // Limpiar el correo cuando se cierra el modal
+          setCorreoError(''); // Limpiar error de correo al cerrar modal
+          setGlobalError(''); // Limpiar error global
+        }} 
+        message={modalMessage}
+      />
     </div>
   );
 };

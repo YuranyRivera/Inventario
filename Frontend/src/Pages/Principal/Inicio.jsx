@@ -21,8 +21,38 @@ const Login = () => {
     setMostrarContrasena(!mostrarContrasena);
   };
 
+  // Función para validar el correo electrónico
+  const validateEmail = (email) => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+  };
+
+  // Función para manejar el envío del formulario
   const handleSubmit = async (event) => {
     event.preventDefault();
+    
+    // Limpiar errores antes de la validación
+    setCorreoError('');
+    setContrasenaError('');
+    setGlobalError('');
+    
+    // Validaciones
+    let isValid = true;
+
+    if (!correo || !validateEmail(correo)) {
+      setCorreoError('Por favor, ingresa un correo electrónico válido.');
+      isValid = false;
+    }
+
+    if (!contrasena || contrasena.length < 6) {
+      setContrasenaError('La contraseña debe tener al menos 6 caracteres.');
+      isValid = false;
+    }
+
+    if (!isValid) {
+      return;
+    }
+
     try {
       const response = await fetch('http://localhost:4000/api/login', {
         method: 'POST',
@@ -91,7 +121,11 @@ const Login = () => {
                 className="w-full p-10 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Ingresa tu usuario"
                 value={correo}
-                onChange={(e) => setCorreo(e.target.value)}
+                onChange={(e) => {
+                  setCorreo(e.target.value);
+                  setCorreoError(''); // Limpiar el error al escribir en el campo
+                  setGlobalError(''); // Limpiar el error global al escribir en el correo
+                }}
               />
               {correoError && <span className="text-red-500">{correoError}</span>}
             </div>
@@ -104,16 +138,20 @@ const Login = () => {
                 className="w-full mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Ingresa tu contraseña"
                 value={contrasena}
-                onChange={(e) => setContrasena(e.target.value)}
+                onChange={(e) => {
+                  setContrasena(e.target.value);
+                  setContrasenaError(''); // Limpiar el error al escribir en el campo
+                  setGlobalError(''); // Limpiar el error global al escribir en la contraseña
+                }}
               />
+              {/* Ícono de ojo usando Boxicons */}
               <i
-                className={`absolute top-1/2 right-4 transform -translate-y-1/2 text-gray-500 cursor-pointer fas ${
-                  mostrarContrasena ? 'fa-eye-slash' : 'fa-eye'
-                }`}
+                className={`bx ${mostrarContrasena ? 'bx-show' : 'bx-hide'} absolute top-1/2 right-4 transform -translate-y-1/2 cursor-pointer text-gray-500`}
                 onClick={togglePasswordVisibility}
               ></i>
             </div>
 
+            {contrasenaError && <div className="text-red-500">{contrasenaError}</div>}
             {globalError && <div className="text-red-500">{globalError}</div>}
             {successMessage && <div className="text-green-500">{successMessage}</div>}
 
@@ -123,9 +161,9 @@ const Login = () => {
 
             {/* Enlace de Olvidar Contraseña */}
             <div className="mt-4 text-center">
-            <Link to="/OlvidarContraseña" className="text-blue-500 hover:underline">
-  ¿Olvidaste tu contraseña?
-</Link>
+              <Link to="/OlvidarContraseña" className="text-blue-500 hover:underline">
+                ¿Olvidaste tu contraseña?
+              </Link>
             </div>
 
           </form>

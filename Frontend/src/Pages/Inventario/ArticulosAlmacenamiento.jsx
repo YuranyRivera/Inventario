@@ -119,16 +119,6 @@ const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
             />
           </div>
-          <button
-            onClick={() => console.log('Búsqueda realizada:', searchTerm)}
-            className="px-4 py-2 bg-[#00A305] text-white rounded-lg hover:bg-[#00A305] focus:outline-none focus:ring-2 focus:blue-600 focus:ring-offset-2"
-          >
-            Buscar
-          </button>
-        </div>
-
-        {/* Botones de PDF y Excel */}
-        <div className="flex space-x-4">
           <ButtonGroup
             isStorageSelected={true}
             reloadArticulos={reloadArticulos}
