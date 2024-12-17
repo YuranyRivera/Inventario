@@ -6,20 +6,24 @@ import BotonPrincipal from '../../Components/Boton';
 import Table from '../../Components/TableUsuarios';
 import axios from 'axios';
 import ModalConfirmacion from '../../Components/ModalConfirmacion';
+import ModalError from '../../Components/ModalError';  // Asegúrate de que la ruta sea correcta
+
 
 const Contactos = () => {
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    role: '',
-  });
 
-  const [contactos, setContactos] = useState([]);
+const [formData, setFormData] = useState({
+  fullName: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+  role: '',
+});
+const [contactos, setContactos] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);  
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);  
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const [message, setMessage] = useState('');  
+  const [errorMessage, setErrorMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -72,48 +76,102 @@ const Contactos = () => {
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.fullName) newErrors.fullName = 'El nombre completo es obligatorio.';
-    if (!formData.email) newErrors.email = 'El correo es obligatorio.';
-    if (formData.password !== formData.confirmPassword) newErrors.password = 'Las contraseñas no coinciden.';
-    if (!formData.password) newErrors.password = 'La contraseña es obligatoria.';
-    if (!formData.role) newErrors.role = 'Por favor selecciona un rol.';
     
+    // Nombre completo validaciones
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = 'El nombre completo es obligatorio.';
+    } else if (formData.fullName.trim().length < 2) {
+      newErrors.fullName = 'El nombre debe tener al menos 2 caracteres.';
+    } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(formData.fullName.trim())) {
+      newErrors.fullName = 'El nombre solo puede contener letras.';
+    }
+  
+    // Email validaciones
+    if (!formData.email.trim()) {
+      newErrors.email = 'El correo electrónico es obligatorio.';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'El formato del correo electrónico no es válido.';
+    }
+  
+    // Contraseña validaciones
+    if (!formData.password) {
+      newErrors.password = 'La contraseña es obligatoria.';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'La contraseña debe tener al menos 8 caracteres.';
+    } else if (!/(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])/.test(formData.password)) {
+      newErrors.password = 'La contraseña debe contener mayúsculas, minúsculas, números y caracteres especiales.';
+    }
+  
+    // Confirmación de contraseña
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Por favor confirma tu contraseña.';
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Las contraseñas no coinciden.';
+    }
+  
+    // Rol validación
+    if (!formData.role) {
+      newErrors.role = 'Por favor selecciona un rol.';
+    }
+  
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
   const handleSubmit = (e) => {
     e.preventDefault();
-
+  
     // Validar antes de enviar
     if (!validate()) return;
-
+  
     const nuevoContacto = {
       fullName: formData.fullName,
       email: formData.email,
       password: formData.password,
       role: formData.role,
     };
-
+  
     axios.post('http://localhost:4000/api/usuarios', nuevoContacto)
       .then(response => {
         fetchContactos(); 
         setMessage('Usuario guardado exitosamente!');  
         setIsConfirmModalOpen(true);  
+        
+        // Resetear el formulario
+        setFormData({
+          fullName: '',
+          email: '',
+          password: '',
+          confirmPassword: '',
+          role: '',
+        });
       })
       .catch(error => {
-        console.error('Error al crear el usuario:', error);
-        setMessage('Hubo un error al guardar el usuario.');  
-        setIsConfirmModalOpen(true);  
+        // Manejar errores específicos del servidor
+        let errorMsg = 'Hubo un error al guardar el usuario.';
+  
+        if (error.response) {
+          switch (error.response.status) {
+            case 400:
+              // Revisar si el error es por un correo duplicado
+              if (error.response.data.error && error.response.data.error.includes('correo')) {
+                errorMsg = 'El correo electrónico ya está registrado.';
+              }
+              break;
+            case 409:
+              errorMsg = 'Ya existe un usuario con este correo electrónico.';
+              break;
+            case 500:
+              errorMsg = 'Error interno del servidor. Por favor, intente nuevamente.';
+              break;
+            default:
+              errorMsg = error.response.data.error || 'Hubo un error inesperado.';
+          }
+        }
+  
+        // Abrir modal de error
+        setErrorMessage(errorMsg);
+        setIsErrorModalOpen(true); 
       });
-
-    setFormData({
-      fullName: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      role: '',
-    });
   };
 
   const toggleModal = () => {
@@ -228,12 +286,18 @@ const Contactos = () => {
         </div>
       </div>
 
-      {/* Modal de confirmación */}
       <ModalConfirmacion 
         isOpen={isConfirmModalOpen} 
         onClose={() => setIsConfirmModalOpen(false)} 
         message={message} 
       />
+      
+      {/* Modal de Error */}
+      <ModalError 
+  isOpen={isErrorModalOpen} 
+  onClose={() => setIsErrorModalOpen(false)} 
+  message={errorMessage} 
+/>
       
       {/* Modal para ver contactos */}
       <div className="absolute top-6 right-6">
@@ -256,6 +320,7 @@ const Contactos = () => {
               rows={contactos}
               onDelete={eliminarUsuario} 
             />
+            
           </div>
         </div>
       )}

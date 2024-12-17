@@ -5,7 +5,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import ProtectedRoute from './Components/ProtectedRoute'; // Importa el nuevo componente
 import Dashboard from './Pages/Inventario/Dashboard';
 import Inicio from './Pages/Principal/Inicio';
-import Entrada from './Pages/Inventario/Registro';
+import Registro from './Pages/Inventario/Registro';
 import Articulos from './Pages/Inventario/Articulos';
 import RegSalida from './Pages/Inventario/RegSalida';
 import Contactos from './Pages/Inventario/Contacto';
@@ -43,10 +43,10 @@ const App = () => {
             } 
           />
           <Route 
-            path="/Entrada" 
+            path="/Registro" 
             element={
               <ProtectedRoute>
-                <Entrada />
+                <Registro />
               </ProtectedRoute>
             } 
           />

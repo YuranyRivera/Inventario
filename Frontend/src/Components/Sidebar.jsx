@@ -45,7 +45,7 @@ const Sidebar = () => {
         <Link to="/Contacto" className="flex items-center text-lg hover:bg-[#41B646] p-2 rounded">
           <i className="fas fa-address-book mr-3"></i> Contacto
         </Link>
-        <Link to="/Entrada" className="flex items-center text-lg hover:bg-[#41B646] p-2 rounded">
+        <Link to="/Registro" className="flex items-center text-lg hover:bg-[#41B646] p-2 rounded">
           <i className="fas fa-file-alt mr-3"></i> Registro
         </Link>
         <Link to="/EditarPerfil" className="flex items-center text-lg hover:bg-[#41B646] p-2 rounded">

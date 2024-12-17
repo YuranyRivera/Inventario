@@ -1,31 +1,34 @@
 import React, { useState } from 'react';
 import AuxMaintenanceTable from '../../Components/AuxMaintenanceTable';
 import { Search } from 'lucide-react';
+import ButtonGroup from '../../Components/PDF';
+import ExcelExportButton from '../../Components/Excel'; // Importar el componente de Excel
+
 const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
   const headers = ['ID', 'Producto/Detalle',  'Cantidad Inicial',  'Módulo', 'Estante', 'Estado', 'Entrada', 'Salida', 'Restante'];
   const [searchTerm, setSearchTerm] = useState('');
   const [editingRowIndex, setEditingRowIndex] = useState(null);
   const [editedRowData, setEditedRowData] = useState({});
   
-// Función para filtrar artículos basado en el término de búsqueda
-const filteredArticulos = articulos.filter(articulo =>
-  articulo.producto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  articulo.modulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  articulo.estante.toLowerCase().includes(searchTerm.toLowerCase())
-);
+  // Función para filtrar artículos basado en el término de búsqueda
+  const filteredArticulos = articulos.filter(articulo =>
+    articulo.producto.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    articulo.modulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    articulo.estante.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-// Manejador para el cambio en el campo de búsqueda
-const handleSearchChange = (e) => {
-  setSearchTerm(e.target.value);
-};
+  // Manejador para el cambio en el campo de búsqueda
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
   // Actualiza el estado cuando se edita un campo
   const handleInputChange = (e, field) => {
     const value = e.target.value;
      // Ignorar cambios en campos no editables
-  if (field === 'id' || field === 'cantidad') {
-    return;
-  }
-
+    if (field === 'id' || field === 'cantidad') {
+      return;
+    }
   
     setEditedRowData((prev) => {
       const updatedData = {
@@ -44,10 +47,6 @@ const handleSearchChange = (e) => {
   
       return updatedData;
     });
-  };
-  const handleSearchClick = () => {
-    // Aquí puedes agregar lógica adicional para la búsqueda si es necesario
-    console.log('Búsqueda realizada:', searchTerm);
   };
 
   // Maneja la edición de una fila
@@ -105,7 +104,7 @@ const handleSearchChange = (e) => {
 
   return (
     <>
-   <div className="space-y-4">
+      <div className="space-y-4">
         {/* Buscador con botón */}
         <div className="flex items-center space-x-2">
           <div className="relative flex-1 max-w-md">
@@ -121,45 +120,57 @@ const handleSearchChange = (e) => {
             />
           </div>
           <button
-            onClick={handleSearchClick}
+            onClick={() => console.log('Búsqueda realizada:', searchTerm)}
             className="px-4 py-2 bg-[#00A305] text-white rounded-lg hover:bg-[#00A305] focus:outline-none focus:ring-2 focus:blue-600 focus:ring-offset-2"
           >
             Buscar
           </button>
         </div>
 
-      {/* Tabla */}
-      <AuxMaintenanceTable
-        headers={headers}
-        rows={filteredArticulos.map((articulo) => ({
-          id: articulo.id,
-          producto: articulo.producto,
-          cantidad_productos: articulo.cantidad_productos,
-          modulo: articulo.modulo,
-          estante: articulo.estante,
-          estado: articulo.estado,
-          entrada: articulo.entrada,
-          salida: articulo.salida,
-          cantidad: articulo.cantidad,
-        }))}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        editingRowIndex={editingRowIndex}
-        editedRowData={editedRowData}
-        handleInputChange={(e, field) => {
-          if (['id', 'cantidad', 'cantidad_productos'].includes(field)) {
-            e.preventDefault();
-          } else {
-            handleInputChange(e, field);
-          }
-        }}
-        handleSave={handleSave}
-        handleCancel={handleCancel}
-        disableFields={['id', 'cantidad', 'cantidad_productos']}
-      />
-    </div>
- 
+        {/* Botones de PDF y Excel */}
+        <div className="flex space-x-4">
+          <ButtonGroup
+            isStorageSelected={true}
+            reloadArticulos={reloadArticulos}
+            filteredData={searchTerm ? filteredArticulos : []}
+            allData={articulos}
+          />
+          <ExcelExportButton 
+            filteredData={searchTerm ? filteredArticulos : []} 
+            allData={articulos} 
+          />
+        </div>
 
+        {/* Tabla */}
+        <AuxMaintenanceTable
+          headers={headers}
+          rows={filteredArticulos.map((articulo) => ({
+            id: articulo.id,
+            producto: articulo.producto,
+            cantidad_productos: articulo.cantidad_productos,
+            modulo: articulo.modulo,
+            estante: articulo.estante,
+            estado: articulo.estado,
+            entrada: articulo.entrada,
+            salida: articulo.salida,
+            cantidad: articulo.cantidad,
+          }))}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          editingRowIndex={editingRowIndex}
+          editedRowData={editedRowData}
+          handleInputChange={(e, field) => {
+            if (['id', 'cantidad', 'cantidad_productos'].includes(field)) {
+              e.preventDefault();
+            } else {
+              handleInputChange(e, field);
+            }
+          }}
+          handleSave={handleSave}
+          handleCancel={handleCancel}
+          disableFields={['id', 'cantidad', 'cantidad_productos']}
+        />
+      </div>
     </>
   );
 };
