@@ -30,9 +30,11 @@ const Articulos = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-6 m-5">
-        <h1 className="text-3xl font-bold text-center text-black mb-6">Artículos</h1>
-        <div className="flex justify-between">
+ <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-center text-black mb-4 md:mb-6 mt-10">
+          Artículos
+        </h1>
+        <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 md:space-x-4 mb-6">
           <CheckboxGroup selected={selected} onChange={handleCheckboxChange} />
           <ButtonGroup
             isStorageSelected={selected === 'almacenamiento'}

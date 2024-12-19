@@ -165,8 +165,9 @@ const EditarPerfil = () => {
 
   return (
     <DashboardLayout>
-      <div className="flex justify-center items-center h-screen">
-        <div className="w-full max-w-lg p-8 shadow-md rounded-lg">
+      <div className="justify-center items-center flex flex-col h-full">
+        <div className="w-full max-w-lg p-8 shadow-md  overflow-hidden rounded-lg">
+          
           <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">Editar Perfil</h1>
           {message && <p className="text-center text-red-500 mb-4">{message}</p>}
 

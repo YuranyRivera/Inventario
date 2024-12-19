@@ -157,16 +157,25 @@ if (!responsable || !responsable.trim()) {
   };
 
   // Manejador específico para cambios de cantidad
-  const handleQuantityUpdate = (e, productId) => {
-    handleQuantityChange(e, productId);
+  const handleQuantityUpdate = (value, productId) => {
+    // Convert empty string to 0 or keep the numeric value
+    const numericValue = value === '' ? 0 : parseInt(value, 10);
+    
+    // Create a synthetic event object that mimics the structure expected by handleQuantityChange
+    const syntheticEvent = {
+      target: {
+        value: numericValue
+      }
+    };
+    
+    handleQuantityChange(syntheticEvent, productId);
     setErrors(prev => ({ ...prev, cantidad: '' }));
   };
-
   if (!isOpen) return null;
 
   return (
     <div className="modal z-50 fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-      <div className="bg-white p-6 rounded-lg w-1/2 max-h-[90vh] overflow-auto">
+      <div className="bg-white p-6 rounded-lg w-1/2 max-h-[90vh] overflow-auto  max-[768px]:w-[70%]">
         <div className="flex justify-between mb-4">
           <h3 className="text-xl font-semibold">Registro de Almacenamiento</h3>
           <button 
@@ -223,10 +232,12 @@ if (!responsable || !responsable.trim()) {
   type="number"
   min="0"
   max="99999"
-  value={product.quantity === 0 ? '' : product.quantity || ''}
-  onChange={(e) => {
-    const value = e.target.value === '' ? 0 : Number(e.target.value);
-    handleQuantityUpdate(value, product.value);
+  value={product.quantity || ''}
+  onChange={(e) => handleQuantityUpdate(e.target.value, product.value)}
+  onBlur={(e) => {
+    if (e.target.value === '') {
+      handleQuantityUpdate('0', product.value);
+    }
   }}
   className={`border p-2 rounded w-full ${
     errors.cantidad ? 'border-red-500' : ''

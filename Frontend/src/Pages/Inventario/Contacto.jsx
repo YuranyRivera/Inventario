@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import MainLayout from '../../layouts/MainLayout';
+import MainLayout from '../../Layouts/MainLayout';
 import InputField from '../../Components/InputField';
 import SelectRole from '../../Components/SelectRole';
 import BotonPrincipal from '../../Components/Boton';
@@ -197,8 +197,9 @@ const [contactos, setContactos] = useState([]);
 
   return (
     <MainLayout>
-      <div className="flex justify-center items-center h-screen overflow-hidden">
-        <div className="w-full max-w-3xl p-12 shadow-md rounded-lg overflow-hidden">
+      <div className="justify-center items-center flex flex-col h-full">
+        
+        <div className="w-full max-w-3xl p-12 shadow-md rounded-lg overflow-hidden  ">
           <h1 className="text-3xl font-bold text-gray-800 mb-10 text-center">Agregar Nuevo Usuario</h1>
 
           <form onSubmit={handleSubmit} className="">

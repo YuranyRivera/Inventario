@@ -1,18 +1,23 @@
 import express from 'express';
 import { pool } from '../config/db.js';
 import transporter from '../config/nodemailerConfig.js';
-import {  updateProfile, updatePassword, checkIfUserExists, checkEmailExists,editarPerfil, crearUsuario, obtenerUsuarios, eliminarUsuario,   loginUser, editarArticulo, eliminarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createArticulo } from '../controllers/datacontroler.js';
+import { updateMovimiento, deleteMovimiento, updateProfile, updatePassword, checkIfUserExists, checkEmailExists,editarPerfil, crearUsuario, obtenerUsuarios, eliminarUsuario,   loginUser, editarArticulo, eliminarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createArticulo } from '../controllers/datacontroler.js';
 import jwt from 'jsonwebtoken';
-import { v4 as uuidv4 } from 'uuid';
+
 import bcrypt from 'bcrypt';
+
+
 import { verifyToken } from '../middleware/authMiddleware.js';
 const router = express.Router();
 
+// Ruta para actualizar el movimiento
+router.put('/movimientos/:id', updateMovimiento);
 
+// Ruta para eliminar el movimiento
+router.delete('/movimientos/:id', deleteMovimiento);
 router.post('/update-password', updatePassword);
 
-import jwt from 'jsonwebtoken';
-import { v4 as uuidv4 } from 'uuid';
+
 
 // Ruta para solicitar el enlace de recuperación de contraseña
 router.post('/reset-password', async (req, res) => {

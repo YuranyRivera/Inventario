@@ -44,68 +44,93 @@ const ModalSalida = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-      <div className="bg-white p-6 rounded-lg w-1/2">
-        <div className="flex justify-between mb-4">
-          <h3 className="text-xl font-semibold">Registro Administrativo</h3>
-          <button onClick={onClose} className="text-xl">X</button>
-        </div>
-        
-        <div className="mb-4">
-          <label className="block text-lg mb-2">Selecciona los productos</label>
-          <Select
-            isMulti
-            options={options}
-            value={selectedProducts}
-            onChange={handleSelectProduct}
-            placeholder="Seleccionar productos..."
-            closeMenuOnSelect={false}
-          />
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 overflow-y-auto">
+      <div className="bg-white rounded-lg w-full max-w-4xl mx-auto  p-6  max-h-[90vh] overflow-auto">
+        {/* Header */}
+        <div className="flex justify-between items-center p-4 sm:p-6 border-b">
+          <h3 className="text-lg sm:text-xl font-semibold">Registro Administrativo</h3>
+          <button 
+            onClick={onClose} 
+            className="text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            <span className="text-xl">&times;</span>
+          </button>
         </div>
 
-        {/* Reemplazamos el EstadoSelect por ActivoInactivoSelect */}
-        <div className="mb-4">
-          <ActivoInactivoSelect currentStatus={estado} onChange={setEstado} />
-        </div>
+        {/* Content */}
+        <div className="p-4 sm:p-6 space-y-6">
+          {/* Product Selection */}
+          <div>
+            <label className="block text-sm sm:text-base font-medium mb-2">
+              Selecciona los productos
+            </label>
+            <Select
+              isMulti
+              options={options}
+              value={selectedProducts}
+              onChange={handleSelectProduct}
+              placeholder="Seleccionar productos..."
+              closeMenuOnSelect={false}
+              className="text-sm sm:text-base"
+            />
+          </div>
 
-        <div className="mb-4">
-          <table className="min-w-full table-auto">
-            <thead>
-              <tr className="bg-red-500 text-white">
-                <th className="px-4 py-2">Producto</th>
-                <th className="px-4 py-2">Cantidad</th>
-              </tr>
-            </thead>
-            <tbody>
-              {selectedProducts.map((product) => (
-                <tr key={product.value}>
-                  <td className="px-4 py-2">{product.label}</td>
-                  <td className="px-4 py-2">
-                    <input
-                      type="number"
-                      value={product.quantity || 1}
-                      onChange={(e) => handleQuantityChange(e, product.value)}
-                      className="border p-2 rounded w-full"
-                    />
-                  </td>
+          {/* Status Selection */}
+          <div>
+            <ActivoInactivoSelect currentStatus={estado} onChange={setEstado} />
+          </div>
+
+          {/* Products Table */}
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr className="bg-red-500 text-white">
+                  <th className="px-3 py-2 sm:px-4 sm:py-3 text-left text-xs sm:text-sm font-medium">
+                    Producto
+                  </th>
+                  <th className="px-3 py-2 sm:px-4 sm:py-3 text-left text-xs sm:text-sm font-medium">
+                    Cantidad
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {selectedProducts.map((product) => (
+                  <tr key={product.value}>
+                    <td className="px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                      {product.label}
+                    </td>
+                    <td className="px-3 py-2 sm:px-4 sm:py-3">
+                      <input
+                        type="number"
+                        value={product.quantity || 1}
+                        onChange={(e) => handleQuantityChange(e, product.value)}
+                        className="border rounded w-full p-1 sm:p-2 text-xs sm:text-sm"
+                        min="1"
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Solicitante Field */}
+          <div>
+            <label className="block text-sm sm:text-base font-medium mb-2">
+              Solicitante
+            </label>
+            <input
+              type="text"
+              value={solicitante}
+              onChange={(e) => setSolicitante(e.target.value)}
+              className="border rounded w-full p-2 sm:p-3 text-sm sm:text-base"
+              placeholder="Nombre del solicitante"
+            />
+          </div>
         </div>
 
-        <div className="mb-4">
-          <label className="block text-lg mb-2">Solicitante</label>
-          <input
-            type="text"
-            value={solicitante}
-            onChange={(e) => setSolicitante(e.target.value)}
-            className="border p-2 w-full rounded"
-            placeholder="Nombre del solicitante"
-          />
-        </div>
-
-        <div className="flex justify-end space-x-4">
+        {/* Footer */}
+        <div className="flex flex-col sm:flex-row justify-end gap-2 p-4 sm:p-6 border-t bg-gray-50">
           <BotonPrincipal Text="Guardar" onClick={handleSave} />
           <BotonSecundario Text="Cancelar" onClick={onClose} />
         </div>

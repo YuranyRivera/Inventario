@@ -38,16 +38,20 @@ const ArticulosAdministrativos = () => {
           value={toDate}
           onChange={(e) => setToDate(e.target.value)}
         />
+        
       </div>
-
+  
+      
       {/* Tabla con acciones */}
-      <AdminArticlesTable
-        headers={headers}
-        rows={rows}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
-    </div>
+      <div className="overflow-x-auto">
+        <AdminArticlesTable
+          headers={headers}
+          rows={rows}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      </div>
+      </div>
   );
 };
 

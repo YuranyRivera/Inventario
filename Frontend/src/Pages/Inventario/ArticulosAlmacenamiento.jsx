@@ -106,33 +106,38 @@ const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
     <>
       <div className="space-y-4">
         {/* Buscador con botón */}
-        <div className="flex items-center space-x-2">
-          <div className="relative flex-1 max-w-md">
+        <div className="flex flex-col md:flex-row items-stretch space-y-2 md:space-y-0 md:space-x-2">
+        <div className="relative flex-1 max-w-full md:max-w-md">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
+              <Search className="h-5 w-5 text-gray-400 " />
             </div>
             <input
-              type="text"
-              placeholder="Buscar por nombre de producto..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+            type="text"
+            placeholder="Buscar por nombre de producto..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+            className="w-full pl-8 sm:pl-10 pr-2 sm:pr-4 py-1.5 sm:py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div className="flex flex-wrap gap-2 justify-start md:justify-end">
+            <ButtonGroup
+              isStorageSelected={true}
+              reloadArticulos={reloadArticulos}
+              filteredData={searchTerm ? filteredArticulos : []}
+              allData={articulos}
+              className="flex-grow md:flex-grow-0"
+            />
+            <ExcelExportButton 
+              filteredData={searchTerm ? filteredArticulos : []} 
+              allData={articulos}
+              className="flex-grow md:flex-grow-0"
             />
           </div>
-          <ButtonGroup
-            isStorageSelected={true}
-            reloadArticulos={reloadArticulos}
-            filteredData={searchTerm ? filteredArticulos : []}
-            allData={articulos}
-          />
-          <ExcelExportButton 
-            filteredData={searchTerm ? filteredArticulos : []} 
-            allData={articulos} 
-          />
         </div>
 
         {/* Tabla */}
-        <AuxMaintenanceTable
+        <div className="overflow-x-auto">
+          <AuxMaintenanceTable
           headers={headers}
           rows={filteredArticulos.map((articulo) => ({
             id: articulo.id,
@@ -160,6 +165,7 @@ const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
           handleCancel={handleCancel}
           disableFields={['id', 'cantidad', 'cantidad_productos']}
         />
+              </div>
       </div>
     </>
   );

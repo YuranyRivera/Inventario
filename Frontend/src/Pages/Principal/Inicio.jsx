@@ -3,7 +3,7 @@ import Input from '../../Components/Input';
 import Boton from '../../Components/Boton';
 import { useUser } from '../../Context/UserContext';
 import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom'; // Importa Link para la navegación
+import { Link } from 'react-router-dom';
 
 const Login = () => {
   const [correo, setCorreo] = useState('');
@@ -14,29 +14,25 @@ const Login = () => {
   
   const [successMessage, setSuccessMessage] = useState('');
   const [mostrarContrasena, setMostrarContrasena] = useState(false);
-  const { loginUser } = useUser(); // Destructure loginUser from context
+  const { loginUser } = useUser();
   const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setMostrarContrasena(!mostrarContrasena);
   };
 
-  // Función para validar el correo electrónico
   const validateEmail = (email) => {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return emailRegex.test(email);
   };
 
-  // Función para manejar el envío del formulario
   const handleSubmit = async (event) => {
     event.preventDefault();
     
-    // Limpiar errores antes de la validación
     setCorreoError('');
     setContrasenaError('');
     setGlobalError('');
     
-    // Validaciones
     let isValid = true;
 
     if (!correo || !validateEmail(correo)) {
@@ -59,7 +55,7 @@ const Login = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Muy importante
+        credentials: 'include',
         body: JSON.stringify({ correo, contraseña: contrasena }),
       });
   
@@ -83,34 +79,42 @@ const Login = () => {
   };
 
   return (
-    <div className="h-screen w-full overflow-hidden relative">
+    <div className="min-h-screen w-full flex items-center justify-center relative bg-gray-100">
+          <div className="absolute inset-0 z-0">
       <img 
         src="/Img/colegio.png"
         alt="Imagen del colegio" 
         className="w-full h-full object-cover" 
+        
       />
+            <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+      </div>
 
-      <div className="absolute inset-0 bg-black opacity-10"></div>
-      <div className="absolute w-[80%] h-[80%] top-[10%] left-2/4 transform -translate-x-1/2 bg-white bg-opacity-50 rounded-lg flex">
-        <div className="w-1/2 flex flex-col justify-center space-y-4 p-20">
-          <h2 className="font-serif text-[50px] break-words text-white font-montagu">
+
+{/* Login Container */}
+  
+      <div className="absolute  max-[768px]:justify-center w-full md:w-[80%] h-full md:h-[80%] top-0 md:top-[10%] left-0 md:left-2/4 transform md:-translate-x-1/2 bg-white bg-opacity-50 rounded-none md:rounded-lg flex flex-col md:flex-row">
+        {/* Columna izquierda - Oculta en pantallas pequeñas y medianas */}
+        <div className="hidden md:flex md:w-1/2 flex-col justify-center space-y-4 p-6 md:p-20 bg-cover bg-center">
+          <h2 className="font-serif text-[24px] md:text-[50px] break-words text-white font-montagu text-center md:text-left">
             ¡Trabajemos juntos!
           </h2>
-          <p className="font-fans text-lg text-[30px] text-white font-bold">
+          <p className="font-fans text-lg md:text-[30px] text-white font-bold text-center md:text-left">
             Para crear un ambiente positivo y colaborativo
           </p>
         </div>
 
-        <div className="w-1/2 bg-white flex flex-col justify-center items-center">
-          <div className="mb-10">
+        {/* Columna derecha - Visible en todas las pantallas */}
+        <div className="w-full md:w-full lg:w-1/2 bg-white flex flex-col justify-center items-center p-6 md:p-10">
+            <div className="mb-6">
             <img 
               src="/Img/logo.png"
-              alt="Imagen del colegio"
-              className="w-32 h-auto"
+              alt="Logo del colegio"
+              className="w-20 md:w-32 h-auto"
             />
           </div>
-          <form className="space-y-4 w-full max-w-sm justify-center items-center" onSubmit={handleSubmit}>
-            <h2 className="text-center text-4xl font-josefin flex-auto">
+          <form className="space-y-4 w-full max-w-sm" onSubmit={handleSubmit}>
+            <h2 className="text-center text-2xl md:text-4xl font-josefin">
               Iniciar Sesión
             </h2>
             <div>
@@ -118,13 +122,13 @@ const Login = () => {
                 type="email"
                 id="username"
                 name="username"
-                className="w-full p-10 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-3 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Ingresa tu usuario"
                 value={correo}
                 onChange={(e) => {
                   setCorreo(e.target.value);
-                  setCorreoError(''); // Limpiar el error al escribir en el campo
-                  setGlobalError(''); // Limpiar el error global al escribir en el correo
+                  setCorreoError('');
+                  setGlobalError('');
                 }}
               />
               {correoError && <span className="text-red-500">{correoError}</span>}
@@ -135,16 +139,15 @@ const Login = () => {
                 type={mostrarContrasena ? 'text' : 'password'}
                 id="password"
                 name="password"
-                className="w-full mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-3 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Ingresa tu contraseña"
                 value={contrasena}
                 onChange={(e) => {
                   setContrasena(e.target.value);
-                  setContrasenaError(''); // Limpiar el error al escribir en el campo
-                  setGlobalError(''); // Limpiar el error global al escribir en la contraseña
+                  setContrasenaError('');
+                  setGlobalError('');
                 }}
               />
-              {/* Ícono de ojo usando Boxicons */}
               <i
                 className={`bx ${mostrarContrasena ? 'bx-show' : 'bx-hide'} absolute top-1/2 right-4 transform -translate-y-1/2 cursor-pointer text-gray-500`}
                 onClick={togglePasswordVisibility}
@@ -159,17 +162,17 @@ const Login = () => {
               <Boton type="submit" Text="Iniciar sesión" />
             </div>
 
-            {/* Enlace de Olvidar Contraseña */}
             <div className="mt-4 text-center">
               <Link to="/OlvidarContraseña" className="text-blue-500 hover:underline">
                 ¿Olvidaste tu contraseña?
               </Link>
             </div>
-
           </form>
         </div>
       </div>
     </div>
+
+
   );
 };
 

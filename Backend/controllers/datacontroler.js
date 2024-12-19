@@ -36,7 +36,6 @@ export const checkIfUserExists = async (correo) => {
   }
 };
 
-// In your datacontroler.js
 export const updatePassword = async (req, res) => {
   console.log('Received request to update password');
   
@@ -48,8 +47,20 @@ export const updatePassword = async (req, res) => {
       return res.status(400).json({ error: 'Faltan datos necesarios' });
     }
 
-    // Step 1: Verify if the token is valid (you'll need to implement token validation logic)
-    // This might involve checking against a stored token in the database with an expiration time
+    // Step 1: Verify the token
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      
+      // Verificar que el correo del token coincida con el correo proporcionado
+      if (decoded.email !== email) {
+        return res.status(401).json({ error: 'Token inválido para este correo' });
+      }
+    } catch (tokenError) {
+      if (tokenError.name === 'TokenExpiredError') {
+        return res.status(401).json({ error: 'El enlace de restablecimiento ha expirado' });
+      }
+      return res.status(401).json({ error: 'Token inválido' });
+    }
 
     // Step 2: Hash the new password
     const saltRounds = 10;
@@ -360,6 +371,56 @@ export const getDetallesMovimiento = async (req, res) => {
   }
 };
 
+// Función para actualizar el movimiento
+export const updateMovimiento = async (req, res) => {
+  const { id } = req.params;
+  const { id_productos, cantidad_productos, fecha, solicitante, nombre_productos } = req.body;
+
+  try {
+    const query = `
+      UPDATE movimientos_almacen
+      SET id_productos = $1, cantidad_productos = $2, fecha = $3, solicitante = $4, nombre_productos = $5
+      WHERE id = $6
+      RETURNING *;
+    `;
+    const result = await pool.query(query, [
+      id_productos,
+      cantidad_productos,
+      fecha,
+      solicitante,
+      nombre_productos,
+      id,
+    ]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Movimiento no encontrado' });
+    }
+
+    res.status(200).json({ message: 'Movimiento actualizado', movimiento: result.rows[0] });
+  } catch (error) {
+    console.error('Error al actualizar el movimiento:', error);
+    res.status(500).json({ error: 'Error al actualizar el movimiento' });
+  }
+};
+
+// Función para eliminar el movimiento
+export const deleteMovimiento = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const query = 'DELETE FROM movimientos_almacen WHERE id = $1 RETURNING *;';
+    const result = await pool.query(query, [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Movimiento no encontrado' });
+    }
+
+    res.status(200).json({ message: 'Movimiento eliminado', movimiento: result.rows[0] });
+  } catch (error) {
+    console.error('Error al eliminar el movimiento:', error);
+    res.status(500).json({ error: 'Error al eliminar el movimiento' });
+  }
+};
 
 // Endpoint para obtener el último ID insertado
 export const getLastId = async (req, res) => {
