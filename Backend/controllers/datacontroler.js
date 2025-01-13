@@ -5,6 +5,141 @@ import jwt from 'jsonwebtoken';
 import transporter from '../config/nodemailerConfig.js';
 import { v4 as uuidv4 } from 'uuid';
 
+export const editarArticuloAdministrativo = async (req, res) => {
+  const { id } = req.params; // ID del artículo a editar
+  const { descripcion, proveedor, ubicacion, precio, fecha, observacion } = req.body; // Datos enviados desde el cliente
+
+  try {
+    // Actualiza el artículo y recalcula algún campo si es necesario
+    const result = await pool.query(
+      `UPDATE articulos_administrativos 
+       SET 
+         descripcion = $1, 
+         proveedor = $2, 
+         ubicacion = $3, 
+         precio = $4, 
+         fecha = $5, 
+         observacion = $6
+       WHERE id = $7 
+       RETURNING *`, // Devuelve el artículo actualizado
+      [descripcion, proveedor, ubicacion, precio, fecha, observacion, id]
+    );
+
+    // Verifica si se actualizó algún artículo
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Artículo no encontrado' });
+    }
+
+    // Devuelve el artículo actualizado
+    res.status(200).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error al editar el artículo administrativo:', error);
+    res.status(500).json({ message: 'Error al editar el artículo administrativo' });
+  }
+};
+
+export const eliminarArticuloAdministrativo = async (req, res) => {
+  const { id } = req.params; // Obtener ID desde la URL
+
+  try {
+    // Eliminar el artículo de la base de datos
+    const result = await pool.query(
+      `DELETE FROM articulos_administrativos 
+       WHERE id = $1 
+       RETURNING *`, // Devuelve el artículo eliminado
+      [id]
+    );
+
+    // Verifica si se eliminó algún artículo
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Artículo no encontrado" });
+    }
+
+    // Devuelve el mensaje de éxito
+    res.status(200).json({ message: "Artículo administrativo eliminado" });
+  } catch (error) {
+    console.error('Error al eliminar el artículo administrativo:', error);
+    res.status(500).json({ message: "Error al eliminar el artículo administrativo" });
+  }
+};
+
+
+export const getArticulosAdministrativos = async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM articulos_administrativos ORDER BY id ASC');
+    res.status(200).json(result.rows); // Devuelve todos los artículos administrativos en orden ascendente por ID
+  } catch (error) {
+    console.error('Error al obtener los artículos administrativos', error);
+    res.status(500).json({ message: 'Error al obtener los artículos administrativos' });
+  }
+};
+// Endpoint para obtener el último ID insertado en articulos_administrativos
+export const getLastArticuloAdministrativoId = async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id FROM articulos_administrativos ORDER BY id DESC LIMIT 1'
+    );
+
+    if (result.rows.length > 0) {
+      res.status(200).json({ id: result.rows[0].id });
+    } else {
+      res.status(200).json({ id: 0 }); // Si no hay registros, devuelve 0
+    }
+  } catch (err) {
+    console.error('Error al obtener el último ID:', err);
+    res.status(500).json({ error: 'Error al obtener el último ID' });
+  }
+};
+
+// Crear un artículo administrativo
+export const createArticuloAdministrativo = async (req, res) => {
+  const { fecha, descripcion, proveedor, ubicacion, observacion, precio } = req.body;
+
+  // Validaciones
+  if (!fecha || !descripcion || !proveedor || !ubicacion || precio === undefined) {
+    return res.status(400).json({ error: 'Todos los campos requeridos deben ser completados.' });
+  }
+
+  const client = await pool.connect();
+
+  try {
+    // Iniciar transacción
+    await client.query('BEGIN');
+
+    // Insertar el nuevo artículo
+    const insertArticuloQuery = `
+      INSERT INTO articulos_administrativos (fecha, descripcion, proveedor, ubicacion, observacion, precio)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id, fecha, descripcion, proveedor, ubicacion, observacion, precio
+    `;
+    const result = await client.query(insertArticuloQuery, [
+      fecha,
+      descripcion,
+      proveedor,
+      ubicacion,
+      observacion || null,
+      precio,
+    ]);
+
+    // Confirmar transacción
+    await client.query('COMMIT');
+
+    // Responder con el artículo insertado
+    res.status(201).json({
+      message: 'Artículo administrativo creado con éxito.',
+      articulo: result.rows[0],
+    });
+  } catch (err) {
+    // Revertir transacción en caso de error
+    await client.query('ROLLBACK');
+    console.error('Error al crear el artículo administrativo:', err);
+    res.status(500).json({ error: 'Error al crear el artículo administrativo.' });
+  } finally {
+    // Liberar el cliente
+    client.release();
+  }
+};
+
 // Función para actualizar el perfil del usuario
 export const updateProfile = async (id, nombre, correo, contraseña) => {
   try {

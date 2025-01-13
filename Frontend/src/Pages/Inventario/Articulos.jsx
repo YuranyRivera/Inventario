@@ -5,12 +5,16 @@ import CheckboxGroup from '../../Components/CheckboxGroup';
 import ButtonGroup from '../../Components/ButtonGroup';
 import ArticulosAdministrativos from '../Inventario/ArticulosAdministrativos';
 import ArticulosAlmacenamiento from '../Inventario/ArticulosAlmacenamiento';
-import useArticulo from '../../hooks/useArticulo'; // Hook para manejar lógica
+import useArticulo from '../../hooks/useArticulo'; // Hook para manejar artículos de almacenamiento
+import useArticulosAdministrativos from '../../hooks/useArticulos2'; // Hook para manejar artículos administrativos
 
 const Articulos = () => {
   const location = useLocation();
   const [selected, setSelected] = useState('administrativo');
-  const { articulos, reloadArticulos } = useArticulo(); // Hook para manejar los artículos
+  
+  // Usamos diferentes hooks según la categoría seleccionada
+  const { articulos: articulosAlmacenamiento, reloadArticulos: reloadArticulosAlmacenamiento } = useArticulo(); // Hook para artículos de almacenamiento
+  const { articulos: articulosAdministrativos, reloadArticulos: reloadArticulosAdministrativos } = useArticulosAdministrativos(); // Hook para artículos administrativos
 
   useEffect(() => {
     // Al cargar, recuperamos el valor de 'selected' desde el localStorage (si existe)
@@ -30,7 +34,7 @@ const Articulos = () => {
 
   return (
     <DashboardLayout>
- <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-2xl md:text-3xl font-bold text-center text-black mb-4 md:mb-6 mt-10">
           Artículos
         </h1>
@@ -41,15 +45,19 @@ const Articulos = () => {
             onSave={() => {
               console.log('Estado actual guardado:', selected); // Muestra el estado en la consola
               localStorage.setItem('selectedCategory', selected); // Guardamos el estado en localStorage
-              reloadArticulos(); // Recarga los artículos
+              if (selected === 'almacenamiento') {
+                reloadArticulosAlmacenamiento(); // Recarga los artículos de almacenamiento
+              } else {
+                reloadArticulosAdministrativos(); // Recarga los artículos administrativos
+              }
             }}
-            reloadArticulos={reloadArticulos}  // Pasar reloadArticulos a ButtonGroup
+            reloadArticulos={selected === 'almacenamiento' ? reloadArticulosAlmacenamiento : reloadArticulosAdministrativos}  // Recargar según la selección
           />
         </div>
         {selected === 'almacenamiento' ? (
-          <ArticulosAlmacenamiento articulos={articulos} reloadArticulos={reloadArticulos} />
+          <ArticulosAlmacenamiento articulos={articulosAlmacenamiento} reloadArticulos={reloadArticulosAlmacenamiento} />
         ) : (
-          <ArticulosAdministrativos />
+          <ArticulosAdministrativos articulos={articulosAdministrativos} reloadArticulos={reloadArticulosAdministrativos} />
         )}
       </div>
     </DashboardLayout>

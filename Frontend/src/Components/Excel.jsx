@@ -6,17 +6,15 @@ const ExcelExportButton = ({ filteredData, allData }) => {
   const exportToExcel = () => {
     const dataToExport = filteredData.length > 0 ? filteredData : allData;
 
-    // Preparar los datos para el Excel
+    // Preparar los datos específicos para administración
     const rows = dataToExport.map(item => ({
       ID: item.id,
-      'Producto/Detalle': item.producto,
-      'Cantidad Inicial': item.cantidad_productos,
-      'Módulo': item.modulo,
-      'Estante': item.estante,
-      'Estado': item.estado,
-      Entrada: item.entrada,
-      Salida: item.salida,
-      Restante: item.cantidad,
+      Fecha: item.fecha ? new Date(item.fecha).toISOString().split('T')[0] : '',
+      Descripción: item.descripcion || '',
+      Proveedor: item.proveedor || '',
+      Ubicación: item.ubicacion || '',
+      Observación: item.observacion || '',
+      Precio: typeof item.precio === 'number' ? item.precio.toFixed(2) : '0.00',
     }));
 
     // Crear un libro de trabajo y una hoja
@@ -24,10 +22,10 @@ const ExcelExportButton = ({ filteredData, allData }) => {
     const worksheet = XLSX.utils.json_to_sheet(rows);
 
     // Agregar la hoja al libro
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Artículos');
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Reporte Administrativo');
 
     // Exportar el archivo Excel
-    XLSX.writeFile(workbook, 'articulos.xlsx');
+    XLSX.writeFile(workbook, 'reporte_administrativo.xlsx');
   };
 
   return (

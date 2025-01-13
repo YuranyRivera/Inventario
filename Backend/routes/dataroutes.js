@@ -1,14 +1,24 @@
 import express from 'express';
 import { pool } from '../config/db.js';
 import transporter from '../config/nodemailerConfig.js';
-import { updateMovimiento, deleteMovimiento, updateProfile, updatePassword, checkIfUserExists, checkEmailExists,editarPerfil, crearUsuario, obtenerUsuarios, eliminarUsuario,   loginUser, editarArticulo, eliminarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createArticulo } from '../controllers/datacontroler.js';
+import { editarArticuloAdministrativo, eliminarArticuloAdministrativo, updateMovimiento, getArticulosAdministrativos, deleteMovimiento, getLastArticuloAdministrativoId, createArticuloAdministrativo, updateProfile, updatePassword, checkIfUserExists, checkEmailExists,editarPerfil, crearUsuario, obtenerUsuarios, eliminarUsuario,   loginUser, editarArticulo, eliminarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createArticulo } from '../controllers/datacontroler.js';
 import jwt from 'jsonwebtoken';
 
 import bcrypt from 'bcrypt';
 
 
 import { verifyToken } from '../middleware/authMiddleware.js';
+
+
 const router = express.Router();
+// Ruta para editar un artículo administrativo
+router.put('/articulos_administrativos/:id', editarArticuloAdministrativo);
+
+// Ruta para eliminar un artículo administrativo
+router.delete('/articulos_administrativos/:id', eliminarArticuloAdministrativo);
+router.get('/articulos-administrativos/last-id', getLastArticuloAdministrativoId);
+// Ruta para crear un artículo administrativo
+router.post('/articulos-administrativos', createArticuloAdministrativo);
 
 // Ruta para actualizar el movimiento
 router.put('/movimientos/:id', updateMovimiento);
@@ -245,6 +255,7 @@ router.get('/movimientos', getMovimientos);
 // Ruta para crear un nuevo movimiento
 router.post('/movimientos', createMovimiento);
 router.delete('/articulos/:id', deleteArticulo);
-
+// Define la ruta para obtener los artículos administrativos
+router.get('/articulos-administrativos', getArticulosAdministrativos);
 
 export default router;
