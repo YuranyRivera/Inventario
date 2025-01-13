@@ -22,6 +22,7 @@ const ButtonGroup = ({ isStorageSelected, onSave, reloadArticulos }) => {
     onSave();
     handleCloseAddModal();
   };
+  
 
   return (
     <div>

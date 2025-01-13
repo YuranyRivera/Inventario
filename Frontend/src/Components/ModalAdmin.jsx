@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import CategorySelect from './CategorySelect';
 import useArticulosAdministrativos from '../hooks/useArticulosAdministrativos'; // Importar el hook
 
-const ModalAdmin = ({ isOpen, onClose }) => {
+const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
   if (!isOpen) return null;
 
   const headers = ['ID', 'Fecha', 'Descripción', 'Proveedor', 'Ubicación', 'Observación', 'Precio', 'Acciones'];
@@ -12,7 +12,7 @@ const ModalAdmin = ({ isOpen, onClose }) => {
   const [errors, setErrors] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const { agregarArticulo } = useArticulosAdministrativos(); // Desestructurar el hook
+  const { agregarArticulo } = useArticulosAdministrativos();
 
   useEffect(() => {
     const fetchLastId = async () => {
@@ -44,14 +44,16 @@ const ModalAdmin = ({ isOpen, onClose }) => {
   };
 
   const handleAddRow = () => {
-    setRows([{ 
+    const lastRow = rows[rows.length - 1];
+    const newId = lastRow.id + 1;
+    setRows([...rows, { 
       id: newId, 
       fecha: '', 
       descripcion: '', 
       proveedor: '', 
       ubicacion: '', 
       observacion: '', 
-      precio: '' // Asegúrate de que 'precio' esté aquí 
+      precio: '' 
     }]);
     setErrors([...errors, {}]);
   };
@@ -66,7 +68,9 @@ const ModalAdmin = ({ isOpen, onClose }) => {
     if (!value) {
       updatedErrors[rowIndex] = { ...updatedErrors[rowIndex], [field]: `${field} es obligatorio` };
     } else {
-      delete updatedErrors[rowIndex][field];
+      const currentErrors = updatedErrors[rowIndex] || {};
+      delete currentErrors[field];
+      updatedErrors[rowIndex] = currentErrors;
     }
     setErrors(updatedErrors);
   };
@@ -74,31 +78,38 @@ const ModalAdmin = ({ isOpen, onClose }) => {
   const handleSave = async () => {
     if (loading) return;
 
-    // Validar todas las filas
     const newErrors = rows.map((row, index) => validateRow(row, index));
     setErrors(newErrors);
 
-    // Verificar si hay errores
     if (newErrors.some((err) => Object.keys(err).length > 0)) {
-        alert('Revisa los errores en el formulario.');
-        console.log('Errores de validación:', newErrors);
-        return;
+      alert('Revisa los errores en el formulario.');
+      return;
     }
 
     try {
-        setLoading(true);
-        for (const row of rows) {
-            await agregarArticulo(row);
-        }
-        alert('Datos guardados exitosamente.');
-        onClose();
+      setLoading(true);
+      const savePromises = rows.map(row => agregarArticulo(row));
+      await Promise.all(savePromises);
+      
+      alert('Datos guardados exitosamente.');
+      
+      // Ejecutar refreshArticulos y esperar a que termine
+      if (typeof refreshArticulos === 'function') {
+        await refreshArticulos();
+      }
+
+      // Cerrar el modal y recargar la página
+      onClose();
+      window.location.reload();
+      
     } catch (error) {
-        console.error('Error al guardar artículos:', error);
-        alert('Error al guardar los datos.');
+      console.error('Error al guardar artículos:', error);
+      alert('Error al guardar los datos.');
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-};
+  };
+
   
   const renderInput = (type, value, onChange, placeholder, error, disabled = false) => (
     <div className="w-full">
@@ -158,14 +169,14 @@ const ModalAdmin = ({ isOpen, onClose }) => {
                     {renderInput("text", row.observacion, (e) => handleRowChange(e.target.value, rowIndex, 'observacion'), "Observación (opcional)", errors[rowIndex]?.observacion)}
                   </td>
                   <td className="px-4 py-2">
-  {renderInput(
-    "number",
-    row.precio,
-    (e) => handleRowChange(e.target.value, rowIndex, "precio"),
-    "Precio",
-    errors[rowIndex]?.precio
-  )}
-</td>
+                    {renderInput(
+                      "number",
+                      row.precio,
+                      (e) => handleRowChange(e.target.value, rowIndex, "precio"),
+                      "Precio",
+                      errors[rowIndex]?.precio
+                    )}
+                  </td>
                   <td className="px-4 py-2 text-center">
                     {rowIndex === rows.length - 1 && (
                       <button onClick={handleAddRow} className="bg-[#00A305] text-white px-3 py-1 rounded hover:bg-green-700 text-sm lg:text-base" disabled={loading}>

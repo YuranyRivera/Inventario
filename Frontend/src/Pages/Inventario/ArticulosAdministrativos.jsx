@@ -5,6 +5,7 @@ import DateInput from '../../Components/DateInput';
 import { Search } from 'lucide-react';
 import ButtonGroup from '../../Components/PDF';
 import ExcelExportButton from '../../Components/Excel';
+import ModalConfirmacion from '../../Components/ModalConf';
 
 const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
   const headers = ['ID', 'Fecha', 'Descripción', 'Proveedor', 'Ubicación', 'Observación', 'Precio'];
@@ -14,6 +15,8 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
   const [toDate, setToDate] = useState('');
   const [editingRowIndex, setEditingRowIndex] = useState(null);
   const [editedRowData, setEditedRowData] = useState({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [articuloToDelete, setArticuloToDelete] = useState(null);
 
   // Define handleCancel function
   const handleCancel = () => {
@@ -43,6 +46,16 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
+  };
+
+  const openDeleteModal = (row) => {
+    setArticuloToDelete(row);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setArticuloToDelete(null);
   };
 
   const handleInputChange = (e, field) => {
@@ -108,22 +121,18 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
   };
   
 
-  const handleDelete = async (row) => {
-    if (!window.confirm('¿Está seguro de que desea eliminar este artículo?')) {
-      return;
-    }
-  
+  const handleDelete = async () => {
+    if (!articuloToDelete) return;
     try {
-      const response = await fetch(`http://localhost:4000/api/articulos_administrativos/${row.id}`, {
+      const response = await fetch(`http://localhost:4000/api/articulos_administrativos/${articuloToDelete.id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
       });
-  
+
       if (!response.ok) {
-        // Check for HTML response if not JSON
         const text = await response.text();
         if (text.startsWith('<!DOCTYPE html>')) {
           throw new Error('Server error: Please check the backend for issues.');
@@ -131,9 +140,11 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
         const errorData = JSON.parse(text);
         throw new Error(`Error: ${errorData.message || 'No se pudo eliminar el artículo.'}`);
       }
-  
+
       await response.json();
       reloadArticulos();
+      setIsModalOpen(false);
+      setArticuloToDelete(null);
     } catch (error) {
       console.error('Error al eliminar:', error);
       alert('Error al eliminar el artículo: ' + error.message);
@@ -152,7 +163,16 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
   }));
 
   return (
-    <div className="space-y-4">
+   
+   <div className="space-y-4">
+      {/* Modal de confirmación */}
+      <ModalConfirmacion
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onConfirm={handleDelete}
+        message="¿Está seguro de que desea eliminar este artículo?"
+      />
+
       <div className="flex flex-col md:flex-row items-stretch space-y-2 md:space-y-0 md:space-x-2">
         <div className="relative flex-1 max-w-full md:max-w-md">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -170,37 +190,14 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
           <ButtonGroup
             isStorageSelected={false}
             reloadArticulos={reloadArticulos}
-            filteredData={searchTerm ? filteredArticulos : []}
+            filteredData={searchTerm ? tableRows : []}
             allData={articulos}
             className="flex-grow md:flex-grow-0"
           />
           <ExcelExportButton 
-            filteredData={searchTerm ? filteredArticulos : []} 
+            filteredData={searchTerm ? tableRows : []} 
             allData={articulos}
             className="flex-grow md:flex-grow-0"
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-wrap gap-4 mb-4">
-        <div className="w-full md:w-auto">
-          <CategorySelect
-            selectedCategory={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-          />
-        </div>
-        <div className="w-full md:w-auto">
-          <DateInput
-            label="Fecha Desde"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-          />
-        </div>
-        <div className="w-full md:w-auto">
-          <DateInput
-            label="Fecha Hasta"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
           />
         </div>
       </div>
@@ -210,10 +207,10 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
           headers={headers}
           rows={tableRows}
           onEdit={handleEdit}
-          onDelete={handleDelete}
+          onDelete={openDeleteModal}
           editingRowIndex={editingRowIndex}
           editedRowData={editedRowData}
-          handleInputChange={handleInputChange}
+          handleInputChange={(e, field) => setEditedRowData({ ...editedRowData, [field]: e.target.value })}
           handleSave={handleSave}
           handleCancel={handleCancel}
           disableFields={['id']}

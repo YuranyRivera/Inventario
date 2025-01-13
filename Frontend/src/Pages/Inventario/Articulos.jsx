@@ -6,7 +6,7 @@ import ButtonGroup from '../../Components/ButtonGroup';
 import ArticulosAdministrativos from '../Inventario/ArticulosAdministrativos';
 import ArticulosAlmacenamiento from '../Inventario/ArticulosAlmacenamiento';
 import useArticulo from '../../hooks/useArticulo'; // Hook para manejar artículos de almacenamiento
-import useArticulosAdministrativos from '../../hooks/useArticulos2'; // Hook para manejar artículos administrativos
+import useArticulosAdministrativos from '../../hooks/useArticulosAdministrativos'; // Hook para manejar artículos administrativos
 
 const Articulos = () => {
   const location = useLocation();
