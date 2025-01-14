@@ -5,7 +5,7 @@ const CategorySelect = ({ value, onChange, error, disabled }) => (
       <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`border px-2 py-1 w-full rounded ${error ? 'border-red-500' : ''}`}
+          className={`border px-3 py-2.5 w-full rounded ${error ? 'border-red-500' : ''}`}
           disabled={disabled}
       >
         <option value="">Selecciona una categoría</option>

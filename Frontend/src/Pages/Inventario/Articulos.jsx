@@ -10,14 +10,12 @@ import useArticulosAdministrativos from '../../hooks/useArticulosAdministrativos
 
 const Articulos = () => {
   const location = useLocation();
-  const [selected, setSelected] = useState('administrativo');
-  
-  // Usamos diferentes hooks según la categoría seleccionada
-  const { articulos: articulosAlmacenamiento, reloadArticulos: reloadArticulosAlmacenamiento } = useArticulo(); // Hook para artículos de almacenamiento
-  const { articulos: articulosAdministrativos, reloadArticulos: reloadArticulosAdministrativos } = useArticulosAdministrativos(); // Hook para artículos administrativos
+  const [selected, setSelected] = useState('administrativos'); // Corregir valor inicial a 'administrativos'
+
+  const { articulos: articulosAlmacenamiento, reloadArticulos: reloadArticulosAlmacenamiento } = useArticulo();
+  const { articulos: articulosAdministrativos, reloadArticulos: reloadArticulosAdministrativos } = useArticulosAdministrativos();
 
   useEffect(() => {
-    // Al cargar, recuperamos el valor de 'selected' desde el localStorage (si existe)
     const storedSelected = localStorage.getItem('selectedCategory');
     if (storedSelected) {
       setSelected(storedSelected);
@@ -28,8 +26,8 @@ const Articulos = () => {
 
   const handleCheckboxChange = (e, category) => {
     setSelected(category);
-    localStorage.setItem('selectedCategory', category); 
-    console.log('Categoría seleccionada y guardada:', category); 
+    localStorage.setItem('selectedCategory', category);
+    console.log('Categoría seleccionada y guardada:', category);
   };
 
   return (
@@ -43,15 +41,15 @@ const Articulos = () => {
           <ButtonGroup
             isStorageSelected={selected === 'almacenamiento'}
             onSave={() => {
-              console.log('Estado actual guardado:', selected); // Muestra el estado en la consola
-              localStorage.setItem('selectedCategory', selected); // Guardamos el estado en localStorage
+              console.log('Estado actual guardado:', selected);
+              localStorage.setItem('selectedCategory', selected);
               if (selected === 'almacenamiento') {
-                reloadArticulosAlmacenamiento(); // Recarga los artículos de almacenamiento
+                reloadArticulosAlmacenamiento();
               } else {
-                reloadArticulosAdministrativos(); // Recarga los artículos administrativos
+                reloadArticulosAdministrativos();
               }
             }}
-            reloadArticulos={selected === 'almacenamiento' ? reloadArticulosAlmacenamiento : reloadArticulosAdministrativos}  // Recargar según la selección
+            reloadArticulos={selected === 'almacenamiento' ? reloadArticulosAlmacenamiento : reloadArticulosAdministrativos}
           />
         </div>
         {selected === 'almacenamiento' ? (
@@ -63,5 +61,4 @@ const Articulos = () => {
     </DashboardLayout>
   );
 };
-
-export default Articulos;
+export default Articulos; 

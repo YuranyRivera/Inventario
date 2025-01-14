@@ -78,7 +78,12 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
   const handleSave = async () => {
     if (loading) return;
 
-    const newErrors = rows.map((row, index) => validateRow(row, index));
+    // Validar todas las filas
+    const newErrors = [];
+    for (const [index, row] of rows.entries()) {
+      const rowErrors = validateRow(row, index);
+      newErrors.push(rowErrors);
+    }
     setErrors(newErrors);
 
     if (newErrors.some((err) => Object.keys(err).length > 0)) {
@@ -110,7 +115,6 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
     }
   };
 
-  
   const renderInput = (type, value, onChange, placeholder, error, disabled = false) => (
     <div className="w-full">
       <input
@@ -126,7 +130,7 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
   );
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4">
+    <div className="fixed  z-50  inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4">
       <div className="bg-white w-full max-w-6xl p-3 sm:p-4 md:p-6 rounded-lg shadow-lg max-h-[95vh] overflow-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-center flex-1">
@@ -191,8 +195,10 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
         </div>
 
         <div className="flex justify-end space-x-4 mt-4">
-          <button onClick={onClose} className="bg-gray-500 text-white px-3 py-2 text-sm sm:px-4 rounded hover:bg-gray-700" disabled={loading}>Cancelar</button>
-          <button onClick={handleSave} className="bg-[#00A305] text-white px-3 py-2 text-sm sm:px-4 rounded hover:bg-green-700" disabled={loading}>
+          <button onClick={onClose} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700" disabled={loading}>
+            Cancelar
+          </button>
+          <button onClick={handleSave} className="bg-[#00A305] text-white px-4 py-2 rounded hover:bg-green-700" disabled={loading}>
             {loading ? 'Guardando...' : 'Guardar'}
           </button>
         </div>

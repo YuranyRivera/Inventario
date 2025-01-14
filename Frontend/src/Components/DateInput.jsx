@@ -2,7 +2,7 @@ import React from 'react';
 
 const DateInput = ({ label, value, onChange }) => {
   return (
-    <div className="w-1/4">
+    <div >
       <label className="block text-lg mb-2">{label}</label>
       <input
         type="date"

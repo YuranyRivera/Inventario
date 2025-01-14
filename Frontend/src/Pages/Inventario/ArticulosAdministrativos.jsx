@@ -10,7 +10,7 @@ import ModalConfirmacion from '../../Components/ModalConf';
 const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
   const headers = ['ID', 'Fecha', 'Descripción', 'Proveedor', 'Ubicación', 'Observación', 'Precio'];
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [editingRowIndex, setEditingRowIndex] = useState(null);
@@ -18,31 +18,79 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [articuloToDelete, setArticuloToDelete] = useState(null);
 
-  // Define handleCancel function
   const handleCancel = () => {
     setEditingRowIndex(null);
     setEditedRowData({});
   };
 
-  // Filter articles based on search term, category, and dates
+  const validateRows = () => {
+    const newErrors = [];
+    for (const [index, row] of rows.entries()) {
+      const rowErrors = validateRow(row, index);
+      if (Object.keys(rowErrors).length > 0) {
+        newErrors[index] = rowErrors;
+      }
+    }
+    setErrors(newErrors);
+  };
+
   const filteredArticulos = articulos.filter(articulo => {
     const matchesSearch = 
       (articulo.descripcion || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (articulo.proveedor || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (articulo.ubicacion || '').toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesCategory = !selectedCategory || articulo.categoria === selectedCategory;
+  
+    const matchesLocation = !selectedLocation || articulo.ubicacion === selectedLocation;
     
-    const articuloDate = articulo.fecha ? new Date(articulo.fecha) : null;
-    const fromDateObj = fromDate ? new Date(fromDate) : null;
-    const toDateObj = toDate ? new Date(toDate) : null;
+    // Si no hay fechas seleccionadas, mostrar todo
+    if (!fromDate && !toDate) return matchesSearch && matchesLocation;
     
-    const matchesDate = 
-      (!fromDateObj || !articuloDate || articuloDate >= fromDateObj) &&
-      (!toDateObj || !articuloDate || articuloDate <= toDateObj);
-
-    return matchesSearch && matchesCategory && matchesDate;
+    // Convertir la fecha del artículo a una fecha UTC
+    const fechaArticuloStr = articulo.fecha.split('T')[0]; // Obtener solo la parte de la fecha
+    const [year, month, day] = fechaArticuloStr.split('-').map(num => parseInt(num, 10));
+    const fechaArticulo = new Date(Date.UTC(year, month - 1, day));
+    
+    // Preparar fechas de inicio y fin en UTC
+    let fechaInicio = null;
+    let fechaFin = null;
+    
+    if (fromDate) {
+      const [startYear, startMonth, startDay] = fromDate.split('-').map(num => parseInt(num, 10));
+      fechaInicio = new Date(Date.UTC(startYear, startMonth - 1, startDay));
+    }
+    
+    if (toDate) {
+      const [endYear, endMonth, endDay] = toDate.split('-').map(num => parseInt(num, 10));
+      fechaFin = new Date(Date.UTC(endYear, endMonth - 1, endDay, 23, 59, 59, 999));
+    }
+  
+    // Aplicar filtros de fecha usando las fechas UTC
+    const cumpleFechaInicio = !fechaInicio || fechaArticulo >= fechaInicio;
+    const cumpleFechaFin = !fechaFin || fechaArticulo <= fechaFin;
+    
+    // Para depuración
+    console.log('Fecha Artículo:', fechaArticulo.toISOString());
+    if (fechaInicio) console.log('Fecha Inicio:', fechaInicio.toISOString());
+    if (fechaFin) console.log('Fecha Fin:', fechaFin.toISOString());
+    console.log('Cumple Inicio:', cumpleFechaInicio);
+    console.log('Cumple Fin:', cumpleFechaFin);
+    
+    return matchesSearch && matchesLocation && cumpleFechaInicio && cumpleFechaFin;
   });
+  // También actualizamos el formato de fecha en tableRows
+  const tableRows = filteredArticulos.map(articulo => ({
+    id: articulo.id || '',
+    fecha: articulo.fecha ? new Date(articulo.fecha).toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }) : '',
+    descripcion: articulo.descripcion || '',
+    proveedor: articulo.proveedor || '',
+    ubicacion: articulo.ubicacion || '',
+    observacion: articulo.observacion || '',
+    precio: typeof articulo.precio === 'number' ? articulo.precio.toFixed(2) : '0.00'
+  }));
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -63,7 +111,6 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
     if (field === 'id') {
       return;
     }
-    
     setEditedRowData(prev => ({
       ...prev,
       [field]: value
@@ -74,11 +121,12 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
     setEditingRowIndex(index);
     setEditedRowData({ 
       ...row,
-      fecha: row.fecha ? row.fecha.split('T')[0] : '', // Asegurarse de que la fecha esté en formato YYYY-MM-DD
+      fecha: row.fecha ? row.fecha.split('T')[0] : '',
     });
   };
 
   const handleSave = async () => {
+    validateRows();
     try {
       const dataToSend = {
         ...editedRowData,
@@ -95,13 +143,7 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
         body: JSON.stringify(dataToSend),
       });
   
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error(`Server returned unexpected content type. Status: ${response.status} ${response.statusText}`);
-      }
-  
       if (!response.ok) {
-        // Check for HTML response if not JSON
         const text = await response.text();
         if (text.startsWith('<!DOCTYPE html>')) {
           throw new Error('Server error: Please check the backend for issues.');
@@ -119,7 +161,6 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
       alert('Error al editar el artículo: ' + error.message);
     }
   };
-  
 
   const handleDelete = async () => {
     if (!articuloToDelete) return;
@@ -151,21 +192,10 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
     }
   };
 
-  // Prepare table rows with null checks and proper formatting
-  const tableRows = filteredArticulos.map(articulo => ({
-    id: articulo.id || '',
-    fecha: articulo.fecha ? new Date(articulo.fecha).toISOString().split('T')[0] : '',
-    descripcion: articulo.descripcion || '',
-    proveedor: articulo.proveedor || '',
-    ubicacion: articulo.ubicacion || '',
-    observacion: articulo.observacion || '',
-    precio: typeof articulo.precio === 'number' ? articulo.precio.toFixed(2) : '0.00'
-  }));
+
 
   return (
-   
-   <div className="space-y-4">
-      {/* Modal de confirmación */}
+    <div className="space-y-4">
       <ModalConfirmacion
         isOpen={isModalOpen}
         onClose={closeModal}
@@ -201,6 +231,39 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
           />
         </div>
       </div>
+
+      <div className="flex flex-col md:flex-row gap-4 mt-4">
+      <div className="w-full md:w-1/4">
+  <label htmlFor="ubicacion" className="block  font-medium text-black text-lg mb-2">
+    Ubicación {/* Este es el texto que aparecerá en el label */}
+  </label>
+  <CategorySelect
+    value={selectedLocation}
+    onChange={setSelectedLocation}
+    error={null}
+    disabled={false}
+    id="ubicacion" // Es importante asignar un ID para asociar el label con el input
+  />
+</div>
+  <div className="w-full md:w-1/3">
+    <DateInput
+      label="Fecha inicial"
+      value={fromDate}
+      onChange={(e) => setFromDate(e.target.value)}
+      type="date"
+      className="w-full p-2"  
+    />
+  </div>
+  <div className="w-full md:w-1/3">
+    <DateInput
+      label="Fecha final"
+      value={toDate}
+      onChange={(e) => setToDate(e.target.value)}
+      className="w-full p-2" 
+    />
+  </div>
+</div>
+
 
       <div className="overflow-x-auto">
         <AdminArticlesTable

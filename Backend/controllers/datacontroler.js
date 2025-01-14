@@ -93,27 +93,26 @@ export const getLastArticuloAdministrativoId = async (req, res) => {
 
 // Crear un artículo administrativo
 export const createArticuloAdministrativo = async (req, res) => {
-  const { fecha, descripcion, proveedor, ubicacion, observacion, precio } = req.body;
+  let { fecha, descripcion, proveedor, ubicacion, observacion, precio } = req.body;
 
   // Validaciones
   if (!fecha || !descripcion || !proveedor || !ubicacion || precio === undefined) {
     return res.status(400).json({ error: 'Todos los campos requeridos deben ser completados.' });
   }
 
+  // Asegurarnos que la fecha se guarde en formato ISO para la base de datos
+  const fechaISO = new Date(fecha).toISOString().split('T')[0];
+
   const client = await pool.connect();
 
   try {
-    // Iniciar transacción
-    await client.query('BEGIN');
-
-    // Insertar el nuevo artículo
     const insertArticuloQuery = `
       INSERT INTO articulos_administrativos (fecha, descripcion, proveedor, ubicacion, observacion, precio)
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING id, fecha, descripcion, proveedor, ubicacion, observacion, precio
     `;
     const result = await client.query(insertArticuloQuery, [
-      fecha,
+      fechaISO, // Guardamos en formato ISO
       descripcion,
       proveedor,
       ubicacion,
@@ -121,21 +120,22 @@ export const createArticuloAdministrativo = async (req, res) => {
       precio,
     ]);
 
-    // Confirmar transacción
-    await client.query('COMMIT');
+    // Formatear la fecha para la respuesta
+    const articuloCreado = {
+      ...result.rows[0],
+      fecha: new Date(result.rows[0].fecha).toLocaleDateString('es-ES')
+    };
 
-    // Responder con el artículo insertado
+    await client.query('COMMIT');
     res.status(201).json({
       message: 'Artículo administrativo creado con éxito.',
-      articulo: result.rows[0],
+      articulo: articuloCreado,
     });
   } catch (err) {
-    // Revertir transacción en caso de error
     await client.query('ROLLBACK');
     console.error('Error al crear el artículo administrativo:', err);
     res.status(500).json({ error: 'Error al crear el artículo administrativo.' });
   } finally {
-    // Liberar el cliente
     client.release();
   }
 };

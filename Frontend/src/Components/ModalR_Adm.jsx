@@ -44,7 +44,7 @@ const ModalSalida = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 overflow-y-auto">
+    <div className="fixed z-50  inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 overflow-y-auto">
       <div className="bg-white rounded-lg w-full max-w-4xl mx-auto  p-6  max-h-[90vh] overflow-auto">
         {/* Header */}
         <div className="flex justify-between items-center p-4 sm:p-6 border-b">
