@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import CategorySelect from './CategorySelect';
-import useArticulosAdministrativos from '../hooks/useArticulosAdministrativos'; // Importar el hook
+import useArticulosAdministrativos from '../hooks/useArticulosAdministrativos';
 
 const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
   if (!isOpen) return null;
@@ -13,6 +13,24 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
   const [loading, setLoading] = useState(false);
 
   const { agregarArticulo } = useArticulosAdministrativos();
+
+  // Función para formatear el precio a número
+  const formatPrecioToNumber = (precio) => {
+    if (!precio) return '';
+    // Eliminar el símbolo de peso, puntos y espacios
+    return precio.replace(/\$|\./g, '').trim();
+  };
+
+  // Función para formatear el precio a moneda colombiana
+  const formatPrecioToCurrency = (precio) => {
+    if (!precio) return '';
+    // Convertir a número y formatear
+    const number = Number(precio.replace(/\D/g, ''));
+    return new Intl.NumberFormat('es-CO', {
+      style: 'decimal',
+      maximumFractionDigits: 0
+    }).format(number);
+  };
 
   useEffect(() => {
     const fetchLastId = async () => {
@@ -59,8 +77,14 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
   };
 
   const handleRowChange = (value, rowIndex, field) => {
+    let processedValue = value;
+    
+    if (field === 'precio') {
+      processedValue = formatPrecioToCurrency(value);
+    }
+
     const updatedRows = rows.map((row, index) =>
-      index === rowIndex ? { ...row, [field]: value } : row
+      index === rowIndex ? { ...row, [field]: processedValue } : row
     );
     setRows(updatedRows);
   
@@ -87,29 +111,29 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
     setErrors(newErrors);
 
     if (newErrors.some((err) => Object.keys(err).length > 0)) {
-      alert('Revisa los errores en el formulario.');
       return;
     }
 
     try {
       setLoading(true);
-      const savePromises = rows.map(row => agregarArticulo(row));
+      // Convertir el precio a número antes de enviar
+      const processedRows = rows.map(row => ({
+        ...row,
+        precio: Number(formatPrecioToNumber(row.precio))
+      }));
+      
+      const savePromises = processedRows.map(row => agregarArticulo(row));
       await Promise.all(savePromises);
       
-      alert('Datos guardados exitosamente.');
-      
-      // Ejecutar refreshArticulos y esperar a que termine
       if (typeof refreshArticulos === 'function') {
         await refreshArticulos();
       }
 
-      // Cerrar el modal y recargar la página
       onClose();
       window.location.reload();
       
     } catch (error) {
       console.error('Error al guardar artículos:', error);
-      alert('Error al guardar los datos.');
     } finally {
       setLoading(false);
     }
@@ -118,7 +142,7 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
   const renderInput = (type, value, onChange, placeholder, error, disabled = false) => (
     <div className="w-full">
       <input
-        type={type}
+        type={type === "number" ? "text" : type}
         value={value}
         onChange={onChange}
         className={`border px-2 py-1 w-full rounded text-sm lg:text-base ${error ? 'border-red-500' : ''}`}
@@ -130,7 +154,7 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
   );
 
   return (
-    <div className="fixed  z-50  inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4">
+    <div className="fixed z-50 inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4">
       <div className="bg-white w-full max-w-6xl p-3 sm:p-4 md:p-6 rounded-lg shadow-lg max-h-[95vh] overflow-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-center flex-1">
@@ -199,7 +223,7 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
             Cancelar
           </button>
           <button onClick={handleSave} className="bg-[#00A305] text-white px-4 py-2 rounded hover:bg-green-700" disabled={loading}>
-            {loading ? 'Guardando...' : 'Guardar'}
+            Guardar
           </button>
         </div>
       </div>

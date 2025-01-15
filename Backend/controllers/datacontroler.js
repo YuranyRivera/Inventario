@@ -5,6 +5,28 @@ import jwt from 'jsonwebtoken';
 import transporter from '../config/nodemailerConfig.js';
 import { v4 as uuidv4 } from 'uuid';
 
+
+// Controlador para obtener productos según la ubicación
+export const getProductosPorUbicacion = async (req, res) => {
+  const { ubicacion } = req.params;  // Obtenemos la ubicación desde los parámetros de la URL
+
+  try {
+    const result = await pool.query(
+      'SELECT id, descripcion FROM articulos_administrativos WHERE ubicacion = $1',
+      [ubicacion]  // Pasamos la ubicación como parámetro para la consulta
+    );
+
+    if (result.rows.length > 0) {
+      res.status(200).json(result.rows);  // Devolvemos los productos encontrados
+    } else {
+      res.status(200).json([]);  // Si no se encuentran productos, devolvemos un array vacío
+    }
+  } catch (err) {
+    console.error('Error al obtener los productos por ubicación:', err);
+    res.status(500).json({ error: 'Error al obtener los productos' });
+  }
+};
+
 export const editarArticuloAdministrativo = async (req, res) => {
   const { id } = req.params; // ID del artículo a editar
   const { descripcion, proveedor, ubicacion, precio, fecha, observacion } = req.body; // Datos enviados desde el cliente
@@ -93,26 +115,26 @@ export const getLastArticuloAdministrativoId = async (req, res) => {
 
 // Crear un artículo administrativo
 export const createArticuloAdministrativo = async (req, res) => {
-  let { fecha, descripcion, proveedor, ubicacion, observacion, precio } = req.body;
+  let { id, fecha, descripcion, proveedor, ubicacion, observacion, precio } = req.body;
 
-  // Validaciones
   if (!fecha || !descripcion || !proveedor || !ubicacion || precio === undefined) {
     return res.status(400).json({ error: 'Todos los campos requeridos deben ser completados.' });
   }
 
-  // Asegurarnos que la fecha se guarde en formato ISO para la base de datos
   const fechaISO = new Date(fecha).toISOString().split('T')[0];
-
   const client = await pool.connect();
 
   try {
+    // Modificar la query para incluir el ID
     const insertArticuloQuery = `
-      INSERT INTO articulos_administrativos (fecha, descripcion, proveedor, ubicacion, observacion, precio)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO articulos_administrativos (id, fecha, descripcion, proveedor, ubicacion, observacion, precio)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING id, fecha, descripcion, proveedor, ubicacion, observacion, precio
     `;
+    
     const result = await client.query(insertArticuloQuery, [
-      fechaISO, // Guardamos en formato ISO
+      id, // Añadir el ID aquí
+      fechaISO,
       descripcion,
       proveedor,
       ubicacion,
@@ -120,7 +142,6 @@ export const createArticuloAdministrativo = async (req, res) => {
       precio,
     ]);
 
-    // Formatear la fecha para la respuesta
     const articuloCreado = {
       ...result.rows[0],
       fecha: new Date(result.rows[0].fecha).toLocaleDateString('es-ES')

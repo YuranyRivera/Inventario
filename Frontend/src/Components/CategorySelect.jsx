@@ -9,8 +9,8 @@ const CategorySelect = ({ value, onChange, error, disabled }) => (
           disabled={disabled}
       >
         <option value="">Selecciona una categoría</option>
-        <option value="oficina">Oficina</option>
-        <option value="almacen">Almacén</option>
+        <option value="Sala Estudiantes">Sala Estudiantes</option>
+        <option value="Sala profesores">Sala profesores</option>
         <option value="disponible">Disponible</option>
         <option value="noDisponible">No Disponible</option>
         </select>

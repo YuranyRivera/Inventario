@@ -15,7 +15,7 @@ const ModalConfirmacion = ({ isOpen, onClose, onConfirm, message }) => {
         <div className="flex justify-center mt-6 space-x-4">
           <button
             onClick={onConfirm}
-            className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
+            className="bg-[#00A305] text-white py-2 px-4 rounded hover:bg-green-600"
           >
             Aceptar
           </button>

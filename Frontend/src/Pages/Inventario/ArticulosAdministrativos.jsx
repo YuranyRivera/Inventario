@@ -7,6 +7,22 @@ import ButtonGroup from '../../Components/PDF';
 import ExcelExportButton from '../../Components/Excel';
 import ModalConfirmacion from '../../Components/ModalConf';
 
+// Función para formatear números a moneda colombiana
+const formatCurrency = (value) => {
+  if (!value && value !== 0) return '';
+  return new Intl.NumberFormat('es-CO', {
+    style: 'decimal',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
+};
+
+// Función para convertir el formato de moneda a número
+const currencyToNumber = (value) => {
+  if (!value) return 0;
+  return Number(value.replace(/[^\d,-]/g, '').replace(',', '.'));
+};
+
 const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
   const headers = ['ID', 'Fecha', 'Descripción', 'Proveedor', 'Ubicación', 'Observación', 'Precio'];
   const [searchTerm, setSearchTerm] = useState('');
@@ -17,21 +33,30 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
   const [editedRowData, setEditedRowData] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [articuloToDelete, setArticuloToDelete] = useState(null);
+  const [errors, setErrors] = useState([]);
 
   const handleCancel = () => {
     setEditingRowIndex(null);
     setEditedRowData({});
+    setErrors([]);
+  };
+
+  const validateRow = (row, index) => {
+    const rowErrors = {};
+    if (!row.descripcion || row.descripcion.trim() === '') {
+      rowErrors.descripcion = 'La descripción es requerida';
+    }
+    if (!row.precio) {
+      rowErrors.precio = 'El precio es requerido';
+    }
+    return rowErrors;
   };
 
   const validateRows = () => {
-    const newErrors = [];
-    for (const [index, row] of rows.entries()) {
-      const rowErrors = validateRow(row, index);
-      if (Object.keys(rowErrors).length > 0) {
-        newErrors[index] = rowErrors;
-      }
-    }
-    setErrors(newErrors);
+    if (!editedRowData) return false;
+    const rowErrors = validateRow(editedRowData);
+    setErrors(rowErrors);
+    return Object.keys(rowErrors).length === 0;
   };
 
   const filteredArticulos = articulos.filter(articulo => {
@@ -39,18 +64,15 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
       (articulo.descripcion || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (articulo.proveedor || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (articulo.ubicacion || '').toLowerCase().includes(searchTerm.toLowerCase());
-  
+
     const matchesLocation = !selectedLocation || articulo.ubicacion === selectedLocation;
     
-    // Si no hay fechas seleccionadas, mostrar todo
     if (!fromDate && !toDate) return matchesSearch && matchesLocation;
     
-    // Convertir la fecha del artículo a una fecha UTC
-    const fechaArticuloStr = articulo.fecha.split('T')[0]; // Obtener solo la parte de la fecha
+    const fechaArticuloStr = articulo.fecha ? articulo.fecha.split('T')[0] : '';
     const [year, month, day] = fechaArticuloStr.split('-').map(num => parseInt(num, 10));
     const fechaArticulo = new Date(Date.UTC(year, month - 1, day));
     
-    // Preparar fechas de inicio y fin en UTC
     let fechaInicio = null;
     let fechaFin = null;
     
@@ -63,21 +85,13 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
       const [endYear, endMonth, endDay] = toDate.split('-').map(num => parseInt(num, 10));
       fechaFin = new Date(Date.UTC(endYear, endMonth - 1, endDay, 23, 59, 59, 999));
     }
-  
-    // Aplicar filtros de fecha usando las fechas UTC
+
     const cumpleFechaInicio = !fechaInicio || fechaArticulo >= fechaInicio;
     const cumpleFechaFin = !fechaFin || fechaArticulo <= fechaFin;
     
-    // Para depuración
-    console.log('Fecha Artículo:', fechaArticulo.toISOString());
-    if (fechaInicio) console.log('Fecha Inicio:', fechaInicio.toISOString());
-    if (fechaFin) console.log('Fecha Fin:', fechaFin.toISOString());
-    console.log('Cumple Inicio:', cumpleFechaInicio);
-    console.log('Cumple Fin:', cumpleFechaFin);
-    
     return matchesSearch && matchesLocation && cumpleFechaInicio && cumpleFechaFin;
   });
-  // También actualizamos el formato de fecha en tableRows
+
   const tableRows = filteredArticulos.map(articulo => ({
     id: articulo.id || '',
     fecha: articulo.fecha ? new Date(articulo.fecha).toLocaleDateString('es-ES', {
@@ -89,7 +103,7 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
     proveedor: articulo.proveedor || '',
     ubicacion: articulo.ubicacion || '',
     observacion: articulo.observacion || '',
-    precio: typeof articulo.precio === 'number' ? articulo.precio.toFixed(2) : '0.00'
+    precio: formatCurrency(articulo.precio) // Formatear precio a moneda colombiana
   }));
 
   const handleSearchChange = (e) => {
@@ -108,12 +122,21 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
 
   const handleInputChange = (e, field) => {
     const value = e.target.value;
-    if (field === 'id') {
-      return;
-    }
+    if (field === 'id') return;
+    
+    // Si el campo es precio, formatear como moneda
+    const processedValue = field === 'precio' ? 
+      formatCurrency(value.replace(/[^\d]/g, '')) : 
+      value;
+
     setEditedRowData(prev => ({
       ...prev,
-      [field]: value
+      [field]: processedValue
+    }));
+
+    setErrors(prev => ({
+      ...prev,
+      [field]: undefined
     }));
   };
 
@@ -122,15 +145,20 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
     setEditedRowData({ 
       ...row,
       fecha: row.fecha ? row.fecha.split('T')[0] : '',
+      precio: formatCurrency(row.precio) // Asegurar que el precio esté formateado
     });
+    setErrors({});
   };
 
   const handleSave = async () => {
-    validateRows();
+    if (!validateRows()) {
+      return;
+    }
+
     try {
       const dataToSend = {
         ...editedRowData,
-        precio: parseFloat(editedRowData.precio) || 0,
+        precio: currencyToNumber(editedRowData.precio), // Convertir el precio a número
         fecha: editedRowData.fecha || new Date().toISOString().split('T')[0]
       };
   
@@ -156,6 +184,7 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
       reloadArticulos();
       setEditingRowIndex(null);
       setEditedRowData({});
+      setErrors({});
     } catch (error) {
       console.error('Error al editar:', error);
       alert('Error al editar el artículo: ' + error.message);
@@ -191,8 +220,6 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
       alert('Error al eliminar el artículo: ' + error.message);
     }
   };
-
-
 
   return (
     <div className="space-y-4">
@@ -233,37 +260,30 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 mt-4">
-      <div className="w-full md:w-1/4">
-  <label htmlFor="ubicacion" className="block  font-medium text-black text-lg mb-2">
-    Ubicación {/* Este es el texto que aparecerá en el label */}
-  </label>
-  <CategorySelect
-    value={selectedLocation}
-    onChange={setSelectedLocation}
-    error={null}
-    disabled={false}
-    id="ubicacion" // Es importante asignar un ID para asociar el label con el input
-  />
-</div>
-  <div className="w-full md:w-1/3">
-    <DateInput
-      label="Fecha inicial"
-      value={fromDate}
-      onChange={(e) => setFromDate(e.target.value)}
-      type="date"
-      className="w-full p-2"  
-    />
-  </div>
-  <div className="w-full md:w-1/3">
-    <DateInput
-      label="Fecha final"
-      value={toDate}
-      onChange={(e) => setToDate(e.target.value)}
-      className="w-full p-2" 
-    />
-  </div>
-</div>
+        <div className="w-full md:w-1/4">
+          <label htmlFor="ubicacion" className="block text-sm font-medium text-gray-700">Ubicación</label>
+          <CategorySelect
+            value={selectedLocation}
+            onChange={e => setSelectedLocation(e.target.value)}
+          />
+        </div>
 
+        <div className="w-full md:w-1/4">
+          <label htmlFor="fechaInicio" className="block text-sm font-medium text-gray-700">Desde</label>
+          <DateInput
+            value={fromDate}
+            onChange={e => setFromDate(e.target.value)}
+          />
+        </div>
+
+        <div className="w-full md:w-1/4">
+          <label htmlFor="fechaFin" className="block text-sm font-medium text-gray-700">Hasta</label>
+          <DateInput
+            value={toDate}
+            onChange={e => setToDate(e.target.value)}
+          />
+        </div>
+      </div>
 
       <div className="overflow-x-auto">
         <AdminArticlesTable
@@ -273,9 +293,10 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
           onDelete={openDeleteModal}
           editingRowIndex={editingRowIndex}
           editedRowData={editedRowData}
-          handleInputChange={(e, field) => setEditedRowData({ ...editedRowData, [field]: e.target.value })}
+          handleInputChange={handleInputChange}
           handleSave={handleSave}
           handleCancel={handleCancel}
+          errors={errors}
           disableFields={['id']}
         />
       </div>
