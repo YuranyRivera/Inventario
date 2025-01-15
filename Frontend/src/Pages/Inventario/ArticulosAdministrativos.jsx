@@ -7,7 +7,6 @@ import ButtonGroup from '../../Components/PDF';
 import ExcelExportButton from '../../Components/Excel';
 import ModalConfirmacion from '../../Components/ModalConf';
 
-// Función para formatear números a moneda colombiana
 const formatCurrency = (value) => {
   if (!value && value !== 0) return '';
   return new Intl.NumberFormat('es-CO', {
@@ -17,10 +16,12 @@ const formatCurrency = (value) => {
   }).format(value);
 };
 
-// Función para convertir el formato de moneda a número
 const currencyToNumber = (value) => {
-  if (!value) return 0;
-  return Number(value.replace(/[^\d,-]/g, '').replace(',', '.'));
+  if (!value && value !== 0) return 0;
+  // Eliminar todos los puntos y reemplazar coma por punto si existe
+  const cleanValue = value.toString().replace(/\./g, '').replace(',', '.');
+  // Convertir a número
+  return Number(cleanValue);
 };
 
 const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
@@ -33,30 +34,27 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
   const [editedRowData, setEditedRowData] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [articuloToDelete, setArticuloToDelete] = useState(null);
-  const [errors, setErrors] = useState([]);
+  const [errors, setErrors] = useState({});
 
   const handleCancel = () => {
     setEditingRowIndex(null);
     setEditedRowData({});
-    setErrors([]);
+    setErrors({});
   };
 
-  const validateRow = (row, index) => {
-    const rowErrors = {};
-    if (!row.descripcion || row.descripcion.trim() === '') {
-      rowErrors.descripcion = 'La descripción es requerida';
+  const validateRow = (row) => {
+    const newErrors = {};
+    if (!row.descripcion?.trim()) {
+      newErrors.descripcion = 'La descripción es requerida';
     }
-    if (!row.precio) {
-      rowErrors.precio = 'El precio es requerido';
+    if (!row.fecha?.trim()) {
+      newErrors.fecha = 'La fecha es requerida';
     }
-    return rowErrors;
-  };
-
-  const validateRows = () => {
-    if (!editedRowData) return false;
-    const rowErrors = validateRow(editedRowData);
-    setErrors(rowErrors);
-    return Object.keys(rowErrors).length === 0;
+    const precio = currencyToNumber(row.precio);
+    if (!precio || precio <= 0) {
+      newErrors.precio = 'El precio debe ser mayor que 0';
+    }
+    return newErrors;
   };
 
   const filteredArticulos = articulos.filter(articulo => {
@@ -92,107 +90,102 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
     return matchesSearch && matchesLocation && cumpleFechaInicio && cumpleFechaFin;
   });
 
-  const tableRows = filteredArticulos.map(articulo => ({
-    id: articulo.id || '',
-    fecha: articulo.fecha ? new Date(articulo.fecha).toLocaleDateString('es-ES', {
+  const formatDateForDisplay = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
-    }) : '',
+    });
+  };
+
+  const tableRows = filteredArticulos.map(articulo => ({
+    id: articulo.id,
+    fecha: formatDateForDisplay(articulo.fecha),
     descripcion: articulo.descripcion || '',
     proveedor: articulo.proveedor || '',
     ubicacion: articulo.ubicacion || '',
     observacion: articulo.observacion || '',
-    precio: formatCurrency(articulo.precio) // Formatear precio a moneda colombiana
+    precio: formatCurrency(articulo.precio)
   }));
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const openDeleteModal = (row) => {
-    setArticuloToDelete(row);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setArticuloToDelete(null);
-  };
-
-  const handleInputChange = (e, field) => {
-    const value = e.target.value;
-    if (field === 'id') return;
+  const handleEdit = (row, index) => {
+    const [day, month, year] = row.fecha.split('/');
+    const formattedDate = `${year}-${month}-${day}`;
     
-    // Si el campo es precio, formatear como moneda
-    const processedValue = field === 'precio' ? 
-      formatCurrency(value.replace(/[^\d]/g, '')) : 
-      value;
-
+    // Asegurarse de que el precio se procese correctamente
+    const precio = row.precio ? currencyToNumber(row.precio) : 0;
+    
+    setEditingRowIndex(index);
+    setEditedRowData({
+      ...row,
+      fecha: formattedDate,
+      precio: precio // Usar el precio procesado
+    });
+    setErrors({});
+  };
+  
+  const handleInputChange = (e, field) => {
+    if (field === 'id') return;
+  
+    let value = e.target.value;
+    
+    if (field === 'precio') {
+      // Si es un precio, asegurarse de que sea un número válido
+      const numericValue = value.replace(/[^\d]/g, '');
+      value = numericValue ? parseInt(numericValue, 10) : 0;
+    }
+  
     setEditedRowData(prev => ({
       ...prev,
-      [field]: processedValue
+      [field]: value
     }));
-
+  
     setErrors(prev => ({
       ...prev,
       [field]: undefined
     }));
   };
-
-  const handleEdit = (row, index) => {
-    setEditingRowIndex(index);
-    setEditedRowData({ 
-      ...row,
-      fecha: row.fecha ? row.fecha.split('T')[0] : '',
-      precio: formatCurrency(row.precio) // Asegurar que el precio esté formateado
-    });
-    setErrors({});
-  };
-
   const handleSave = async () => {
-    if (!validateRows()) {
+    const validationErrors = validateRow(editedRowData);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
     try {
       const dataToSend = {
         ...editedRowData,
-        precio: currencyToNumber(editedRowData.precio), // Convertir el precio a número
-        fecha: editedRowData.fecha || new Date().toISOString().split('T')[0]
+        precio: currencyToNumber(editedRowData.precio)
       };
-  
+
       const response = await fetch(`http://localhost:4000/api/articulos_administrativos/${editedRowData.id}`, {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
         },
         body: JSON.stringify(dataToSend),
       });
-  
+
       if (!response.ok) {
-        const text = await response.text();
-        if (text.startsWith('<!DOCTYPE html>')) {
-          throw new Error('Server error: Please check the backend for issues.');
-        }
-        const errorData = JSON.parse(text);
-        throw new Error(errorData.message || 'Error al editar el artículo administrativo');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al actualizar el artículo');
       }
-  
+
       await response.json();
       reloadArticulos();
-      setEditingRowIndex(null);
-      setEditedRowData({});
-      setErrors({});
+      handleCancel();
     } catch (error) {
-      console.error('Error al editar:', error);
-      alert('Error al editar el artículo: ' + error.message);
+      console.error('Error al guardar:', error);
+      alert(`Error al guardar los cambios: ${error.message}`);
     }
   };
 
   const handleDelete = async () => {
-    if (!articuloToDelete) return;
+    if (!articuloToDelete?.id) return;
+    
     try {
       const response = await fetch(`http://localhost:4000/api/articulos_administrativos/${articuloToDelete.id}`, {
         method: 'DELETE',
@@ -203,12 +196,8 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
       });
 
       if (!response.ok) {
-        const text = await response.text();
-        if (text.startsWith('<!DOCTYPE html>')) {
-          throw new Error('Server error: Please check the backend for issues.');
-        }
-        const errorData = JSON.parse(text);
-        throw new Error(`Error: ${errorData.message || 'No se pudo eliminar el artículo.'}`);
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al eliminar el artículo');
       }
 
       await response.json();
@@ -217,7 +206,7 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
       setArticuloToDelete(null);
     } catch (error) {
       console.error('Error al eliminar:', error);
-      alert('Error al eliminar el artículo: ' + error.message);
+      alert(`Error al eliminar el artículo: ${error.message}`);
     }
   };
 
@@ -225,7 +214,7 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
     <div className="space-y-4">
       <ModalConfirmacion
         isOpen={isModalOpen}
-        onClose={closeModal}
+        onClose={() => setIsModalOpen(false)}
         onConfirm={handleDelete}
         message="¿Está seguro de que desea eliminar este artículo?"
       />
@@ -239,48 +228,48 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
             type="text"
             placeholder="Buscar por descripción, proveedor..."
             value={searchTerm}
-            onChange={handleSearchChange}
-            className="w-full pl-8 sm:pl-10 pr-2 sm:pr-4 py-1.5 sm:py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <div className="flex flex-wrap gap-2 justify-start md:justify-end">
+        
+        <div className="flex flex-wrap gap-2">
           <ButtonGroup
             isStorageSelected={false}
             reloadArticulos={reloadArticulos}
-            filteredData={searchTerm ? tableRows : []}
+            filteredData={filteredArticulos}
             allData={articulos}
-            className="flex-grow md:flex-grow-0"
           />
           <ExcelExportButton 
-            filteredData={searchTerm ? tableRows : []} 
+            filteredData={filteredArticulos}
             allData={articulos}
-            className="flex-grow md:flex-grow-0"
           />
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 mt-4">
-        <div className="w-full md:w-1/4">
-          <label htmlFor="ubicacion" className="block text-sm font-medium text-gray-700">Ubicación</label>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Ubicación</label>
           <CategorySelect
-            value={selectedLocation}
-            onChange={e => setSelectedLocation(e.target.value)}
-          />
+  value={selectedLocation}
+  onChange={(e) => {
+    console.log('Nueva ubicación seleccionada:', e.target.value);
+    setSelectedLocation(e.target.value);
+  }}
+/>
         </div>
-
-        <div className="w-full md:w-1/4">
-          <label htmlFor="fechaInicio" className="block text-sm font-medium text-gray-700">Desde</label>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Desde</label>
           <DateInput
             value={fromDate}
-            onChange={e => setFromDate(e.target.value)}
+            onChange={(e) => setFromDate(e.target.value)}
           />
         </div>
-
-        <div className="w-full md:w-1/4">
-          <label htmlFor="fechaFin" className="block text-sm font-medium text-gray-700">Hasta</label>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Hasta</label>
           <DateInput
             value={toDate}
-            onChange={e => setToDate(e.target.value)}
+            onChange={(e) => setToDate(e.target.value)}
           />
         </div>
       </div>
@@ -290,7 +279,10 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
           headers={headers}
           rows={tableRows}
           onEdit={handleEdit}
-          onDelete={openDeleteModal}
+          onDelete={(row) => {
+            setArticuloToDelete(row);
+            setIsModalOpen(true);
+          }}
           editingRowIndex={editingRowIndex}
           editedRowData={editedRowData}
           handleInputChange={handleInputChange}

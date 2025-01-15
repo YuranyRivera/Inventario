@@ -13,8 +13,8 @@ const ModalSalida = ({ isOpen, onClose }) => {
 
   // Datos de ejemplo para ubicaciones
   const ubicaciones = [
-    { value: 'oficina', label: 'Oficina' },
-    { value: 'almacen', label: 'Almacén' },
+    { value: 'Sala Estudiantes', label: 'Sala Estudiantes' },
+    { value: 'Sala profesores', label: 'Sala profesores' },
     // Agregar más ubicaciones si es necesario
   ];
 
