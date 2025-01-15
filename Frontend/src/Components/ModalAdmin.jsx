@@ -78,11 +78,11 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
 
   const handleRowChange = (value, rowIndex, field) => {
     let processedValue = value;
-    
+  
     if (field === 'precio') {
       processedValue = formatPrecioToCurrency(value);
     }
-
+  
     const updatedRows = rows.map((row, index) =>
       index === rowIndex ? { ...row, [field]: processedValue } : row
     );
@@ -98,6 +98,7 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
     }
     setErrors(updatedErrors);
   };
+  
 
   const handleSave = async () => {
     if (loading) return;
@@ -190,7 +191,12 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
                     {renderInput("text", row.proveedor, (e) => handleRowChange(e.target.value, rowIndex, 'proveedor'), "Proveedor", errors[rowIndex]?.proveedor)}
                   </td>
                   <td className="px-4 py-2">
-                    <CategorySelect value={row.ubicacion} onChange={(value) => handleRowChange(value, rowIndex, 'ubicacion')} error={errors[rowIndex]?.ubicacion} disabled={loading} />
+                  <CategorySelect
+  value={row.ubicacion}
+  onChange={(e) => handleRowChange(e.target.value, rowIndex, 'ubicacion')}
+  error={errors[rowIndex]?.ubicacion}
+  disabled={loading}
+/>
                     {errors[rowIndex]?.ubicacion && <p className="text-red-500 text-xs mt-1">{errors[rowIndex].ubicacion}</p>}
                   </td>
                   <td className="px-4 py-2">
