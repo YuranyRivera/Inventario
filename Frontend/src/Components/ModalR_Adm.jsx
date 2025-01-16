@@ -23,14 +23,17 @@ const ModalSalida = ({ isOpen, onClose }) => {
     setUbicacionInicial(selectedOption.value);
     setUbicacionFinal(''); // Reset ubicacionFinal cuando cambia la ubicacionInicial
     setSelectedProducts([]); // Reset productos cuando cambia ubicacionInicial
-
+  
     try {
       const response = await fetch(`http://localhost:4000/api/productos/${selectedOption.value}`);
       const data = await response.json();
-
+  
       // Si la respuesta contiene productos, actualizamos el estado de productosDisponibles
       if (Array.isArray(data) && data.length > 0) {
-        setProductosDisponibles(data.map(producto => ({ value: producto.id, label: producto.descripcion })));
+        setProductosDisponibles(data.map(producto => ({
+          value: producto.id,
+          label: `${producto.id} - ${producto.descripcion}`  // Concatenamos id y descripcion
+        })));
       } else {
         setProductosDisponibles([]);
       }
@@ -47,15 +50,41 @@ const ModalSalida = ({ isOpen, onClose }) => {
     setSelectedProducts(selectedOptions);
   };
 
-  const handleSave = () => {
-    console.log('Salida registrada:');
-    console.log('Ubicación inicial:', ubicacionInicial);
-    console.log('Ubicación final:', ubicacionFinal);
-    console.log('Productos:', selectedProducts);
-    console.log('Solicitante:', solicitante);
-    console.log('Fecha:', fecha);
-    onClose(); // Cerrar el modal
+  const handleSave = async () => {
+    // Iterar sobre los productos seleccionados para crear un traslado por cada uno
+    try {
+      for (const product of selectedProducts) {
+        const trasladoData = {
+          ubicacion_inicial: ubicacionInicial,
+          id_articulo: product.value,  // Usamos product.value para el id_articulo
+          ubicacion_final: ubicacionFinal,
+          fecha: fecha,
+          responsable: solicitante,
+        };
+  
+        // Enviar una solicitud POST para cada producto
+        const response = await fetch('http://localhost:4000/api/traslados', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(trasladoData),
+        });
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Error al registrar el traslado:', errorData.error);
+          return; // Detener si hay un error
+        }
+      }
+  
+      console.log('Todos los traslados registrados con éxito');
+      onClose(); // Cerrar el modal
+    } catch (error) {
+      console.error('Error al enviar la solicitud:', error);
+    }
   };
+  
 
   if (!isOpen) return null;
 

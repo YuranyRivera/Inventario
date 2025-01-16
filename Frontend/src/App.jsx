@@ -12,6 +12,7 @@ import Contactos from './Pages/Inventario/Contacto';
 import EditarPerfil from './Pages/Inventario/EditarPerfil';
 import OlvidarContraseña from './Pages/Principal/OlvidarContraseña';
 import ActualizarContrasena from './Pages/Principal/ActualizarContrasena';
+import Moduloadmin from './Pages/Inventario/ModuloAdmin';
 import { UserProvider } from './Context/UserContext';
 
 
@@ -39,6 +40,15 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <Articulos />
+              </ProtectedRoute>
+            } 
+          />
+
+<Route 
+            path="/ModuloAdmin" 
+            element={
+              <ProtectedRoute>
+                <Moduloadmin />
               </ProtectedRoute>
             } 
           />
