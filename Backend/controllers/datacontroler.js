@@ -63,17 +63,16 @@ export const eliminarTraslado = async (req, res) => {
 };
 
 
-// En tu DataController (por ejemplo, "trasladosController.js")
 export const getTraslados = async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT t.id, t.ubicacion_inicial, t.id_articulo, t.ubicacion_final, t.fecha, t.responsable,
-              a.descripcion AS nombre_articulo
+              a.descripcion AS nombre_articulo, a.codigo AS codigo_articulo
        FROM traslados t
        JOIN articulos_administrativos a ON t.id_articulo = a.id
        ORDER BY t.id ASC`
     );
-    res.status(200).json(result.rows); // Devuelve todos los traslados junto con el nombre del artículo
+    res.status(200).json(result.rows); // Devuelve todos los traslados junto con el nombre del artículo y el código
   } catch (error) {
     console.error('Error al obtener los traslados', error);
     res.status(500).json({ message: 'Error al obtener los traslados' });
@@ -91,6 +90,16 @@ export const insertarTraslado = async (req, res) => {
   }
 
   try {
+    // Verificar si el artículo existe en la tabla articulos_administrativos
+    const articuloResult = await pool.query(
+      `SELECT id FROM articulos_administrativos WHERE id = $1`, 
+      [id_articulo]
+    );
+
+    if (articuloResult.rowCount === 0) {
+      return res.status(400).json({ error: `El artículo con id ${id_articulo} no existe en la base de datos` });
+    }
+
     // Inserción en la tabla de traslados
     const result = await pool.query(
       `INSERT INTO traslados (ubicacion_inicial, id_articulo, ubicacion_final, fecha, responsable)
@@ -98,25 +107,26 @@ export const insertarTraslado = async (req, res) => {
       [ubicacion_inicial, id_articulo, ubicacion_final, fecha, responsable]
     );
 
-    // Si la inserción es exitosa, devolvemos el ID del traslado insertado
-// Obtener el ID del traslado insertado
-const id_traslado = result.rows[0].id;
+    // Obtener el ID del traslado insertado
+    const id_traslado = result.rows[0].id;
 
-// Actualizar la ubicación del artículo en la tabla articulos_administrativos
-await pool.query(
-  `UPDATE articulos_administrativos
-  SET ubicacion = $1
-  WHERE id = $2`,
-  [ubicacion_final, id_articulo]
-);
+    // Actualizar la ubicación del artículo en la tabla articulos_administrativos
+    await pool.query(
+      `UPDATE articulos_administrativos
+      SET ubicacion = $1
+      WHERE id = $2`,
+      [ubicacion_final, id_articulo]
+    );
 
-// Devolvemos la respuesta de éxito con el ID del traslado
-res.status(201).json({ message: 'Traslado registrado y ubicación de artículo actualizada con éxito', id_traslado });
-} catch (err) {
-console.error('Error al insertar el traslado:', err);
-res.status(500).json({ error: 'Error al registrar el traslado y actualizar la ubicación del artículo' });
-}
+    // Devolvemos la respuesta de éxito con el ID del traslado
+    res.status(201).json({ message: 'Traslado registrado y ubicación de artículo actualizada con éxito', id_traslado });
+  } catch (err) {
+    console.error('Error al insertar el traslado:', err);
+    res.status(500).json({ error: 'Error al registrar el traslado y actualizar la ubicación del artículo' });
+  }
 };
+
+
 
 // Controlador para obtener productos según la ubicación
 export const getProductosPorUbicacion = async (req, res) => {
@@ -124,7 +134,7 @@ export const getProductosPorUbicacion = async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT id, descripcion FROM articulos_administrativos WHERE ubicacion = $1',
+      'SELECT id, codigo, descripcion FROM articulos_administrativos WHERE ubicacion = $1',
       [ubicacion]  // Pasamos la ubicación como parámetro para la consulta
     );
 
@@ -138,6 +148,7 @@ export const getProductosPorUbicacion = async (req, res) => {
     res.status(500).json({ error: 'Error al obtener los productos' });
   }
 };
+
 
 export const editarArticuloAdministrativo = async (req, res) => {
   const { id } = req.params; // ID del artículo a editar
@@ -174,28 +185,61 @@ export const editarArticuloAdministrativo = async (req, res) => {
 
 export const eliminarArticuloAdministrativo = async (req, res) => {
   const { id } = req.params; // Obtener ID desde la URL
+  const { observacion } = req.body; // Obtener la observación desde el cuerpo de la solicitud
+
+  if (!observacion) {
+    return res.status(400).json({ message: 'Se requiere una observación' });
+  }
 
   try {
-    // Eliminar el artículo de la base de datos
-    const result = await pool.query(
-      `DELETE FROM articulos_administrativos 
-       WHERE id = $1 
-       RETURNING *`, // Devuelve el artículo eliminado
+    // Iniciar una transacción
+    await pool.query('BEGIN');
+
+    // Primero, actualizar la observación en la tabla articulos_administrativos
+    const updateResult = await pool.query(
+      `UPDATE articulos_administrativos
+      SET observacion = $1
+      WHERE id = $2
+      RETURNING *`,
+      [observacion, id]
+    );
+
+    // Verifica si se actualizó algún artículo
+    if (updateResult.rowCount === 0) {
+      await pool.query('ROLLBACK');
+      return res.status(404).json({ message: 'Artículo no encontrado' });
+    }
+
+    // Eliminar el artículo de la tabla articulos_administrativos
+    // Se elimina después de que se ha registrado en articulos_baja
+    const deleteResult = await pool.query(
+      `DELETE FROM articulos_administrativos
+      WHERE id = $1
+      RETURNING *`,
       [id]
     );
 
-    // Verifica si se eliminó algún artículo
-    if (result.rowCount === 0) {
-      return res.status(404).json({ message: "Artículo no encontrado" });
+    // Verifica si se eliminó el artículo
+    if (deleteResult.rowCount === 0) {
+      await pool.query('ROLLBACK');
+      return res.status(404).json({ message: 'Artículo no encontrado' });
     }
 
+   
+
+    // Confirmar la transacción
+    await pool.query('COMMIT');
+
     // Devuelve el mensaje de éxito
-    res.status(200).json({ message: "Artículo administrativo eliminado" });
+    res.status(200).json({ message: 'Artículo administrativo eliminado y registrado en baja' });
+
   } catch (error) {
     console.error('Error al eliminar el artículo administrativo:', error);
-    res.status(500).json({ message: "Error al eliminar el artículo administrativo" });
+    await pool.query('ROLLBACK');
+    res.status(500).json({ message: 'Error al eliminar el artículo administrativo' });
   }
 };
+
 
 
 export const getArticulosAdministrativos = async (req, res) => {

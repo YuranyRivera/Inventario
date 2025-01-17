@@ -8,7 +8,7 @@ import ButtonGroup from '../../Components/PDFadmin';
 import ExcelExportButton from '../../Components/Exceladmin';
 
 const Moduloadmin = () => {
-  const headers = ['ID', 'Fecha', 'Ubicación Inicial', 'Producto', 'Ubicación Final', 'Responsable'];
+  const headers = ['ID','Fecha', 'Ubicación Inicial', 'Producto',  'Código', 'Ubicación Final', 'Responsable'];
 
   const [rows, setRows] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -26,9 +26,11 @@ const Moduloadmin = () => {
         const formattedRows = data.map((traslado) => {
           return {
             id: traslado.id,
+          
             fecha: formatDate(traslado.fecha),
             ubicacion_inicial: traslado.ubicacion_inicial,
             producto: traslado.nombre_articulo,
+            codigo: traslado.codigo_articulo, // Agregamos el código
             ubicacion_final: traslado.ubicacion_final,
             responsable: traslado.responsable,
           };

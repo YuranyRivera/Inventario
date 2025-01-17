@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import AuxMaintenanceTable from '../../Components/AuxMaintenanceTable';
 import { Search } from 'lucide-react';
-import ButtonGroup from '../../Components/PDF';
+import ButtonGroup from '../../Components/PDFAlm';
 import ExcelExportButton from '../../Components/Excel'; // Importar el componente de Excel
 
 const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {

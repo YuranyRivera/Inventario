@@ -59,14 +59,14 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
     // Validación del módulo
     if (!row.modulo.trim()) {
       rowErrors.modulo = 'El módulo es obligatorio';
-    } else if (!/^[A-Za-z0-9]+$/.test(row.modulo)) {
-      rowErrors.modulo = 'El módulo solo puede contener letras y números';
+    } else if (!/^[A-Za-z0-9\s]+$/.test(row.modulo)) {
+      rowErrors.modulo = 'El módulo solo puede contener letrasy  números ';
     }
 
     // Validación del estante
     if (!row.estante.trim()) {
       rowErrors.estante = 'El estante es obligatorio';
-    } else if (!/^[A-Za-z0-9]+$/.test(row.estante)) {
+    } else if (!/^[A-Za-z0-9\s]+$/.test(row.estante)) {
       rowErrors.estante = 'El estante solo puede contener letras y números';
     }
 

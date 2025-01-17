@@ -1,61 +1,80 @@
 import React from 'react';
 import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 const PDFExportButton = ({ filteredData, allData }) => {
   const exportToPDF = () => {
-    const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
     const dataToExport = filteredData.length > 0 ? filteredData : allData;
 
-    // Configurar las columnas específicas para el reporte
+    // Definir las columnas para el PDF
     const columns = [
-      'ID', 
-      'Fecha', 
-      'Ubicación Inicial', 
-      'Producto', 
-      'Ubicación Final', 
-      'Responsable'
+      { header: 'ID', dataKey: 'id' },
+      { header: 'Fecha', dataKey: 'fecha' },
+      { header: 'Ubicación Inicial', dataKey: 'ubicacion_inicial' },
+      { header: 'Producto', dataKey: 'producto' },
+      { header: 'Ubicación Final', dataKey: 'ubicacion_final' },
+      { header: 'Responsable', dataKey: 'responsable' },
     ];
 
-    // Preparar los datos específicos para el reporte
-    const rows = dataToExport.map(item => [
-      item.id,
-      item.fecha ? new Date(item.fecha).toISOString().split('T')[0] : '',
-      item.ubicacion_inicial || '',
-      item.producto || '',
-      item.ubicacion_final || '',
-      item.responsable || ''
-    ]);
+    // Transformar los datos en formato aceptado por autoTable
+    const rows = dataToExport.map((item) => ({
+      id: item.id || '',
+      fecha: item.fecha ? new Date(item.fecha).toISOString().split('T')[0] : '',
+      ubicacion_inicial: item.ubicacion_inicial || '',
+      producto: item.producto || '',
+      ubicacion_final: item.ubicacion_final || '',
+      responsable: item.responsable || '',
+    }));
 
-    // Agregar título
-    doc.setFontSize(16);
-    doc.text('Reporte de Traslados', 14, 20);
+    // Agregar encabezado con imagen y título
+    const imagePath = '/Img/encabezado.png';
+    const img = new Image();
+    img.src = imagePath;
+    img.onload = () => {
+      const imgWidth = 190; // Ajusta el ancho según el diseño del encabezado
+      const imgHeight = (img.height * imgWidth) / img.width;
+      const x = (doc.internal.pageSize.width - imgWidth) / 2; // Centrar la imagen
+      const y = 10;
 
-    // Agregar tabla
-    doc.autoTable({
-      startY: 30,
-      head: [columns],
-      body: rows,
-      theme: 'grid',
-      styles: {
-        fontSize: 8,
-        cellPadding: 2
-      },
-      headStyles: {
-        fillColor: [0, 163, 5],
-        textColor: [255, 255, 255]
-      }
-    });
+      doc.addImage(img, 'PNG', x, y, imgWidth, imgHeight);
 
-    // Guardar el PDF
-    doc.save('reporte_traslados.pdf');
+      // Título del reporte
+      const titleY = y + imgHeight + 10;
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Reporte de Traslados', doc.internal.pageSize.width / 2, titleY, { align: 'center' });
+
+      // Tabla de datos
+      doc.autoTable({
+        startY: titleY + 15,
+        head: [columns.map((col) => col.header)],
+        body: rows.map((row) => columns.map((col) => row[col.dataKey])),
+        theme: 'striped',
+        headStyles: {
+          fillColor: [0, 163, 5],
+          textColor: [255, 255, 255],
+        },
+        styles: {
+          fontSize: 9,
+          cellPadding: 3,
+          halign: 'center',
+          valign: 'middle',
+        },
+      });
+
+      // Guardar el archivo
+      doc.save('reporte_traslados.pdf');
+    };
   };
 
   return (
-    <button 
+    <button
       className="bg-white text-green-600 py-2 px-4 border-2 border-green-600 rounded hover:text-white hover:bg-[#00A305]"
       onClick={exportToPDF}
     >
-      <i className="fas fa-file-pdf mr-2"></i> PDF
+      <i className="fas fa-file-pdf mr-2"></i> Generar PDF
     </button>
   );
 };

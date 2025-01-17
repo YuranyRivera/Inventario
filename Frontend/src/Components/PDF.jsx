@@ -3,10 +3,10 @@ import { jsPDF } from 'jspdf';
 
 const PDFExportButton = ({ filteredData, allData }) => {
   const exportToPDF = () => {
-    const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     const dataToExport = filteredData.length > 0 ? filteredData : allData;
 
-    // Configurar las columnas específicas para administración
+    // Configurar las columnas específicas para el reporte
     const columns = [
       'ID', 
       'Fecha', 
@@ -17,7 +17,18 @@ const PDFExportButton = ({ filteredData, allData }) => {
       'Precio'
     ];
 
-    // Preparar los datos específicos para administración
+    // Función para formatear el precio en formato colombiano
+    const formatCurrency = (value) => {
+      if (value == null || isNaN(value)) return '0.00'; // Verificar si es un valor válido
+      return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(value);
+    };
+
+    // Preparar los datos específicos para el reporte
     const rows = dataToExport.map(item => [
       item.id,
       item.fecha ? new Date(item.fecha).toISOString().split('T')[0] : '',
@@ -25,30 +36,39 @@ const PDFExportButton = ({ filteredData, allData }) => {
       item.proveedor || '',
       item.ubicacion || '',
       item.observacion || '',
-      typeof item.precio === 'number' ? item.precio.toFixed(2) : '0.00'
+      formatCurrency(item.precio) // Formatear el precio aquí
     ]);
 
     // Agregar título
     doc.setFontSize(16);
-    doc.text('Reporte Administrativo', 14, 20);
+    doc.setFont("helvetica", "bold");
+    doc.text("REPORTE ADMINISTRATIVO", doc.internal.pageSize.width / 2, 20, { align: 'center' });
 
-    // Agregar tabla
+    // Texto con el nombre de la persona y la fecha al lado izquierdo
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    const personaTexto = `Fecha de Generación: ${new Date().toLocaleDateString()}`;
+    const leftMargin = 15;
+    doc.text(personaTexto, leftMargin, 30);
+
+    // Agregar tabla al PDF
     doc.autoTable({
-      startY: 30,
+      startY: 40,
       head: [columns],
       body: rows,
       theme: 'grid',
       styles: {
         fontSize: 8,
-        cellPadding: 2
+        cellPadding: 2,
       },
       headStyles: {
         fillColor: [0, 163, 5],
         textColor: [255, 255, 255]
-      }
+      },
+      margin: { top: 10 }
     });
 
-    // Guardar el PDF
+    // Guardar el archivo PDF
     doc.save('reporte_administrativo.pdf');
   };
 

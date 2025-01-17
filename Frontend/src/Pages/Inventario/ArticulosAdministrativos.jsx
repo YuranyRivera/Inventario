@@ -6,6 +6,8 @@ import { Search } from 'lucide-react';
 import ButtonGroup from '../../Components/PDF';
 import ExcelExportButton from '../../Components/Excel';
 import ModalConfirmacion from '../../Components/ModalConf';
+import ModalObservacion from '../../Components/ModalObs';
+import Select from 'react-select';
 
 const formatCurrency = (value) => {
   if (!value && value !== 0) return '';
@@ -18,14 +20,32 @@ const formatCurrency = (value) => {
 
 const currencyToNumber = (value) => {
   if (!value && value !== 0) return 0;
-  // Eliminar todos los puntos y reemplazar coma por punto si existe
   const cleanValue = value.toString().replace(/\./g, '').replace(',', '.');
-  // Convertir a número
   return Number(cleanValue);
 };
 
+
 const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
-  const headers = ['ID', 'Fecha', 'Descripción', 'Proveedor', 'Ubicación', 'Observación', 'Precio'];
+  const headers = ['ID', 'Código', 'Fecha', 'Descripción', 'Proveedor', 'Ubicación', 'Observación', 'Precio'];
+
+  const ubicaciones = [
+    { value: 'Recepción', label: 'Recepción' },
+    { value: 'Tesorería', label: 'Tesorería' },
+    { value: 'Coordinación convivencia', label: 'Coordinación convivencia' },
+    { value: 'Rectoría', label: 'Rectoría' },
+    { value: 'Secretaría académica', label: 'Secretaría académica' },
+    { value: 'Coordinación académica', label: 'Coordinación académica' },
+    { value: 'Sala de profesores', label: 'Sala de profesores' },
+    { value: 'Aux contable y financiera', label: 'Aux contable y financiera' },
+    { value: 'Aux administrativa y contable', label: 'Aux administrativa y contable' },
+    { value: 'Contadora', label: 'Contadora' },
+    { value: 'Cocina', label: 'Cocina' },
+    { value: 'Almacén', label: 'Almacén' },
+    { value: 'Espacio de servicios generales', label: 'Espacio de servicios generales' },
+    { value: 'Sala audiovisuales', label: 'Sala audiovisuales' },
+    { value: 'Sala lúdica', label: 'Sala lúdica' },
+    { value: 'Capilla', label: 'Capilla' },
+  ];
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
   const [fromDate, setFromDate] = useState('');
@@ -33,9 +53,11 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
   const [editingRowIndex, setEditingRowIndex] = useState(null);
   const [editedRowData, setEditedRowData] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isObservacionModalOpen, setIsObservacionModalOpen] = useState(false);
   const [articuloToDelete, setArticuloToDelete] = useState(null);
   const [errors, setErrors] = useState({});
 
+  
   const handleCancel = () => {
     setEditingRowIndex(null);
     setEditedRowData({});
@@ -102,6 +124,7 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
 
   const tableRows = filteredArticulos.map(articulo => ({
     id: articulo.id,
+    codigo: articulo.codigo || 'Nuevo Código',
     fecha: formatDateForDisplay(articulo.fecha),
     descripcion: articulo.descripcion || '',
     proveedor: articulo.proveedor || '',
@@ -114,14 +137,13 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
     const [day, month, year] = row.fecha.split('/');
     const formattedDate = `${year}-${month}-${day}`;
     
-    // Asegurarse de que el precio se procese correctamente
     const precio = row.precio ? currencyToNumber(row.precio) : 0;
     
     setEditingRowIndex(index);
     setEditedRowData({
       ...row,
       fecha: formattedDate,
-      precio: precio // Usar el precio procesado
+      precio: precio
     });
     setErrors({});
   };
@@ -132,7 +154,6 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
     let value = e.target.value;
     
     if (field === 'precio') {
-      // Si es un precio, asegurarse de que sea un número válido
       const numericValue = value.replace(/[^\d]/g, '');
       value = numericValue ? parseInt(numericValue, 10) : 0;
     }
@@ -147,6 +168,7 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
       [field]: undefined
     }));
   };
+
   const handleSave = async () => {
     const validationErrors = validateRow(editedRowData);
     if (Object.keys(validationErrors).length > 0) {
@@ -183,23 +205,29 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
     }
   };
 
-  const handleDelete = async () => {
-    if (!articuloToDelete?.id) return;
+  const handleDelete = async (observacion) => {
+    if (!articuloToDelete?.id) {
+      console.error('No hay ID de artículo para eliminar');
+      return;
+    }
     
     try {
-      const response = await fetch(`http://localhost:4000/api/articulos_administrativos/${articuloToDelete.id}`, {
+      const url = `http://localhost:4000/api/articulos_administrativos/${articuloToDelete.id}`;
+      
+      const response = await fetch(url, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
+        body: JSON.stringify({ observacion }), // Incluir la observación en el cuerpo
       });
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Error al eliminar el artículo');
       }
-
+  
       await response.json();
       reloadArticulos();
       setIsModalOpen(false);
@@ -210,12 +238,33 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
     }
   };
 
+  const handleDeleteClick = (row) => {
+    setArticuloToDelete(row);
+    setIsObservacionModalOpen(true);
+  };
+
+  const handleObservacionSave = (observacion) => {
+    setIsObservacionModalOpen(false);
+    setIsModalOpen(true); // Mostrar modal de confirmación después de la observación
+    // Guardar la observación junto con el artículo a eliminar
+    setArticuloToDelete(prev => ({
+      ...prev,
+      observacion
+    }));
+  };
+
   return (
     <div className="space-y-4">
+      <ModalObservacion
+        isOpen={isObservacionModalOpen}
+        onClose={() => setIsObservacionModalOpen(false)}
+        onSave={handleObservacionSave}
+      />
+
       <ModalConfirmacion
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onConfirm={handleDelete}
+        onConfirm={() => handleDelete(articuloToDelete?.observacion)}
         message="¿Está seguro de que desea eliminar este artículo?"
       />
 
@@ -250,13 +299,14 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700">Ubicación</label>
-          <CategorySelect
-  value={selectedLocation}
-  onChange={(e) => {
-    console.log('Nueva ubicación seleccionada:', e.target.value);
-    setSelectedLocation(e.target.value);
-  }}
-/>
+          <Select
+            options={ubicaciones}
+            value={selectedLocation}
+            onChange={setSelectedLocation}
+            isClearable
+            placeholder="Seleccionar ubicación..."
+            className="text-sm"
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">Desde</label>
@@ -279,10 +329,7 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
           headers={headers}
           rows={tableRows}
           onEdit={handleEdit}
-          onDelete={(row) => {
-            setArticuloToDelete(row);
-            setIsModalOpen(true);
-          }}
+          onDelete={handleDeleteClick}
           editingRowIndex={editingRowIndex}
           editedRowData={editedRowData}
           handleInputChange={handleInputChange}
