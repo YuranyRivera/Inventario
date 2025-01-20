@@ -1,7 +1,7 @@
 import express from 'express';
 import { pool } from '../config/db.js';
 import transporter from '../config/nodemailerConfig.js';
-import {editarTraslado, eliminarTraslado, getTraslados, insertarTraslado, getProductosPorUbicacion, editarArticuloAdministrativo, eliminarArticuloAdministrativo, updateMovimiento, getArticulosAdministrativos, deleteMovimiento, getLastArticuloAdministrativoId, createArticuloAdministrativo, updateProfile, updatePassword, checkIfUserExists, checkEmailExists,editarPerfil, crearUsuario, obtenerUsuarios, eliminarUsuario,   loginUser, editarArticulo, eliminarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createArticulo } from '../controllers/datacontroler.js';
+import {eliminarArticuloBaja, editarTraslado, obtenerArticulosBaja, eliminarTraslado, getTraslados, insertarTraslado, getProductosPorUbicacion, editarArticuloAdministrativo, eliminarArticuloAdministrativo, updateMovimiento, getArticulosAdministrativos, deleteMovimiento, getLastArticuloAdministrativoId, createArticuloAdministrativo, updateProfile, updatePassword, checkIfUserExists, checkEmailExists,editarPerfil, crearUsuario, obtenerUsuarios, eliminarUsuario,   loginUser, editarArticulo, eliminarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createArticulo } from '../controllers/datacontroler.js';
 import jwt from 'jsonwebtoken';
 
 import bcrypt from 'bcrypt';
@@ -11,7 +11,10 @@ import { verifyToken } from '../middleware/authMiddleware.js';
 
 
 const router = express.Router();
-
+// Ruta para eliminar un artículo por ID
+router.delete('/articulos_baja/:id', eliminarArticuloBaja);
+// Ruta para obtener todos los artículos dados de baja
+router.get('/articulos_baja', obtenerArticulosBaja);
 // Ruta para editar un traslado
 router.put('/traslados/:id', editarTraslado);
 

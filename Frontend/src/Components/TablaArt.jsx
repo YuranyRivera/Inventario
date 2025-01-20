@@ -1,6 +1,6 @@
 import React from 'react';
 
-const AdminArticlesTable = ({
+const AuxMaintenanceTable = ({ 
   headers,
   rows,
   onEdit,
@@ -11,8 +11,8 @@ const AdminArticlesTable = ({
   handleSave,
   handleCancel,
 }) => {
-  // Lista de campos deshabilitados (puedes ajustarlos según sea necesario)
-  const disabledFields = ['id', 'fecha_creacion']; 
+  // Lista de campos deshabilitados
+  const disabledFields = ['id', 'cantidad', 'cantidad_productos'];
 
   return (
     <table className="min-w-full mt-10 table-auto rounded-lg overflow-hidden shadow-lg">
@@ -77,17 +77,12 @@ const AdminArticlesTable = ({
                 </>
               ) : (
                 <>
-                  <button
-                    onClick={() => onEdit(row, index)}
-                    className="bg-[#00A305] text-white py-1 px-3 rounded flex items-center hover:bg-green-700 transition-colors"
-                  >
-                    <i className="fas fa-pencil-alt mr-2"></i> Editar
-                  </button>
+             
                   <button
                     onClick={() => onDelete(row)}
                     className="bg-white text-[#00A305] py-1 px-3 border-2 border-[#00A305] rounded flex items-center hover:bg-green-100 transition-colors"
                   >
-                    <i className="fas fa-trash-alt mr-2"></i> Dar de baja
+                    <i className="fas fa-trash-alt mr-2"></i> Eliminar
                   </button>
                 </>
               )}
@@ -99,4 +94,4 @@ const AdminArticlesTable = ({
   );
 };
 
-export default AdminArticlesTable;
+export default AuxMaintenanceTable;

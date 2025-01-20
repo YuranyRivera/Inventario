@@ -4,7 +4,44 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 
+export const eliminarArticuloBaja = async (req, res) => {
+  const { id } = req.params; // Obtiene el ID desde los parámetros de la ruta
 
+  try {
+    // Realiza la consulta para eliminar el artículo
+    const result = await pool.query('DELETE FROM articulos_baja WHERE id = $1 RETURNING *', [id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        message: `No se encontró ningún artículo con el ID: ${id}`,
+      });
+    }
+
+    res.status(200).json({
+      message: `Artículo con ID ${id} eliminado correctamente`,
+      articulo: result.rows[0], // Devuelve el artículo eliminado
+    });
+  } catch (error) {
+    console.error('Error al eliminar el artículo:', error);
+    res.status(500).json({
+      message: 'Error al eliminar el artículo',
+      details: error.message,
+    });
+  }
+};
+
+export const obtenerArticulosBaja = async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM articulos_baja'); // Consulta SQL
+    res.status(200).json(result.rows); // Devuelve los resultados en formato JSON
+  } catch (error) {
+    console.error('Error al obtener los artículos dados de baja:', error);
+    res.status(500).json({
+      message: 'Error al obtener los artículos dados de baja',
+      details: error.message,
+    });
+  }
+};
 export const editarTraslado = async (req, res) => {
   const { id } = req.params; // ID del traslado a editar
   const { ubicacion_inicial, ubicacion_final, responsable, fecha, productos } = req.body; // Datos enviados desde el cliente
@@ -584,8 +621,7 @@ export const getReporteGeneral = async (req, res) => {
         id, 
         fecha, 
         cantidad_productos, 
-        tipo_movimiento, 
-        rol
+        tipo_movimiento 
       FROM movimientos_almacen
       ORDER BY fecha DESC; 
     `;
@@ -601,7 +637,7 @@ export const getReporteGeneral = async (req, res) => {
         : 0; // Si no tiene productos, asignar 0
 
       // Determinar el estado según el tipo de movimiento (1 = salida, 2 = entrada)
-      const estado = row.tipo_movimiento === 2 ? 'Activo' : 'Inactivo'; // Entrada es activo, salida es inactivo
+      const estado = row.tipo_movimiento === 2 ? 'Entrada' : 'Salida'; // Entrada es activo, salida es inactivo
 
       // Formatear la fecha en día/mes/año y la hora en formato 12 horas
       const fecha = new Date(row.fecha);
@@ -613,7 +649,7 @@ export const getReporteGeneral = async (req, res) => {
         fechaEntrada, // Fecha de entrada
       
         cantidadProductos, // Número de productos (cantidad de registros)
-        tipoRegistro: row.rol, // Rol (tipo de registro)
+   
         estado, // Estado (activo o inactivo)
       };
     });

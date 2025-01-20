@@ -7,12 +7,13 @@ import Dashboard from './Pages/Inventario/Dashboard';
 import Inicio from './Pages/Principal/Inicio';
 import Registro from './Pages/Inventario/Registro';
 import Articulos from './Pages/Inventario/Articulos';
-import RegSalida from './Pages/Inventario/RegSalida';
+
 import Contactos from './Pages/Inventario/Contacto';
 import EditarPerfil from './Pages/Inventario/EditarPerfil';
 import OlvidarContraseña from './Pages/Principal/OlvidarContraseña';
 import ActualizarContrasena from './Pages/Principal/ActualizarContrasena';
 import Moduloadmin from './Pages/Inventario/ModuloAdmin';
+import ArticulosBaja from './Pages/Inventario/ArticulosBaja'
 import { UserProvider } from './Context/UserContext';
 
 
@@ -43,7 +44,14 @@ const App = () => {
               </ProtectedRoute>
             } 
           />
-
+<Route 
+            path="/ArticulosBaja" 
+            element={
+              <ProtectedRoute>
+                <ArticulosBaja />
+              </ProtectedRoute>
+            } 
+          />
 <Route 
             path="/ModuloAdmin" 
             element={
@@ -68,14 +76,7 @@ const App = () => {
               </ProtectedRoute>
             } 
           />
-          <Route 
-            path="/RegSalida" 
-            element={
-              <ProtectedRoute>
-                <RegSalida />
-              </ProtectedRoute>
-            } 
-          />
+  
         <Route 
   path="/EditarPerfil" 
   element={

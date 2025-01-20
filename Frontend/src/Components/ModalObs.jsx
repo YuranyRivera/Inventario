@@ -21,7 +21,7 @@ const ModalObservacion = ({ isOpen, onClose, onSave }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+    <div className="fixed z-50 inset-0 bg-black bg-opacity-50 flex justify-center items-center">
       <div className="bg-white p-6 rounded-lg w-1/3 relative">
         <h2 className="text-xl text-gray-700 text-center mb-4">Ingresa una Observación</h2>
 
@@ -36,7 +36,7 @@ const ModalObservacion = ({ isOpen, onClose, onSave }) => {
         <div className="flex justify-between items-center mt-4">
           {/* Botón para guardar la observación */}
           <button
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+            className="bg-white hover:bg-[#00A305] text-green-600 rounded-lg   border-2 border-green-600 px-4 py-2  hover:text-white transition duration-300  "
             onClick={handleSave}
           >
             Guardar

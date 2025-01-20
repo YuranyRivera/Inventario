@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import AdminArticlesTable from '../../Components/AdminArticlesTable';
+import { useNavigate } from 'react-router-dom'; 
 import CategorySelect from '../../Components/CategorySelect';
 import DateInput from '../../Components/DateInput';
 import { Search } from 'lucide-react';
@@ -56,7 +57,7 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
   const [isObservacionModalOpen, setIsObservacionModalOpen] = useState(false);
   const [articuloToDelete, setArticuloToDelete] = useState(null);
   const [errors, setErrors] = useState({});
-
+  const navigate = useNavigate(); // Hook para navegación
   
   const handleCancel = () => {
     setEditingRowIndex(null);
@@ -205,33 +206,37 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
     }
   };
 
+  
   const handleDelete = async (observacion) => {
     if (!articuloToDelete?.id) {
       console.error('No hay ID de artículo para eliminar');
       return;
     }
-    
+
     try {
       const url = `http://localhost:4000/api/articulos_administrativos/${articuloToDelete.id}`;
-      
+
       const response = await fetch(url, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify({ observacion }), // Incluir la observación en el cuerpo
+        body: JSON.stringify({ observacion }), // Incluir la observación
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Error al eliminar el artículo');
       }
-  
+
       await response.json();
       reloadArticulos();
       setIsModalOpen(false);
       setArticuloToDelete(null);
+
+      // Navegar a la página ArticulosBaja.jsx
+      navigate('/ArticulosBaja'); // Cambia la ruta según tu configuración
     } catch (error) {
       console.error('Error al eliminar:', error);
       alert(`Error al eliminar el artículo: ${error.message}`);
@@ -265,7 +270,7 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={() => handleDelete(articuloToDelete?.observacion)}
-        message="¿Está seguro de que desea eliminar este artículo?"
+        message="¿Está seguro de que desea dar de baja este artículo?"
       />
 
       <div className="flex flex-col md:flex-row items-stretch space-y-2 md:space-y-0 md:space-x-2">

@@ -2,20 +2,43 @@ import React, { useState, useEffect } from 'react';
 import AuxMaintenanceTable from '../../Components/Moduloadmin';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { Search } from 'lucide-react';
+import Select from 'react-select';
 import CategorySelect from '../../Components/CategorySelect';
 import DateInput from '../../Components/DateInput';
 import ButtonGroup from '../../Components/PDFadmin';
 import ExcelExportButton from '../../Components/Exceladmin';
+import { useNavigate } from 'react-router-dom';
 
 const Moduloadmin = () => {
   const headers = ['ID','Fecha', 'Ubicación Inicial', 'Producto',  'Código', 'Ubicación Final', 'Responsable'];
-
+  const [selectedOption, setSelectedOption] = useState('traslados');
+  const navigate = useNavigate();
   const [rows, setRows] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocationInitial, setSelectedLocationInitial] = useState('');
   const [selectedLocationFinal, setSelectedLocationFinal] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+
+  const ubicaciones = [
+    { value: 'Recepción', label: 'Recepción' },
+    { value: 'Tesorería', label: 'Tesorería' },
+    { value: 'Coordinación convivencia', label: 'Coordinación convivencia' },
+    { value: 'Rectoría', label: 'Rectoría' },
+    { value: 'Secretaría académica', label: 'Secretaría académica' },
+    { value: 'Coordinación académica', label: 'Coordinación académica' },
+    { value: 'Sala de profesores', label: 'Sala de profesores' },
+    { value: 'Aux contable y financiera', label: 'Aux contable y financiera' },
+    { value: 'Aux administrativa y contable', label: 'Aux administrativa y contable' },
+    { value: 'Contadora', label: 'Contadora' },
+    { value: 'Cocina', label: 'Cocina' },
+    { value: 'Almacén', label: 'Almacén' },
+    { value: 'Espacio de servicios generales', label: 'Espacio de servicios generales' },
+    { value: 'Sala audiovisuales', label: 'Sala audiovisuales' },
+    { value: 'Sala lúdica', label: 'Sala lúdica' },
+    { value: 'Capilla', label: 'Capilla' },
+  ];
+
 
   useEffect(() => {
     const fetchTraslados = async () => {
@@ -108,8 +131,8 @@ const Moduloadmin = () => {
       (row.ubicacion_inicial || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (row.ubicacion_final || '').toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesLocationInitial = !selectedLocationInitial || row.ubicacion_inicial === selectedLocationInitial;
-    const matchesLocationFinal = !selectedLocationFinal || row.ubicacion_final === selectedLocationFinal;
+    const matchesLocationInitial = !selectedLocationInitial || row.ubicacion_inicial === selectedLocationInitial.value;
+    const matchesLocationFinal = !selectedLocationFinal || row.ubicacion_final === selectedLocationFinal.value;
 
     let fechaTraslado = row.fecha ? new Date(row.fecha) : null;
     let cumpleFechaInicio = true;
@@ -134,11 +157,67 @@ const Moduloadmin = () => {
     );
   });
 
+  const handleOptionChange = (event) => {
+    const value = event.target.value;
+    setSelectedOption(value);
+    
+    switch(value) {
+      case 'general':
+        navigate('/registro');
+        break;
+      case 'traslados':
+        navigate('/moduloadmin');
+        break;
+      case 'bajas':
+        navigate('/articulosbaja');
+        break;
+    }
+  };
   return (
     <>
       <DashboardLayout>
       <div className="mb-6 m-5">
         <h1 className="text-3xl font-bold text-center text-black mb-10">Traslados</h1>
+        <div className="flex gap-6 mt-4 mb-6">
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <input
+              type="radio"
+              name="navigation"
+              value="general"
+              checked={selectedOption === 'general'}
+              onChange={handleOptionChange}
+              className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2 cursor-pointer"
+            />
+            <span className="text-gray-700">General</span>
+          </label>
+
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <input
+              type="radio"
+              name="navigation"
+              value="traslados"
+              checked={selectedOption === 'traslados'}
+              onChange={handleOptionChange}
+              className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2 cursor-pointer"
+            />
+            <span className="text-gray-700">Traslados</span>
+          </label>
+
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <input
+              type="radio"
+              name="navigation"
+              value="bajas"
+              checked={selectedOption === 'bajas'}
+              onChange={handleOptionChange}
+              className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2 cursor-pointer"
+            />
+            <span className="text-gray-700">Dados de baja</span>
+          </label>
+        </div>
+
+
+
         <div className="space-y-4">
           <div className="flex flex-col md:flex-row items-stretch space-y-2 md:space-y-0 md:space-x-2">
             <div className="relative flex-1 max-w-full md:max-w-md">
@@ -161,20 +240,31 @@ const Moduloadmin = () => {
             </div>
           </div>
 
+
+
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Ubicación Inicial</label>
-              <CategorySelect
-                value={selectedLocationInitial}
-                onChange={(e) => setSelectedLocationInitial(e.target.value)}
-              />
+              <Select
+                  options={ubicaciones}
+                  value={selectedLocationInitial}
+                  onChange={setSelectedLocationInitial}
+                  isClearable
+                  placeholder="Seleccionar ubicación..."
+                  className="text-sm"
+                />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Ubicación Final</label>
-              <CategorySelect
-                value={selectedLocationFinal}
-                onChange={(e) => setSelectedLocationFinal(e.target.value)}
-              />
+              <Select
+                  options={ubicaciones}
+                  value={selectedLocationFinal}
+                  onChange={setSelectedLocationFinal}
+                  isClearable
+                  placeholder="Seleccionar ubicación..."
+                  className="text-sm"
+                />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Desde</label>

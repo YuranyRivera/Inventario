@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import TableEntrada from '../../Components/TableEntrada';
 import DashboardLayout from '../../layouts/DashboardLayout';
-import BotonPrincipal from '../../Components/Boton';
-import { useNavigate } from 'react-router-dom'; // Importar useNavigate
+import { useNavigate } from 'react-router-dom';
 
 const Example = () => {
-  const headers = ['ID', 'Fecha', 'Cantidad de productos', 'Tipo de Registro', 'Estado'];
-  const [rows, setRows] = useState([]); // Estado para las filas de la tabla
-  const navigate = useNavigate(); // Inicializar la navegación
+  const headers = ['ID', 'Fecha', 'Cantidad de productos', 'Tipo de Registro'];
+  const [rows, setRows] = useState([]);
+  const [selectedOption, setSelectedOption] = useState('general');
+  const navigate = useNavigate();
 
-  // Obtener datos del reporte general
   useEffect(() => {
     const fetchReporteGeneral = async () => {
       try {
@@ -18,12 +17,10 @@ const Example = () => {
           throw new Error('Error al obtener el reporte general');
         }
         const data = await response.json();
-        // Mapear datos al formato de la tabla
         const mappedRows = data.map((item) => [
           item.id,
-          item.fechaEntrada,  // Solo la fecha
+          item.fechaEntrada,
           item.cantidadProductos,
-          item.tipoRegistro,
           item.estado,
         ]);
         setRows(mappedRows);
@@ -35,23 +32,71 @@ const Example = () => {
     fetchReporteGeneral();
   }, []);
 
-  // Función para manejar la navegación
-  const handleNavigation = () => {
-    navigate('/moduloadmin'); // Navegar a la página Moduloadmin
+  const handleOptionChange = (event) => {
+    const value = event.target.value;
+    setSelectedOption(value);
+    
+    switch(value) {
+      case 'traslados':
+        navigate('/moduloadmin');
+        break;
+      case 'bajas':
+        navigate('/articulosbaja');
+        break;
+      default:
+        // Stay on current page
+        break;
+    }
   };
+
+  
 
   return (
     <DashboardLayout>
-      
       <div className="mb-6 m-5">
-        <h1 className="text-3xl font-bold text-center text-black mb-6">Registro general</h1>
-             <div className="mt-4">
-          <BotonPrincipal onClick={handleNavigation}Text="Ir a ModuloAdmin"></BotonPrincipal>
+        <h1 className="text-3xl font-bold text-center text-black mb-10">
+          Registro General
+        </h1>
+
+        <div className="flex gap-6 mt-4 mb-6">
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <input
+              type="radio"
+              name="navigation"
+              value="general"
+              checked={selectedOption === 'general'}
+              onChange={handleOptionChange}
+              className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2 cursor-pointer"
+            />
+            <span className="text-gray-700">General</span>
+          </label>
+
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <input
+              type="radio"
+              name="navigation"
+              value="traslados"
+              checked={selectedOption === 'traslados'}
+              onChange={handleOptionChange}
+              className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2 cursor-pointer"
+            />
+            <span className="text-gray-700">Traslados</span>
+          </label>
+
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <input
+              type="radio"
+              name="navigation"
+              value="bajas"
+              checked={selectedOption === 'bajas'}
+              onChange={handleOptionChange}
+              className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2 cursor-pointer"
+            />
+            <span className="text-gray-700">Dados de baja</span>
+          </label>
         </div>
+
         <TableEntrada headers={headers} rows={rows} />
-        
-        {/* Botón para navegar al ModuloAdmin */}
-   
       </div>
     </DashboardLayout>
   );
