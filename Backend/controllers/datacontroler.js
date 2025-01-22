@@ -4,6 +4,95 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 
+export const eliminarMovimiento = async (req, res) => {
+  const { id } = req.params; // Obtiene el ID desde los parámetros de la ruta
+
+  try {
+    // Paso 1: Elimina el registro con el ID proporcionado
+    const result = await pool.query('DELETE FROM movimientos_almacen WHERE id = $1 RETURNING *', [id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        message: `No se encontró ningún registro con el ID: ${id}`,
+      });
+    }
+
+
+
+    res.status(200).json({
+      message: `Movimiento con ID ${id} eliminado correctamente y los IDs han sido reordenados.`,
+      eliminado: result.rows[0], // Devuelve el registro eliminado
+    });
+  } catch (error) {
+    console.error('Error al eliminar el movimiento:', error);
+    res.status(500).json({
+      message: 'Error al eliminar el movimiento',
+      details: error.message,
+    });
+  }
+};
+
+// Controlador para obtener el último registro
+export const getUltimoRegistro = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT id, tipo_tabla, fecha, descripcion, tabla_origen_id
+      FROM ultimo_registro
+      ORDER BY fecha_registro DESC
+      LIMIT 1
+    `);
+
+    if (result.rows.length > 0) {
+      res.status(200).json(result.rows[0]); // Retorna el último registro
+    } else {
+      res.status(200).json({ message: 'No hay registros en la tabla "ultimo_registro".' });
+    }
+  } catch (err) {
+    console.error('Error al obtener el último registro:', err);
+    res.status(500).json({ error: 'Error al obtener el último registro' });
+  }
+};
+export const obtenerTotalArticulosAlmacenamiento = async (req, res) => {
+  try {
+    // Consulta para contar el número total de registros en la tabla articulos_almacenamiento
+    const result = await pool.query('SELECT COUNT(*) AS total_registros FROM articulos_almacenamiento');
+
+    // Devuelve el total de registros encontrados
+    res.status(200).json(result.rows[0]); // El total estará en result.rows[0].total_registros
+  } catch (error) {
+    console.error('Error al obtener el total de artículos en almacenamiento:', error);
+    res.status(500).json({
+      message: 'Error al obtener el total de artículos en almacenamiento',
+      details: error.message,
+    });
+  }
+};
+// Obtener el número total de artículos activos
+export const obtenerTotalArticulosActivos = async (req, res) => {
+  try {
+    const result = await pool.query('SELECT COUNT(*) AS total_activos FROM articulos_administrativos');
+    res.status(200).json(result.rows[0]); // Devuelve el total de artículos activos
+  } catch (error) {
+    console.error('Error al obtener el total de artículos activos:', error);
+    res.status(500).json({
+      message: 'Error al obtener el total de artículos activos',
+      details: error.message,
+    });
+  }
+};
+// Obtener el número total de artículos inactivos
+export const obtenerTotalArticulosInactivos = async (req, res) => {
+  try {
+    const result = await pool.query('SELECT COUNT(*) AS total_inactivos FROM articulos_baja');
+    res.status(200).json(result.rows[0]); // Devuelve el total de artículos inactivos
+  } catch (error) {
+    console.error('Error al obtener el total de artículos inactivos:', error);
+    res.status(500).json({
+      message: 'Error al obtener el total de artículos inactivos',
+      details: error.message,
+    });
+  }
+};
 export const eliminarArticuloBaja = async (req, res) => {
   const { id } = req.params; // Obtiene el ID desde los parámetros de la ruta
 
@@ -834,9 +923,9 @@ export const createMovimiento = async (req, res) => {
       
       // 2. Crear el registro del movimiento
       const movimientoQuery = `
-        INSERT INTO movimientos_almacen (tipo_movimiento, solicitante, id_productos, cantidad_productos, rol, nombre_productos)
-        VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING *;
+      INSERT INTO movimientos_almacen (tipo_movimiento, solicitante, id_productos, cantidad_productos, rol, nombre_productos)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING *;
       `;
       const movimientoValues = [tipo_movimiento, solicitante, id_productos, cantidad_productos, rol, nombresProductos.join(',')];
       const movimientoResult = await pool.query(movimientoQuery, movimientoValues);
@@ -1049,7 +1138,7 @@ export const loginUser = async (correo, contraseña) => {
     const client = await pool.connect();
 
     const result = await client.query(
-      'SELECT id, correo, contraseña, rol FROM usuarios WHERE correo = $1', 
+      'SELECT id, correo, contraseña, nombre, rol FROM usuarios WHERE correo = $1', 
       [correo]
     );
     console.log(result); 
@@ -1074,6 +1163,7 @@ export const loginUser = async (correo, contraseña) => {
           id: user.id,  
           correo: user.correo,
           rol: user.rol,
+          nombre: user.nombre,
           token
         };
       } else {

@@ -26,11 +26,21 @@ export const UserProvider = ({ children }) => {
     initializeAuth();
   }, []);
 
-  // Definir loginUser antes de usarlo
   const loginUser = (userData, token) => {
     setUser(userData);
     localStorage.setItem('token', token);
     localStorage.setItem('userData', JSON.stringify(userData));
+  };
+
+  const updateUser = (userData) => {
+    setUser(prevUser => ({
+      ...prevUser,
+      ...userData
+    }));
+    // Actualizar también en localStorage
+    const storedUser = JSON.parse(localStorage.getItem('userData'));
+    const updatedUser = { ...storedUser, ...userData };
+    localStorage.setItem('userData', JSON.stringify(updatedUser));
   };
 
   const logoutUser = () => {
@@ -44,7 +54,7 @@ export const UserProvider = ({ children }) => {
   }
 
   return (
-    <UserContext.Provider value={{ user, loginUser, logoutUser }}>
+    <UserContext.Provider value={{ user, loginUser, logoutUser, updateUser }}>
       {children}
     </UserContext.Provider>
   );

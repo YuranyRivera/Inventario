@@ -16,26 +16,25 @@ const useArticulos = (refreshArticulos) => {
         body: JSON.stringify(articuloData),
       });
   
+      const data = await response.json();
+  
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        return { success: false, error: data.message || 'Error al guardar el artículo' };
       }
   
-      const newArticulo = await response.json();
-      
-      // Añadir el nuevo artículo al estado local
       setArticulos((prevArticulos) => {
-        // Verificar si el artículo ya existe para evitar duplicados
-        const exists = prevArticulos.some(art => art.id === newArticulo.articulo.id);
-        return exists ? prevArticulos : [...prevArticulos, newArticulo.articulo];
+        const exists = prevArticulos.some(art => art.id === data.articulo.id);
+        return exists ? prevArticulos : [...prevArticulos, data.articulo];
       });
   
-      // Llama a refreshArticulos si es necesario
       if (typeof refreshArticulos === 'function') {
         refreshArticulos();
       }
+  
+      return { success: true, data };
     } catch (error) {
       console.error('Add article error:', error);
-      setError(error.message);
+      return { success: false, error: 'Error al guardar el artículo' };
     } finally {
       setLoading(false);
     }

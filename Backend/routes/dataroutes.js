@@ -1,7 +1,7 @@
 import express from 'express';
 import { pool } from '../config/db.js';
 import transporter from '../config/nodemailerConfig.js';
-import {eliminarArticuloBaja, editarTraslado, obtenerArticulosBaja, eliminarTraslado, getTraslados, insertarTraslado, getProductosPorUbicacion, editarArticuloAdministrativo, eliminarArticuloAdministrativo, updateMovimiento, getArticulosAdministrativos, deleteMovimiento, getLastArticuloAdministrativoId, createArticuloAdministrativo, updateProfile, updatePassword, checkIfUserExists, checkEmailExists,editarPerfil, crearUsuario, obtenerUsuarios, eliminarUsuario,   loginUser, editarArticulo, eliminarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createArticulo } from '../controllers/datacontroler.js';
+import {eliminarMovimiento, obtenerTotalArticulosAlmacenamiento, getUltimoRegistro, obtenerTotalArticulosActivos, obtenerTotalArticulosInactivos, eliminarArticuloBaja, editarTraslado, obtenerArticulosBaja, eliminarTraslado, getTraslados, insertarTraslado, getProductosPorUbicacion, editarArticuloAdministrativo, eliminarArticuloAdministrativo, updateMovimiento, getArticulosAdministrativos, deleteMovimiento, getLastArticuloAdministrativoId, createArticuloAdministrativo, updateProfile, updatePassword, checkIfUserExists, checkEmailExists,editarPerfil, crearUsuario, obtenerUsuarios, eliminarUsuario,   loginUser, editarArticulo, eliminarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createArticulo } from '../controllers/datacontroler.js';
 import jwt from 'jsonwebtoken';
 
 import bcrypt from 'bcrypt';
@@ -11,6 +11,19 @@ import { verifyToken } from '../middleware/authMiddleware.js';
 
 
 const router = express.Router();
+
+
+// Ruta para eliminar un movimiento por su ID y reordenar los IDs
+router.delete('/eliminar-movimiento/:id', eliminarMovimiento);
+// Ruta para obtener el último registro
+router.get('/ultimo-registro', getUltimoRegistro);
+
+// Ruta para obtener el total de artículos en almacenamiento
+router.get('/total-articulos-almacenamiento', obtenerTotalArticulosAlmacenamiento);
+
+// Rutas para obtener el número total de artículos activos e inactivos
+router.get('/total-activos', obtenerTotalArticulosActivos);
+router.get('/total-inactivos', obtenerTotalArticulosInactivos);
 // Ruta para eliminar un artículo por ID
 router.delete('/articulos_baja/:id', eliminarArticuloBaja);
 // Ruta para obtener todos los artículos dados de baja
@@ -196,17 +209,18 @@ router.post('/login', async (req, res) => {
 
       // Usa una clave secreta segura
       const token = jwt.sign(
-        { id: user.id, rol: user.rol, correo: user.correo },
+        { id: user.id, rol: user.rol, correo: user.correo,  nombre: user.nombre },
         process.env.JWT_SECRET, // Asegúrate de que JWT_SECRET esté definido en .env
-        { expiresIn: '1h' }
+        { expiresIn: '4h' }
       );
 
       // Configuración de cookies más explícita
       res.cookie('token', token, {
         httpOnly: true,
-        secure: false, // Cambia a true en producción
-        sameSite: 'lax', // Cambia según tu necesidad
-        maxAge: 3600000 // 1 hora
+        secure: true,  // Habilitar en producción
+        sameSite: 'strict', // Más seguro que 'lax'
+        maxAge: 14400000, // 4h para coincidir con expiresIn del JWT
+        path: '/'
       });
 
       console.log('Cookie establecida');
@@ -216,7 +230,8 @@ router.post('/login', async (req, res) => {
         user: {
           id: user.id,
           correo: user.correo,
-          rol: user.rol
+          rol: user.rol,
+          nombre: user.nombre
         },
         token: token // Envía también el token en la respuesta
       });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../layouts/MainLayout';
 import InputField from '../../Components/InputField';
 import Boton from '../../Components/Boton';
@@ -6,12 +6,20 @@ import { useUser } from '../../Context/UserContext';
 import ModalConfirmacion from '../../Components/ModalConfirmacion';
 
 const EditarPerfil = () => {
-  const { user } = useUser();
+  const { user, updateUser } = useUser(); 
   const token = localStorage.getItem('token');
+
+  useEffect(() => {
+    setFormData(prevData => ({
+      ...prevData,
+      fullName: user?.nombre || '',
+      email: user?.correo || ''
+    }));
+  }, [user]);
 
   const [formData, setFormData] = useState({
     fullName: user?.nombre || '',
-    email: user?.correo || '',
+
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
@@ -111,12 +119,11 @@ const EditarPerfil = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
-
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-
+  
     try {
       const response = await fetch('http://localhost:4000/api/update-profile', {
         method: 'POST',
@@ -131,22 +138,32 @@ const EditarPerfil = () => {
           correo: formData.email || undefined,
         }),
       });
-
+  
       const result = await response.json();
-
+  
       if (response.ok) {
+        // Actualizar el contexto
+        updateUser({
+          nombre: formData.fullName,
+          correo: formData.email
+        });
+        
         setModalOpen(true);
-      
-        // Limpiar formulario y errores
-        setFormData({
-          fullName: '',
-          email: '',
+        
+        // Solo limpiar los campos de contraseña
+        setFormData(prevData => ({
+          ...prevData,
           currentPassword: '',
           newPassword: '',
           confirmPassword: '',
-        });
+        }));
+  
         setErrors({});
         setMessage(null);
+  
+        setTimeout(() => {
+          setModalOpen(false);
+        }, 2000);
       } else {
         if (result.error === 'Contraseña actual incorrecta') {
           setErrors((prevErrors) => ({
@@ -162,7 +179,6 @@ const EditarPerfil = () => {
       setMessage('Error interno del servidor');
     }
   };
-
   return (
     <DashboardLayout>
       <div className="justify-center items-center flex flex-col h-full">

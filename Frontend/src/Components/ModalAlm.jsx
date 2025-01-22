@@ -4,7 +4,7 @@ import useArticulos from '../hooks/useArticulos';
 const ModalAlm = ({ isOpen, onClose, onSave }) => {
   if (!isOpen) return null;
 
-  const { addArticulos, loading, error } = useArticulos(onSave);
+  const { addArticulos, loading, error: apiError } = useArticulos(onSave);
 
   const headers = ['ID', 'Producto/Detalle', 'Cantidad', 'Módulo', 'Estante', 'Estado', 'Acciones'];
   const [rows, setRows] = useState([
@@ -12,6 +12,7 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
   ]);
 
   const [errors, setErrors] = useState([]);
+  const [duplicateError, setDuplicateError] = useState(null);
 
   useEffect(() => {
     const fetchLastId = async () => {
@@ -27,22 +28,21 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
     if (isOpen) {
       fetchLastId();
       setErrors([]);
+      setDuplicateError(null);
     }
   }, [isOpen]);
 
   const validateRow = (row, index) => {
     const rowErrors = {};
 
-    // Validación del producto
     if (!row.producto.trim()) {
       rowErrors.producto = 'El producto es obligatorio';
     } else if (row.producto.length < 3) {
       rowErrors.producto = 'El producto debe tener al menos 3 caracteres';
     } else if (row.producto.length > 100) {
       rowErrors.producto = 'El producto no puede exceder 100 caracteres';
-    }
+    } 
 
-    // Validación de cantidad
     if (!row.cantidad) {
       rowErrors.cantidad = 'La cantidad es obligatoria';
     } else {
@@ -56,21 +56,18 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
       }
     }
 
-    // Validación del módulo
     if (!row.modulo.trim()) {
       rowErrors.modulo = 'El módulo es obligatorio';
     } else if (!/^[A-Za-z0-9\s]+$/.test(row.modulo)) {
-      rowErrors.modulo = 'El módulo solo puede contener letrasy  números ';
+      rowErrors.modulo = 'El módulo solo puede contener letras y números';
     }
 
-    // Validación del estante
     if (!row.estante.trim()) {
       rowErrors.estante = 'El estante es obligatorio';
     } else if (!/^[A-Za-z0-9\s]+$/.test(row.estante)) {
       rowErrors.estante = 'El estante solo puede contener letras y números';
     }
 
-    // Validación del estado
     if (!row.estado.trim()) {
       rowErrors.estado = 'El estado es obligatorio';
     }
@@ -90,28 +87,30 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
       index === rowIndex ? { ...row, [field]: value } : row
     );
     setRows(updatedRows);
-
-    // Limpiar error del campo específico
+  
     const updatedErrors = [...errors];
     if (updatedErrors[rowIndex]) {
       delete updatedErrors[rowIndex][field];
       setErrors(updatedErrors);
     }
+  
+    // Limpiar el error de duplicado cuando se cambie el producto
+    if (field === 'producto') {
+      setDuplicateError(null); // Limpia el error de duplicado cuando se cambia el nombre del producto
+    }
   };
-
+  
   const handleSave = async () => {
-    // Validar todas las filas
     const newErrors = rows.map((row, index) => validateRow(row, index));
     setErrors(newErrors);
-
-    // Verificar si hay errores
+  
     if (newErrors.some(err => Object.keys(err).length > 0)) {
       return;
     }
-
+  
     try {
       for (const row of rows) {
-        await addArticulos({
+        const result = await addArticulos({
           id: row.id,
           modulo: row.modulo,
           estante: row.estante,
@@ -119,16 +118,21 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
           cantidad: row.cantidad,
           estado: row.estado
         });
+  
+        // Si el producto ya existe, muestra el error
+        if (!result.success) {
+          setDuplicateError('El producto ya existe en el inventario');
+          return;
+        }
       }
+  
       onSave();
       onClose();
     } catch (error) {
       console.error('Error al guardar artículos:', error);
+      setDuplicateError('Error al guardar el artículo');
     }
   };
-
-  if (loading) return <div>Cargando...</div>;
-  if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="modal z-50 fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4">
@@ -137,6 +141,13 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
           Agregar Artículos de Almacenamiento
         </h2>
 
+        {duplicateError && (
+  <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+    {duplicateError}
+  </div>
+)}
+  
+
         {/* Vista móvil: Cards */}
         <div className="md:hidden space-y-4">
           {rows.map((row, rowIndex) => (
@@ -144,7 +155,6 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
               <div className="grid gap-3">
                 <div className="font-semibold">ID: {row.id}</div>
                 
-                {/* Campos del formulario en vista móvil */}
                 {[
                   { label: 'Producto/Detalle', field: 'producto', type: 'text' },
                   { label: 'Cantidad', field: 'cantidad', type: 'number' },

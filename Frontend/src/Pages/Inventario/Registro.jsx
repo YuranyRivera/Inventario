@@ -49,7 +49,10 @@ const Example = () => {
     }
   };
 
-  
+  const reloadArticulos = () => {
+    // Reload data from API or refresh page
+    window.location.reload(); // Or you can call the fetch function again to reload data
+  };
 
   return (
     <DashboardLayout>
@@ -96,7 +99,7 @@ const Example = () => {
           </label>
         </div>
 
-        <TableEntrada headers={headers} rows={rows} />
+        <TableEntrada headers={headers} rows={rows} setRows={setRows} reloadArticulos={reloadArticulos} />
       </div>
     </DashboardLayout>
   );

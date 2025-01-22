@@ -3,12 +3,20 @@ import AuxMaintenanceTable from '../../Components/AuxMaintenanceTable';
 import { Search } from 'lucide-react';
 import ButtonGroup from '../../Components/PDFAlm';
 import ExcelExportButton from '../../Components/Excel'; // Importar el componente de Excel
-
+import ModalConfirmacion from '../../Components/ModalConf';
 const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
   const headers = ['ID', 'Producto/Detalle',  'Cantidad Inicial',  'Módulo', 'Estante', 'Estado', 'Entrada', 'Salida', 'Restante'];
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false); // Para abrir o cerrar el modal
+  const [articuloToDelete, setArticuloToDelete] = useState(null);
   const [editingRowIndex, setEditingRowIndex] = useState(null);
   const [editedRowData, setEditedRowData] = useState({});
+
+
+  const handleDeleteClick = (row) => {
+    setArticuloToDelete(row); // Guardamos el artículo que se quiere eliminar
+    setIsModalOpen(true); // Abrimos el modal de confirmación
+  };
   
   // Función para filtrar artículos basado en el término de búsqueda
   const filteredArticulos = articulos.filter(articulo =>
@@ -104,6 +112,18 @@ const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
 
   return (
     <>
+
+<ModalConfirmacion
+  isOpen={isModalOpen}
+  onClose={() => setIsModalOpen(false)} // Cerrar el modal sin hacer nada
+  onConfirm={() => {
+    if (articuloToDelete) {
+      handleDelete(articuloToDelete); // Eliminar el artículo si se confirma
+    }
+    setIsModalOpen(false); // Cerrar el modal después de la confirmación
+  }}
+  message="¿Está seguro de que desea dar de baja este artículo?"
+/>
       <div className="space-y-4">
         {/* Buscador con botón */}
         <div className="flex flex-col md:flex-row items-stretch space-y-2 md:space-y-0 md:space-x-2">
@@ -151,7 +171,7 @@ const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
             cantidad: articulo.cantidad,
           }))}
           onEdit={handleEdit}
-          onDelete={handleDelete}
+          onDelete={handleDeleteClick} 
           editingRowIndex={editingRowIndex}
           editedRowData={editedRowData}
           handleInputChange={(e, field) => {

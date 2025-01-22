@@ -10,6 +10,7 @@ import ModalConfirmacion from '../../Components/ModalConf';
 import ModalObservacion from '../../Components/ModalObs';
 import Select from 'react-select';
 
+const MAX_PRECIO = 9999999999 
 const formatCurrency = (value) => {
   if (!value && value !== 0) return '';
   return new Intl.NumberFormat('es-CO', {
@@ -77,8 +78,12 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
     if (!precio || precio <= 0) {
       newErrors.precio = 'El precio debe ser mayor que 0';
     }
+    if (precio > MAX_PRECIO) {
+      throw new Error('El precio excede el límite permitido');
+    }
     return newErrors;
   };
+
 
   const filteredArticulos = articulos.filter(articulo => {
     const matchesSearch = 
@@ -153,10 +158,21 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
     if (field === 'id') return;
   
     let value = e.target.value;
-    
+  
     if (field === 'precio') {
+      // Remover caracteres no numéricos excepto el punto
       const numericValue = value.replace(/[^\d]/g, '');
-      value = numericValue ? parseInt(numericValue, 10) : 0;
+  
+      // Convertir a número
+      let numberValue = numericValue ? parseInt(numericValue, 10) : 0;
+  
+      // Si el valor excede el límite, mantener el valor anterior
+      if (numberValue > MAX_PRECIO) {
+        return;
+      }
+  
+      // Formatear el valor con puntos como separadores de miles
+      value = formatCurrency(numberValue);  // Usar la función formatCurrency para agregar los puntos
     }
   
     setEditedRowData(prev => ({
@@ -169,6 +185,9 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
       [field]: undefined
     }));
   };
+  
+  
+  
 
   const handleSave = async () => {
     const validationErrors = validateRow(editedRowData);
@@ -176,13 +195,13 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
       setErrors(validationErrors);
       return;
     }
-
+  
     try {
       const dataToSend = {
         ...editedRowData,
-        precio: currencyToNumber(editedRowData.precio)
+        precio: currencyToNumber(editedRowData.precio)  // Convertir el precio a número
       };
-
+  
       const response = await fetch(`http://localhost:4000/api/articulos_administrativos/${editedRowData.id}`, {
         method: 'PUT',
         headers: {
@@ -191,12 +210,12 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
         },
         body: JSON.stringify(dataToSend),
       });
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Error al actualizar el artículo');
       }
-
+  
       await response.json();
       reloadArticulos();
       handleCancel();

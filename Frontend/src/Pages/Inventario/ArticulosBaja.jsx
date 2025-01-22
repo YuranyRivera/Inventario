@@ -9,13 +9,16 @@ import CategorySelect from '../../Components/CategorySelect';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import TablaArt from '../../Components/TablaArt';
 import BotonPrincipal from '../../Components/Boton';
+import ModalConfirmacion from '../../Components/ModalConf';
 import Select from 'react-select';
 
 
 const Example = () => {
   const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false); // Para abrir o cerrar el modal
+const [articuloToDelete, setArticuloToDelete] = useState(null);
   const [selectedOption, setSelectedOption] = useState('bajas');
-  const headers = ['ID', 'Código', 'Fecha', 'Descripción', 'Proveedor', 'Ubicación', 'Observación', 'Precio'];
+  const headers = ['ID', 'Código', 'Fecha', 'Descripción', 'Proveedor', 'Ubicación', 'Observación'];
   const [rows, setRows] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocationInitial, setSelectedLocationInitial] = useState('');
@@ -116,7 +119,7 @@ const Example = () => {
           item.proveedor,
           item.ubicacion,
           item.observacion,
-          formatPrice(item.precio),
+       
         ]);
         setRows(mappedRows);
       } catch (error) {
@@ -133,13 +136,15 @@ const Example = () => {
       const response = await fetch(`http://localhost:4000/api/articulos_baja/${id}`, {
         method: 'DELETE',
       });
-
+  
       if (!response.ok) {
         throw new Error('Error al eliminar el artículo');
       }
-
+  
       setRows((prevRows) => prevRows.filter((item) => item[0] !== id));
-      alert(`Artículo con ID ${id} eliminado correctamente.`);
+  
+      // Recargar la página después de la eliminación
+      window.location.reload();
     } catch (error) {
       console.error('Error al eliminar el artículo:', error);
       alert('Hubo un error al intentar eliminar el artículo.');
@@ -183,8 +188,24 @@ const Example = () => {
         break;
     }
   };
+
+  const handleDeleteClick = (row) => {
+    setArticuloToDelete(row); // Guardamos el artículo que se quiere eliminar
+    setIsModalOpen(true); // Abrimos el modal de confirmación
+  };
   return (
     <DashboardLayout>
+      <ModalConfirmacion
+  isOpen={isModalOpen}
+  onClose={() => setIsModalOpen(false)} // Cerrar el modal sin hacer nada
+  onConfirm={() => {
+    if (articuloToDelete) {
+      handleDelete(articuloToDelete); // Eliminar el artículo si se confirma
+    }
+    setIsModalOpen(false); // Cerrar el modal después de la confirmación
+  }}
+  message="¿Está seguro de que desea dar de baja este artículo?"
+/>
       <div className="mb-6 m-5">
         <h1 className="text-3xl font-bold text-center text-black mb-10">
           Artículos Dados de Baja
@@ -305,12 +326,12 @@ const Example = () => {
 
           {/* Table */}
           <TablaArt 
-            title="Artículos Administrativos"
-            headers={headers}
-            rows={filteredRows}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
+  title="Artículos Administrativos"
+  headers={headers}
+  rows={filteredRows}
+  onEdit={handleEdit}
+  onDelete={handleDeleteClick} // Actualiza la función de eliminar
+/>
         </div>
    
 

@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 
 const Sidebar = ({ onClose, isMobile }) => {
   const navigate = useNavigate();
-  const { logoutUser } = useUser();
+  const { user, logoutUser } = useUser();
 
   const handleLogout = async () => {
     try {
@@ -13,7 +13,7 @@ const Sidebar = ({ onClose, isMobile }) => {
         method: 'POST',
         credentials: 'include'
       });
-  
+
       logoutUser();
       navigate('/Inicio');
     } catch (error) {
@@ -40,9 +40,19 @@ const Sidebar = ({ onClose, isMobile }) => {
           alt="Logo del Colegio"
           className="h-12 w-12 mr-2"
         />
-        <span className="text-2xl font-semibold">Inventario</span>
+      <div className=''>
+        <span className="text-2xl font-semibold ">Inventario</span>
+            {/* Mostrar el nombre del usuario si está logueado */}
+            {user && (
+       <span className="flex">
+          Hola, {user.nombre} {/* Asegúrate de que 'nombre' sea el campo correcto */}
+        </ span >
+      )}
+      </div> 
+
       </div>
 
+  
       {/* Menu Links */}
       <div className="flex flex-col space-y-4">
         <Link 
