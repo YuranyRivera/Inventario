@@ -4,6 +4,7 @@ import { Search } from 'lucide-react';
 import ButtonGroup from '../../Components/PDFAlm';
 import ExcelExportButton from '../../Components/Excel'; // Importar el componente de Excel
 import ModalConfirmacion from '../../Components/ModalConf';
+
 const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
   const headers = ['ID', 'Producto/Detalle',  'Cantidad Inicial',  'Módulo', 'Estante', 'Estado', 'Entrada', 'Salida', 'Restante'];
   const [searchTerm, setSearchTerm] = useState('');

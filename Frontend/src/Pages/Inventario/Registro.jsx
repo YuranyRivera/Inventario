@@ -2,15 +2,17 @@ import React, { useEffect, useState } from 'react';
 import TableEntrada from '../../Components/TableEntrada';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { useNavigate } from 'react-router-dom';
-
+import '@dotlottie/player-component';
 const Example = () => {
   const headers = ['ID', 'Fecha', 'Cantidad de productos', 'Tipo de Registro'];
   const [rows, setRows] = useState([]);
   const [selectedOption, setSelectedOption] = useState('general');
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchReporteGeneral = async () => {
+      await new Promise(resolve => setTimeout(resolve, 1000));
       try {
         const response = await fetch('http://localhost:4000/api/reporte-general');
         if (!response.ok) {
@@ -24,6 +26,7 @@ const Example = () => {
           item.estado,
         ]);
         setRows(mappedRows);
+        setIsLoading(false);
       } catch (error) {
         console.error('Error al obtener el reporte general:', error);
       }
@@ -56,6 +59,19 @@ const Example = () => {
 
   return (
     <DashboardLayout>
+
+  {isLoading ? (
+        <div className="flex justify-center items-center h-screen">
+          <dotlottie-player
+            src="https://lottie.host/0aca447b-d3c9-46ed-beeb-d4481815915a/qvvqgKAKQU.lottie"
+            background="transparent"
+            speed="1"
+            style={{ width: '300px', height: '300px' }}
+            loop
+            autoplay
+          />
+        </div>
+      ) : (
       <div className="mb-6 m-5">
         <h1 className="text-3xl font-bold text-center text-black mb-10">
           Registro General
@@ -101,6 +117,7 @@ const Example = () => {
 
         <TableEntrada headers={headers} rows={rows} setRows={setRows} reloadArticulos={reloadArticulos} />
       </div>
+          )}
     </DashboardLayout>
   );
 };

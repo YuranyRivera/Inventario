@@ -99,6 +99,16 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
       setDuplicateError(null); // Limpia el error de duplicado cuando se cambia el nombre del producto
     }
   };
+  const handleDeleteRow = (indexToDelete) => {
+    // Prevent deleting the last row
+    if (rows.length > 1) {
+      const updatedRows = rows.filter((_, index) => index !== indexToDelete);
+      const updatedErrors = errors.filter((_, index) => index !== indexToDelete);
+      
+      setRows(updatedRows);
+      setErrors(updatedErrors);
+    }
+  };
   
   const handleSave = async () => {
     const newErrors = rows.map((row, index) => validateRow(row, index));
@@ -234,16 +244,25 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
                       </div>
                     </td>
                   ))}
-                  <td className="px-4 py-2 text-center">
-                    {rowIndex === rows.length - 1 && (
-                      <button
-                        onClick={handleAddRow}
-                        className="bg-[#00A305] text-white px-3 py-1 rounded hover:bg-green-700 text-sm lg:text-base"
-                      >
-                        <i className="fas fa-plus mr-1"></i> Agregar
-                      </button>
-                    )}
-                  </td>
+                           <td className="px-4 py-2 text-center">
+  {rows.length > 1 && rowIndex !== rows.length - 1 ? (
+    <button 
+      onClick={() => handleDeleteRow(rowIndex)} 
+      className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700 text-sm lg:text-base" 
+      disabled={loading}
+    >
+      <i className="fas fa-trash mr-1"></i> Eliminar
+    </button>
+  ) : rowIndex === rows.length - 1 ? (
+    <button 
+      onClick={handleAddRow} 
+      className="bg-[#00A305] text-white px-3 py-1 rounded hover:bg-green-700 text-sm lg:text-base" 
+      disabled={loading}
+    >
+      <i className="fas fa-plus mr-1"></i> Agregar
+    </button>
+  ) : null}
+</td>
                 </tr>
               ))}
             </tbody>

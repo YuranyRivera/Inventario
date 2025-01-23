@@ -164,27 +164,23 @@ export const editarTraslado = async (req, res) => {
 };
 
 export const eliminarTraslado = async (req, res) => {
-  const { id } = req.params; // Obtener ID desde la URL
-
+  const { id } = req.params;
   try {
-    // Eliminar el traslado de la base de datos
+    // Use parameterized query for better security
     const result = await pool.query(
-      `DELETE FROM traslados 
-       WHERE id = $1 
-       RETURNING *`, // Devuelve el traslado eliminado
+      'DELETE FROM traslados WHERE id = $1', 
       [id]
     );
 
-    // Verifica si se eliminó algún traslado
+    // Check if any rows were actually deleted
     if (result.rowCount === 0) {
       return res.status(404).json({ message: 'Traslado no encontrado' });
     }
 
-    // Devuelve el mensaje de éxito
-    res.status(200).json({ message: 'Traslado eliminado' });
+    res.status(200).json({ message: 'Traslado eliminado exitosamente' });
   } catch (error) {
     console.error('Error al eliminar el traslado:', error);
-    res.status(500).json({ message: 'Error al eliminar el traslado' });
+    res.status(500).json({ message: 'Error interno del servidor' });
   }
 };
 
@@ -1092,8 +1088,8 @@ export const createArticulo = async (req, res) => {
     // Verificar si ya existe un artículo con los mismos valores de modulo, estante y producto
     const checkArticuloQuery = `
     SELECT * FROM articulos_almacenamiento
-    WHERE modulo = $1 OR estante = $2 OR producto = $3 
-  `;
+    WHERE (modulo = $1 AND estante = $2 AND producto = $3)
+`;
     const checkResult = await client.query(checkArticuloQuery, [modulo, estante, producto]);
 
     if (checkResult.rows.length > 0) {

@@ -8,8 +8,11 @@ import DateInput from '../../Components/DateInput';
 import ButtonGroup from '../../Components/PDFadmin';
 import ExcelExportButton from '../../Components/Exceladmin';
 import { useNavigate } from 'react-router-dom';
+import '@dotlottie/player-component';
 
+import ModalConfirmacion from '../../Components/ModalConf'; 
 const Moduloadmin = () => {
+  const [isLoading, setIsLoading] = useState(true);
   const headers = ['ID','Fecha', 'Ubicación Inicial', 'Producto',  'Código', 'Ubicación Final', 'Responsable'];
   const [selectedOption, setSelectedOption] = useState('traslados');
   const navigate = useNavigate();
@@ -19,6 +22,8 @@ const Moduloadmin = () => {
   const [selectedLocationFinal, setSelectedLocationFinal] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const [isModalConfirmacionOpen, setIsModalConfirmacionOpen] = useState(false);
+  const [rowToDelete, setRowToDelete] = useState(null);
 
   const ubicaciones = [
     { value: 'Recepción', label: 'Recepción' },
@@ -42,6 +47,7 @@ const Moduloadmin = () => {
 
   useEffect(() => {
     const fetchTraslados = async () => {
+      await new Promise(resolve => setTimeout(resolve, 1000));
       try {
         const response = await fetch('http://localhost:4000/api/traslados');
         const data = await response.json();
@@ -58,8 +64,9 @@ const Moduloadmin = () => {
             responsable: traslado.responsable,
           };
         });
-
+  
         setRows(formattedRows);
+        setIsLoading(false);
       } catch (error) {
         console.error('Error al obtener los traslados', error);
       }
@@ -91,26 +98,37 @@ const Moduloadmin = () => {
       console.error('Error al editar:', error);
     }
   };
-
-  const handleDelete = async (row) => {
-    const id = row.id;
-
+  const handleDeleteConfirmation = (row) => {
+    setRowToDelete(row);
+    setIsModalConfirmacionOpen(true);
+  };
+  
+  const handleDelete = async () => {
+    if (!rowToDelete) return;
+  
+    setIsLoading(true); // Mostrar el loader
+    const id = rowToDelete.id;
+    
     try {
       const response = await fetch(`http://localhost:4000/api/traslados/${id}`, {
         method: 'DELETE',
       });
-
+  
       if (!response.ok) {
         throw new Error('Error al eliminar el traslado');
       }
-
+  
       const result = await response.json();
       setRows((prevRows) => prevRows.filter((row) => row.id !== id));
-      console.log(result.message);
+      setIsModalConfirmacionOpen(false);
     } catch (error) {
       console.error('Error al eliminar:', error);
+      setIsModalConfirmacionOpen(false);
+    } finally {
+      setIsLoading(false); // Ocultar el loader al finalizar
     }
   };
+  
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -176,6 +194,21 @@ const Moduloadmin = () => {
   return (
     <>
       <DashboardLayout>
+     
+      {isLoading ? (
+  <div className="flex justify-center items-center h-screen">
+    <dotlottie-player
+      src="https://lottie.host/0aca447b-d3c9-46ed-beeb-d4481815915a/qvvqgKAKQU.lottie"
+      background="transparent"
+      speed="1"
+      style={{ width: '300px', height: '300px' }}
+      loop
+      autoplay
+    />
+  </div>
+) : (
+  <>
+
       <div className="mb-6 m-5">
         <h1 className="text-3xl font-bold text-center text-black mb-10">Traslados</h1>
         <div className="flex gap-6 mt-4 mb-6">
@@ -278,15 +311,25 @@ const Moduloadmin = () => {
 
           {/* Tabla */}
           <div className="overflow-x-auto">
-            <AuxMaintenanceTable
-              headers={headers}
-              rows={filteredRows} // Usamos filteredRows en lugar de rows
-              onDelete={handleDelete}
-              disableFields={['id']} // Deshabilitar el campo 'id'
-            />
-          </div>
+          <AuxMaintenanceTable
+            headers={headers}
+            rows={filteredRows}
+            onDelete={handleDeleteConfirmation} // Changed to open confirmation modal
+            disableFields={['id']}
+          />
         </div>
         </div>
+        </div>
+
+        {/* Confirmation Modal */}
+    <ModalConfirmacion
+    isOpen={isModalConfirmacionOpen}
+    onClose={() => setIsModalConfirmacionOpen(false)}
+    onConfirm={handleDelete}
+    message="¿Estás seguro de que deseas eliminar este traslado?"
+  />
+</>
+)}
       </DashboardLayout>
     </>
   );

@@ -11,10 +11,12 @@ import TablaArt from '../../Components/TablaArt';
 import BotonPrincipal from '../../Components/Boton';
 import ModalConfirmacion from '../../Components/ModalConf';
 import Select from 'react-select';
+import '@dotlottie/player-component';
 
 
 const Example = () => {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false); // Para abrir o cerrar el modal
 const [articuloToDelete, setArticuloToDelete] = useState(null);
   const [selectedOption, setSelectedOption] = useState('bajas');
@@ -104,7 +106,9 @@ const [articuloToDelete, setArticuloToDelete] = useState(null);
 
   // Obtener datos desde la API
   useEffect(() => {
+    
     const fetchArticulosBaja = async () => {
+      await new Promise(resolve => setTimeout(resolve, 1000));
       try {
         const response = await fetch('http://localhost:4000/api/articulos_baja');
         if (!response.ok) {
@@ -122,8 +126,10 @@ const [articuloToDelete, setArticuloToDelete] = useState(null);
        
         ]);
         setRows(mappedRows);
+        setIsLoading(false);
       } catch (error) {
         console.error('Error al obtener los datos:', error);
+      
       }
     };
 
@@ -131,6 +137,7 @@ const [articuloToDelete, setArticuloToDelete] = useState(null);
   }, []);
 
   const handleDelete = async (row) => {
+    setIsLoading(true); // Mostrar el loader
     const id = row[0];
     try {
       const response = await fetch(`http://localhost:4000/api/articulos_baja/${id}`, {
@@ -143,11 +150,10 @@ const [articuloToDelete, setArticuloToDelete] = useState(null);
   
       setRows((prevRows) => prevRows.filter((item) => item[0] !== id));
   
-      // Recargar la página después de la eliminación
-      window.location.reload();
+
     } catch (error) {
       console.error('Error al eliminar el artículo:', error);
-      alert('Hubo un error al intentar eliminar el artículo.');
+      alert('Hubo un error al intentar eliminar el artículo.');/* */
     }
   };
 
@@ -156,14 +162,56 @@ const [articuloToDelete, setArticuloToDelete] = useState(null);
   };
 
   const exportToPDF = () => {
-    const doc = new jsPDF();
-    doc.text('Artículos Dados de Baja', 20, 10);
-    doc.autoTable({
-      head: [headers],
-      body: filteredRows, // Use filtered rows for export
-    });
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const columns = [
+      { header: 'ID', dataKey: 0 },
+      { header: 'Código', dataKey: 1 },
+      { header: 'Fecha', dataKey: 2 },
+      { header: 'Descripción', dataKey: 3 },
+      { header: 'Proveedor', dataKey: 4 },
+      { header: 'Ubicación', dataKey: 5 },
+      { header: 'Observación', dataKey: 6 },
+    ];
+    const imagePath = '/Img/encabezado.png';
+    const img = new Image();
+    img.src = imagePath;
+    img.onload = () => {
+      const imgWidth = 190; // Ajusta el ancho según el diseño del encabezado
+      const imgHeight = (img.height * imgWidth) / img.width;
+      const x = (doc.internal.pageSize.width - imgWidth) / 2; // Centrar la imagen
+      const y = 10;
+
+      doc.addImage(img, 'PNG', x, y, imgWidth, imgHeight);
+
+      // Título del reporte
+      const titleY = y + imgHeight + 10;
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Reporte de articulos dados de baja', doc.internal.pageSize.width / 2, titleY, { align: 'center' });
+
+ 
+        // Tabla de datos
+        doc.autoTable({
+          startY: titleY + 15,
+          head: [columns.map((col) => col.header)], // Títulos de las columnas
+          body: rows.map((row) => columns.map((col) => row[col.dataKey])), // Datos de las filas
+          theme: 'striped',
+          headStyles: {
+            fillColor: [0, 163, 5],
+            textColor: [255, 255, 255],
+          },
+          styles: {
+            fontSize: 9,
+            cellPadding: 3,
+            halign: 'center',
+            valign: 'middle',
+          },
+        });
+     
     doc.save('articulos_dados_de_baja.pdf');
   };
+
+};
 
   const exportToExcel = () => {
     const worksheet = XLSX.utils.aoa_to_sheet([headers, ...filteredRows]); // Use filtered rows for export
@@ -195,17 +243,30 @@ const [articuloToDelete, setArticuloToDelete] = useState(null);
   };
   return (
     <DashboardLayout>
-      <ModalConfirmacion
-  isOpen={isModalOpen}
-  onClose={() => setIsModalOpen(false)} // Cerrar el modal sin hacer nada
-  onConfirm={() => {
-    if (articuloToDelete) {
-      handleDelete(articuloToDelete); // Eliminar el artículo si se confirma
-    }
-    setIsModalOpen(false); // Cerrar el modal después de la confirmación
-  }}
-  message="¿Está seguro de que desea dar de baja este artículo?"
-/>
+      {isLoading ? (
+  <div className="flex justify-center items-center h-screen">
+    <dotlottie-player
+      src="https://lottie.host/0aca447b-d3c9-46ed-beeb-d4481815915a/qvvqgKAKQU.lottie"
+      background="transparent"
+      speed="1"
+      style={{ width: '300px', height: '300px' }}
+      loop
+      autoplay
+    />
+  </div>
+    ) : (
+      <>
+        <ModalConfirmacion
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onConfirm={() => {
+            if (articuloToDelete) {
+              handleDelete(articuloToDelete);
+            }
+            setIsModalOpen(false);
+          }}
+          message="¿Está seguro de que desea dar de baja este artículo?"
+        />
       <div className="mb-6 m-5">
         <h1 className="text-3xl font-bold text-center text-black mb-10">
           Artículos Dados de Baja
@@ -333,10 +394,11 @@ const [articuloToDelete, setArticuloToDelete] = useState(null);
   onDelete={handleDeleteClick} // Actualiza la función de eliminar
 />
         </div>
-   
-
+        </>
+        )}
     </DashboardLayout>
   );
 };
+
 
 export default Example;
