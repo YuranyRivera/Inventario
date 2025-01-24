@@ -108,7 +108,7 @@ const Moduloadmin = () => {
   
     setIsLoading(true); // Mostrar el loader
     const id = rowToDelete.id;
-    
+  
     try {
       const response = await fetch(`http://localhost:4000/api/traslados/${id}`, {
         method: 'DELETE',
@@ -121,13 +121,21 @@ const Moduloadmin = () => {
       const result = await response.json();
       setRows((prevRows) => prevRows.filter((row) => row.id !== id));
       setIsModalConfirmacionOpen(false);
+  
+      // Retrasar la ocultación del loader por 2 segundos
+      setTimeout(() => {
+        setIsLoading(false); // Ocultar el loader después de 2 segundos
+      }, 2000); // 2000 ms
+  
     } catch (error) {
       console.error('Error al eliminar:', error);
       setIsModalConfirmacionOpen(false);
-    } finally {
-      setIsLoading(false); // Ocultar el loader al finalizar
+  
+      // Asegúrate de ocultar el loader en caso de error también
+      setIsLoading(false);
     }
   };
+  
   
 
   const formatDate = (dateString) => {

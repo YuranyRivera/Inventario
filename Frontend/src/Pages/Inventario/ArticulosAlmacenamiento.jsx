@@ -102,7 +102,9 @@ const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
       if (!response.ok) {
         throw new Error('Error al eliminar el artículo');
       }
-
+      setTimeout(() => {
+        setIsLoading(false); // Ocultar el loader después de 2 segundos
+      }, 2000); // 2000 ms
       const result = await response.json();
       console.log(result.message);
       reloadArticulos(); // Recargar los artículos después de la eliminación
@@ -110,6 +112,7 @@ const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
       console.error('Error al eliminar:', error);
     }
   };
+  
 
   return (
     <>

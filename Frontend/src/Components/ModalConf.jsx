@@ -4,7 +4,7 @@ const ModalConfirmacion = ({ isOpen, onClose, onConfirm, message }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+<div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[100]">
       <div className="bg-white p-6 rounded-lg w-1/3 shadow-lg relative">
         {/* Mensaje */}
         <div className="text-center mt-4">

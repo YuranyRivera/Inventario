@@ -4,6 +4,7 @@ import Table from '../../Components/Table';
 import { Pie } from 'react-chartjs-2';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
+import '@dotlottie/player-component';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
@@ -13,6 +14,7 @@ const Dashboard = () => {
   const [totalArticulosInactivos, setTotalArticulosInactivos] = useState(0);
   const [totalArticulosAlmacenamiento, setTotalArticulosAlmacenamiento] = useState(0);
   const [actividadReciente, setActividadReciente] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const resumenHeaders = ['Artículos Totales', 'Artículos Administrativos', 'Artículos Aux. Mantenimiento'];
   const actividadHeaders = ['Fecha ', 'Tipo de reporte', 'Descripcion'];
@@ -57,95 +59,96 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    const fetchTotalArticulosActivos = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:4000/api/total-activos');
-        const data = await response.json();
-        setTotalArticulosActivos(data.total_activos);
-      } catch (error) {
-        console.error('Error al obtener los artículos activos:', error);
-      }
-    };
+        const [
+          activosResponse,
+          inactivosResponse,
+          almacenamientoResponse,
+          actividadResponse,
+        ] = await Promise.all([
+          fetch('http://localhost:4000/api/total-activos'),
+          fetch('http://localhost:4000/api/total-inactivos'),
+          fetch('http://localhost:4000/api/total-articulos-almacenamiento'),
+          fetch('http://localhost:4000/api/ultimo-registro'),
+        ]);
 
-    const fetchTotalArticulosInactivos = async () => {
-      try {
-        const response = await fetch('http://localhost:4000/api/total-inactivos');
-        const data = await response.json();
-        setTotalArticulosInactivos(data.total_inactivos);
-      } catch (error) {
-        console.error('Error al obtener los artículos inactivos:', error);
-      }
-    };
+        const activosData = await activosResponse.json();
+        const inactivosData = await inactivosResponse.json();
+        const almacenamientoData = await almacenamientoResponse.json();
+        const actividadData = await actividadResponse.json();
 
-    const fetchTotalArticulosAlmacenamiento = async () => {
-      try {
-        const response = await fetch('http://localhost:4000/api/total-articulos-almacenamiento');
-        const data = await response.json();
-        setTotalArticulosAlmacenamiento(data.total_registros);
-      } catch (error) {
-        console.error('Error al obtener los artículos en almacenamiento:', error);
-      }
-    };
+        setTotalArticulosActivos(activosData.total_activos);
+        setTotalArticulosInactivos(inactivosData.total_inactivos);
+        setTotalArticulosAlmacenamiento(almacenamientoData.total_registros);
 
-    const fetchActividadReciente = async () => {
-      try {
-        const response = await fetch('http://localhost:4000/api/ultimo-registro');
-        const data = await response.json();
-    
-        if (data) {
-          // Formatear la fecha para mostrar solo la parte de la fecha (sin hora)
-          const fechaFormateada = new Date(data.fecha).toLocaleDateString();
-    
+        if (actividadData) {
+          const fechaFormateada = new Date(actividadData.fecha).toLocaleDateString();
           setActividadReciente([
-            [fechaFormateada, data.tipo_tabla, data.descripcion],
+            [fechaFormateada, actividadData.tipo_tabla, actividadData.descripcion],
           ]);
         }
+
+        setIsLoading(false); // Una vez que todos los datos están cargados, ocultar el loader
       } catch (error) {
-        console.error('Error al obtener la actividad reciente:', error);
+        console.error('Error al cargar los datos:', error);
+        setIsLoading(false); // Incluso en caso de error, ocultar el loader
       }
     };
 
-    fetchTotalArticulosActivos();
-    fetchTotalArticulosInactivos();
-    fetchTotalArticulosAlmacenamiento();
-    fetchActividadReciente();
+    fetchData();
   }, []);
 
   return (
     <DashboardLayout>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-center text-black mt-20">Tablero</h1>
-        <Table
-          title="Resumen de Inventario"
-          headers={resumenHeaders}
-          rows={[
-            [
-              parseInt(totalArticulosActivos) + parseInt(totalArticulosAlmacenamiento),
-              totalArticulosActivos,
-              totalArticulosAlmacenamiento,
-            ],
-          ]}
-        />
-      </div>
-
-      <div className="mt-6">
-        <Table title="Actividad Reciente" headers={actividadHeaders} rows={actividadReciente} />
-      </div>
-
-      <div className="mt-6">
-        <div className="flex justify-between">
-          <div className="w-1/2">
-            <div className="bg-white h-64 rounded-lg p-4">
-              <Pie data={pieData} options={{ responsive: true }} />
-            </div>
-          </div>
-          <div className="w-1/2">
-            <div className="bg-white h-64 rounded-lg p-4">
-              <Bar data={barData} options={barOptions} />
-            </div>
-          </div>
+      {isLoading ? (
+        <div className="flex justify-center items-center h-screen">
+          <dotlottie-player
+            src="https://lottie.host/0aca447b-d3c9-46ed-beeb-d4481815915a/qvvqgKAKQU.lottie"
+            background="transparent"
+            speed="1"
+            style={{ width: '300px', height: '300px' }}
+            loop
+            autoplay
+          />
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-center text-black mt-20">Tablero</h1>
+            <Table
+              title="Resumen de Inventario"
+              headers={resumenHeaders}
+              rows={[
+                [
+                  parseInt(totalArticulosActivos) + parseInt(totalArticulosAlmacenamiento),
+                  totalArticulosActivos,
+                  totalArticulosAlmacenamiento,
+                ],
+              ]}
+            />
+          </div>
+
+          <div className="mt-6">
+            <Table title="Actividad Reciente" headers={actividadHeaders} rows={actividadReciente} />
+          </div>
+
+          <div className="mt-6">
+            <div className="flex justify-between">
+              <div className="w-1/2">
+                <div className="bg-white h-64 rounded-lg p-4">
+                  <Pie data={pieData} options={{ responsive: true }} />
+                </div>
+              </div>
+              <div className="w-1/2">
+                <div className="bg-white h-64 rounded-lg p-4">
+                  <Bar data={barData} options={barOptions} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </DashboardLayout>
   );
 };

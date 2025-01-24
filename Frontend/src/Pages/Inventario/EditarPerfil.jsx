@@ -4,22 +4,31 @@ import InputField from '../../Components/InputField';
 import Boton from '../../Components/Boton';
 import { useUser } from '../../Context/UserContext';
 import ModalConfirmacion from '../../Components/ModalConfirmacion';
-
+import '@dotlottie/player-component';
 const EditarPerfil = () => {
   const { user, updateUser } = useUser(); 
   const token = localStorage.getItem('token');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Simulate loading for 2 seconds
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+
+    // Set initial form data
     setFormData(prevData => ({
       ...prevData,
       fullName: user?.nombre || '',
       email: user?.correo || ''
     }));
+
+    return () => clearTimeout(timer);
   }, [user]);
 
   const [formData, setFormData] = useState({
     fullName: user?.nombre || '',
-
+    email: user?.correo || '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
@@ -32,6 +41,8 @@ const EditarPerfil = () => {
     newPassword: false,
     confirmPassword: false,
   });
+
+
 
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -181,6 +192,22 @@ const EditarPerfil = () => {
   };
   return (
     <DashboardLayout>
+    {/* Loader */}
+    {isLoading && (
+      <div className="flex justify-center items-center h-screen">
+        <dotlottie-player
+          src="https://lottie.host/0aca447b-d3c9-46ed-beeb-d4481815915a/qvvqgKAKQU.lottie"
+          background="transparent"
+          speed="1"
+          style={{ width: '300px', height: '300px' }}
+          loop
+          autoplay
+        />
+      </div>
+    )}
+
+    {/* Content */}
+    {!isLoading && (
       <div className="justify-center items-center flex flex-col h-full">
         <div className="w-full max-w-lg p-8 shadow-md  overflow-hidden rounded-lg">
           
@@ -281,6 +308,7 @@ const EditarPerfil = () => {
           </form>
         </div>
       </div>
+         )}
 
       {/* Modal de Confirmación */}
       <ModalConfirmacion

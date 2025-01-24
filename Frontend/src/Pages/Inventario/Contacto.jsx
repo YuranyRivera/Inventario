@@ -7,8 +7,8 @@ import Table from '../../Components/TableUsuarios';
 import axios from 'axios';
 import ModalConfirmacion from '../../Components/ModalConfirmacion';
 import ModalError from '../../Components/ModalError';  // Asegúrate de que la ruta sea correcta
-
-
+import '@dotlottie/player-component';
+import ModalConf from '../../Components/ModalConf';
 const Contactos = () => {
 
 const [formData, setFormData] = useState({
@@ -19,16 +19,19 @@ const [formData, setFormData] = useState({
   role: '',
 });
 const [contactos, setContactos] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);  
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);  
-  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
-  const [message, setMessage] = useState('');  
-  const [errorMessage, setErrorMessage] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  // Errores de validación
-  const [errors, setErrors] = useState({
+const [isModalOpen, setIsModalOpen] = useState(false);  
+const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);  
+const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] = useState(false);
+const [userToDelete, setUserToDelete] = useState(null);
+const [message, setMessage] = useState('');  
+const [errorMessage, setErrorMessage] = useState('');
+const [showPassword, setShowPassword] = useState(false);
+const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+const [isLoading, setIsLoading] = useState(true);
+const [isContentReady, setIsContentReady] = useState(false);
+const [errors, setErrors] = useState({
+    
     fullName: '',
     email: '',
     password: '',
@@ -37,28 +40,60 @@ const [contactos, setContactos] = useState([]);
   });
 
   useEffect(() => {
-    fetchContactos();
+    const timer = setTimeout(() => {
+      fetchContactos();
+      setIsContentReady(true);
+    }, 2000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const fetchContactos = async () => {
+    setIsLoading(true);
+
     try {
       const response = await axios.get('http://localhost:4000/api/usuarios');
       setContactos(response.data);
+
+      // Reset errors when fetching contacts
+      setErrors({
+        fullName: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        role: '',
+      });
     } catch (error) {
       console.error('Error al obtener los usuarios:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const eliminarUsuario = async (id) => {
+  const handleDeleteConfirmation = (id) => {
+    setUserToDelete(id);
+    setIsDeleteConfirmModalOpen(true);
+  };
+
+  const eliminarUsuario = async () => {
+    if (!userToDelete) return;
+
+    setIsDeleteConfirmModalOpen(false);
+    setIsModalOpen(false);
+    setIsLoading(true);
+    
     try {
-      const response = await axios.delete(`http://localhost:4000/api/usuarios/${id}`);
-      console.log('Usuario eliminado:', response.data);
-      fetchContactos(); 
+      await axios.delete(`http://localhost:4000/api/usuarios/${userToDelete}`);
+      await fetchContactos();
     } catch (error) {
       console.error('Error al eliminar el usuario:', error);
+      setErrorMessage('No se pudo eliminar el usuario');
+      setIsErrorModalOpen(true);
+    } finally {
+      setIsLoading(false);
+      setUserToDelete(null);
     }
   };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
   
@@ -117,70 +152,56 @@ const [contactos, setContactos] = useState([]);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    // Validar antes de enviar
     if (!validate()) return;
-  
+
+    setIsLoading(true);
     const nuevoContacto = {
       fullName: formData.fullName,
       email: formData.email,
       password: formData.password,
       role: formData.role,
     };
-  
-    axios.post('http://localhost:4000/api/usuarios', nuevoContacto)
-      .then(response => {
-        fetchContactos();
-        setMessage('Usuario guardado exitosamente!');
-        setIsConfirmModalOpen(true);
-  
-        // Cerrar el modal automáticamente después de 2 segundos
-        setTimeout(() => {
-          setIsConfirmModalOpen(false);
-        }, 2000);
-  
-        // Resetear el formulario
-        setFormData({
-          fullName: '',
-          email: '',
-          password: '',
-          confirmPassword: '',
-          role: '',
-        });
-      })
-      .catch(error => {
-        // Manejar errores específicos del servidor
-        let errorMsg = 'Hubo un error al guardar el usuario.';
-  
-        if (error.response) {
-          switch (error.response.status) {
-            case 400:
-              if (error.response.data.error && error.response.data.error.includes('correo')) {
-                errorMsg = 'El correo electrónico ya está registrado.';
-              }
-              break;
-            case 409:
-              errorMsg = 'Ya existe un usuario con este correo electrónico.';
-              break;
-            case 500:
-              errorMsg = 'Error interno del servidor. Por favor, intente nuevamente.';
-              break;
-            default:
-              errorMsg = error.response.data.error || 'Hubo un error inesperado.';
-          }
-        }
-  
-        // Abrir modal de error
-        setErrorMessage(errorMsg);
-        setIsErrorModalOpen(true);
-  
-        // Cerrar el modal automáticamente después de 2 segundos
-        setTimeout(() => {
-          setIsErrorModalOpen(false);
-        }, 2000);
+
+    try {
+      await axios.post('http://localhost:4000/api/usuarios', nuevoContacto);
+      fetchContactos();
+      setMessage('Usuario guardado exitosamente!');
+      setIsConfirmModalOpen(true);
+      setTimeout(() => setIsConfirmModalOpen(false), 2000);
+      setFormData({
+        fullName: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        role: '',
       });
+    } catch (error) {
+      let errorMsg = 'Hubo un error al guardar el usuario.';
+      if (error.response) {
+        switch (error.response.status) {
+          case 400:
+            if (error.response.data.error.includes('correo')) {
+              errorMsg = 'El correo electrónico ya está registrado.';
+            }
+            break;
+          case 409:
+            errorMsg = 'Ya existe un usuario con este correo electrónico.';
+            break;
+          case 500:
+            errorMsg = 'Error interno del servidor. Por favor, intente nuevamente.';
+            break;
+          default:
+            errorMsg = error.response.data.error || 'Hubo un error inesperado.';
+        }
+      }
+      setErrorMessage(errorMsg);
+      setIsErrorModalOpen(true);
+      setTimeout(() => setIsErrorModalOpen(false), 2000);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const toggleModal = () => {
@@ -197,6 +218,28 @@ const [contactos, setContactos] = useState([]);
 
   return (
     <MainLayout>
+
+<ModalConf 
+  isOpen={isDeleteConfirmModalOpen}
+  onClose={() => {
+    setIsDeleteConfirmModalOpen(false);
+    setUserToDelete(null);
+  }}
+  onConfirm={eliminarUsuario}
+  message="¿Estás seguro de que deseas eliminar este usuario?"
+  className="z-[50em]" // Add this line to ensure it appears on top
+/>
+       {isLoading && (
+        <div className="flex justify-center items-center h-screen">
+              <dotlottie-player
+            src="https://lottie.host/0aca447b-d3c9-46ed-beeb-d4481815915a/qvvqgKAKQU.lottie"
+            autoplay
+            loop
+            style={{ width: '300px', height: '300px' }}
+          />
+        </div>
+      )}
+            {isContentReady && (
       <div className="justify-center items-center flex flex-col h-full">
         
         <div className="w-full max-w-3xl p-12 shadow-md rounded-lg overflow-hidden  ">
@@ -291,11 +334,15 @@ const [contactos, setContactos] = useState([]);
 
             <div className="flex justify-center mt-6">
               <BotonPrincipal type="submit" Text="Guardar" />
+                  {/* Modal para ver contactos */}
+      <div className="absolute top-6 right-6">
+        <BotonPrincipal Text="Ver Contactos" onClick={toggleModal} />
+      </div>
             </div>
           </form>
         </div>
       </div>
-
+      )}
       <ModalConfirmacion 
         isOpen={isConfirmModalOpen} 
         onClose={() => setIsConfirmModalOpen(false)} 
@@ -309,10 +356,7 @@ const [contactos, setContactos] = useState([]);
   message={errorMessage} 
 />
       
-      {/* Modal para ver contactos */}
-      <div className="absolute top-6 right-6">
-        <BotonPrincipal Text="Ver Contactos" onClick={toggleModal} />
-      </div>
+  
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50">
@@ -328,12 +372,14 @@ const [contactos, setContactos] = useState([]);
               title="Lista de Contactos"
               headers={['Nombre Completo', 'Correo', 'Rol']}
               rows={contactos}
-              onDelete={eliminarUsuario} 
+              onDelete={handleDeleteConfirmation} 
+              className="z-[10px]" 
             />
             
           </div>
         </div>
-      )}
+  
+  )}
     </MainLayout>
   );
 };

@@ -3,6 +3,7 @@ import TableEntrada from '../../Components/TableEntrada';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { useNavigate } from 'react-router-dom';
 import '@dotlottie/player-component';
+
 const Example = () => {
   const headers = ['ID', 'Fecha', 'Cantidad de productos', 'Tipo de Registro'];
   const [rows, setRows] = useState([]);
@@ -12,7 +13,9 @@ const Example = () => {
 
   useEffect(() => {
     const fetchReporteGeneral = async () => {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Only show loader when first entering the page
+      setIsLoading(true);
+      
       try {
         const response = await fetch('http://localhost:4000/api/reporte-general');
         if (!response.ok) {
@@ -26,14 +29,19 @@ const Example = () => {
           item.estado,
         ]);
         setRows(mappedRows);
-        setIsLoading(false);
+        
+        // Hide loader after 2 seconds
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 2000);
       } catch (error) {
         console.error('Error al obtener el reporte general:', error);
+        setIsLoading(false);
       }
     };
 
     fetchReporteGeneral();
-  }, []);
+  }, []); // Empty dependency array ensures this runs only on initial load
 
   const handleOptionChange = (event) => {
     const value = event.target.value;
@@ -47,20 +55,19 @@ const Example = () => {
         navigate('/articulosbaja');
         break;
       default:
-        // Stay on current page
+        // Do nothing when 'general' is selected
         break;
     }
   };
 
   const reloadArticulos = () => {
     // Reload data from API or refresh page
-    window.location.reload(); // Or you can call the fetch function again to reload data
+    window.location.reload();
   };
 
   return (
     <DashboardLayout>
-
-  {isLoading ? (
+      {isLoading ? (
         <div className="flex justify-center items-center h-screen">
           <dotlottie-player
             src="https://lottie.host/0aca447b-d3c9-46ed-beeb-d4481815915a/qvvqgKAKQU.lottie"
@@ -72,52 +79,52 @@ const Example = () => {
           />
         </div>
       ) : (
-      <div className="mb-6 m-5">
-        <h1 className="text-3xl font-bold text-center text-black mb-10">
-          Registro General
-        </h1>
+        <div className="mb-6 m-5">
+          <h1 className="text-3xl font-bold text-center text-black mb-10">
+            Registro General
+          </h1>
 
-        <div className="flex gap-6 mt-4 mb-6">
-          <label className="flex items-center space-x-2 cursor-pointer">
-            <input
-              type="radio"
-              name="navigation"
-              value="general"
-              checked={selectedOption === 'general'}
-              onChange={handleOptionChange}
-              className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2 cursor-pointer"
-            />
-            <span className="text-gray-700">General</span>
-          </label>
+          <div className="flex gap-6 mt-4 mb-6">
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="radio"
+                name="navigation"
+                value="general"
+                checked={selectedOption === 'general'}
+                onChange={handleOptionChange}
+                className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2 cursor-pointer"
+              />
+              <span className="text-gray-700">General</span>
+            </label>
 
-          <label className="flex items-center space-x-2 cursor-pointer">
-            <input
-              type="radio"
-              name="navigation"
-              value="traslados"
-              checked={selectedOption === 'traslados'}
-              onChange={handleOptionChange}
-              className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2 cursor-pointer"
-            />
-            <span className="text-gray-700">Traslados</span>
-          </label>
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="radio"
+                name="navigation"
+                value="traslados"
+                checked={selectedOption === 'traslados'}
+                onChange={handleOptionChange}
+                className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2 cursor-pointer"
+              />
+              <span className="text-gray-700">Traslados</span>
+            </label>
 
-          <label className="flex items-center space-x-2 cursor-pointer">
-            <input
-              type="radio"
-              name="navigation"
-              value="bajas"
-              checked={selectedOption === 'bajas'}
-              onChange={handleOptionChange}
-              className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2 cursor-pointer"
-            />
-            <span className="text-gray-700">Dados de baja</span>
-          </label>
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="radio"
+                name="navigation"
+                value="bajas"
+                checked={selectedOption === 'bajas'}
+                onChange={handleOptionChange}
+                className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2 cursor-pointer"
+              />
+              <span className="text-gray-700">Dados de baja</span>
+            </label>
+          </div>
+
+          <TableEntrada headers={headers} rows={rows} setRows={setRows} reloadArticulos={reloadArticulos} />
         </div>
-
-        <TableEntrada headers={headers} rows={rows} setRows={setRows} reloadArticulos={reloadArticulos} />
-      </div>
-          )}
+      )}
     </DashboardLayout>
   );
 };

@@ -150,10 +150,14 @@ const [articuloToDelete, setArticuloToDelete] = useState(null);
   
       setRows((prevRows) => prevRows.filter((item) => item[0] !== id));
   
-
-    } catch (error) {
-      console.error('Error al eliminar el artículo:', error);
-      alert('Hubo un error al intentar eliminar el artículo.');/* */
+      // Retrasar la ocultación del loader por 2 segundos
+      setTimeout(() => {
+        setIsLoading(false); // Ocultar el loader después de 2 segundos
+      }, 2000); // 2000 ms = 2 segundos
+    } 
+    catch (error) {
+      console.error('Error al eliminar:', error);
+      setIsLoading(false); // Ocultar el loader si ocurre un error
     }
   };
 
