@@ -5,15 +5,27 @@ import CheckboxGroup from '../../Components/CheckboxGroup';
 import ButtonGroup from '../../Components/ButtonGroup';
 import ArticulosAdministrativos from '../Inventario/ArticulosAdministrativos';
 import ArticulosAlmacenamiento from '../Inventario/ArticulosAlmacenamiento';
-import useArticulo from '../../hooks/useArticulo'; // Hook para manejar artículos de almacenamiento
-import useArticulosAdministrativos from '../../hooks/useArticulosAdministrativos'; // Hook para manejar artículos administrativos
+import useArticulo from '../../hooks/useArticulo';
+import useArticulosAdministrativos from '../../hooks/useArticulosAdministrativos';
+import '@dotlottie/player-component';
 
 const Articulos = () => {
   const location = useLocation();
-  const [selected, setSelected] = useState('administrativos'); // Corregir valor inicial a 'administrativos'
+  const [selected, setSelected] = useState('administrativos');
+  
+  const { 
+    articulos: articulosAlmacenamiento, 
+    reloadArticulos: reloadArticulosAlmacenamiento,
+    isLoading: isLoadingAlmacenamiento 
+  } = useArticulo();
+  
+  const { 
+    articulos: articulosAdministrativos, 
+    reloadArticulos: reloadArticulosAdministrativos,
+    isLoading: isLoadingAdministrativos 
+  } = useArticulosAdministrativos();
 
-  const { articulos: articulosAlmacenamiento, reloadArticulos: reloadArticulosAlmacenamiento } = useArticulo();
-  const { articulos: articulosAdministrativos, reloadArticulos: reloadArticulosAdministrativos } = useArticulosAdministrativos();
+  const isLoading = isLoadingAlmacenamiento || isLoadingAdministrativos;
 
   useEffect(() => {
     const storedSelected = localStorage.getItem('selectedCategory');
@@ -27,7 +39,6 @@ const Articulos = () => {
   const handleCheckboxChange = (e, category) => {
     setSelected(category);
     localStorage.setItem('selectedCategory', category);
-    console.log('Categoría seleccionada y guardada:', category);
   };
 
   return (
@@ -36,13 +47,12 @@ const Articulos = () => {
         <h1 className="text-2xl md:text-3xl font-bold text-center text-black mb-4 md:mb-6 mt-10">
           Artículos
         </h1>
+        
         <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 md:space-x-4 mb-6">
           <CheckboxGroup selected={selected} onChange={handleCheckboxChange} />
           <ButtonGroup
             isStorageSelected={selected === 'almacenamiento'}
             onSave={() => {
-              console.log('Estado actual guardado:', selected);
-              localStorage.setItem('selectedCategory', selected);
               if (selected === 'almacenamiento') {
                 reloadArticulosAlmacenamiento();
               } else {
@@ -52,13 +62,38 @@ const Articulos = () => {
             reloadArticulos={selected === 'almacenamiento' ? reloadArticulosAlmacenamiento : reloadArticulosAdministrativos}
           />
         </div>
-        {selected === 'almacenamiento' ? (
-          <ArticulosAlmacenamiento articulos={articulosAlmacenamiento} reloadArticulos={reloadArticulosAlmacenamiento} />
-        ) : (
-          <ArticulosAdministrativos articulos={articulosAdministrativos} reloadArticulos={reloadArticulosAdministrativos} />
-        )}
+
+        <div className="relative min-h-[calc(100vh-300px)]">
+          {isLoading && (
+            <div className="absolute inset-0 bg-white bg-opacity-90 flex justify-center items-center z-10">
+              <dotlottie-player
+                src="https://lottie.host/0aca447b-d3c9-46ed-beeb-d4481815915a/qvvqgKAKQU.lottie"
+                background="transparent"
+                speed="1"
+                style={{ width: '300px', height: '300px' }}
+                loop
+                autoplay
+              />
+            </div>
+          )}
+          
+          <div className={`transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}>
+            {selected === 'almacenamiento' ? (
+              <ArticulosAlmacenamiento 
+                articulos={articulosAlmacenamiento} 
+                reloadArticulos={reloadArticulosAlmacenamiento} 
+              />
+            ) : (
+              <ArticulosAdministrativos 
+                articulos={articulosAdministrativos} 
+                reloadArticulos={reloadArticulosAdministrativos} 
+              />
+            )}
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );
 };
-export default Articulos; 
+
+export default Articulos;

@@ -2,39 +2,61 @@ import React, { useState } from 'react';
 import AuxMaintenanceTable from '../../Components/AuxMaintenanceTable';
 import { Search } from 'lucide-react';
 import ButtonGroup from '../../Components/PDFAlm';
-import ExcelExportButton from '../../Components/Excel'; // Importar el componente de Excel
-import ModalConfirmacion from '../../Components/ModalConf';
-
+import ExcelExportButton from '../../Components/Excel';
+import ModalBaja from '../../Components/ModalBaja';
+import { useNavigate } from 'react-router-dom'; 
 const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
-  const headers = ['ID', 'Producto/Detalle',  'Cantidad Inicial',  'Módulo', 'Estante', 'Estado', 'Entrada', 'Salida', 'Restante'];
+  const headers = ['ID', 'Producto/Detalle', 'Cantidad Inicial', 'Módulo', 'Estante', 'Estado', 'Entrada', 'Salida', 'Restante'];
   const [searchTerm, setSearchTerm] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false); // Para abrir o cerrar el modal
-  const [articuloToDelete, setArticuloToDelete] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedArticulo, setSelectedArticulo] = useState(null);
   const [editingRowIndex, setEditingRowIndex] = useState(null);
   const [editedRowData, setEditedRowData] = useState({});
-
-
+  const navigate = useNavigate(); // Hook para navegación
   const handleDeleteClick = (row) => {
-    setArticuloToDelete(row); // Guardamos el artículo que se quiere eliminar
-    setIsModalOpen(true); // Abrimos el modal de confirmación
+    setSelectedArticulo(row);
+    setIsModalOpen(true);
   };
+  const handleDelete = async (formData) => {
+    const id = selectedArticulo.id;
   
-  // Función para filtrar artículos basado en el término de búsqueda
+    try {
+      const response = await fetch(`http://localhost:4000/api/articulos-baja/${id}`, {
+        method: 'POST',
+        body: formData
+      });
+  
+      const result = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(result.message || 'Error al eliminar el artículo');
+      }
+  
+      console.log(result.message);
+      if (result.imagen_url) {
+        console.log('Imagen subida:', result.imagen_url);
+      }
+      reloadArticulos();
+            // Navegar a la página ArticulosBaja.jsx
+            navigate('/ArticulosBaja2'); // Cambia la ruta según tu configuración
+    } catch (error) {
+      console.error('Error al eliminar:', error);
+      alert(error.message || 'Error al eliminar el artículo');
+    }
+  };
+
   const filteredArticulos = articulos.filter(articulo =>
     articulo.producto.toLowerCase().includes(searchTerm.toLowerCase()) ||
     articulo.modulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
     articulo.estante.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Manejador para el cambio en el campo de búsqueda
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };
 
-  // Actualiza el estado cuando se edita un campo
   const handleInputChange = (e, field) => {
     const value = e.target.value;
-     // Ignorar cambios en campos no editables
     if (field === 'id' || field === 'cantidad') {
       return;
     }
@@ -45,12 +67,10 @@ const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
         [field]: value,
       };
   
-      // Recalcular el restante solo si los campos entrada o salida cambian
       if (field === 'entrada' || field === 'salida') {
         const entrada = parseInt(updatedData.entrada || 0, 10);
         const salida = parseInt(updatedData.salida || 0, 10);
         const cantidadInicial = parseInt(prev.cantidad_productos || 0, 10);
-  
         updatedData.cantidad = cantidadInicial + entrada - salida;
       }
   
@@ -58,92 +78,58 @@ const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
     });
   };
 
-  // Maneja la edición de una fila
   const handleEdit = (row, index) => {
     setEditingRowIndex(index);
     setEditedRowData({ ...row });
   };
 
-  // Guardar la fila editada
   const handleSave = async () => {
     try {
       const response = await fetch(`http://localhost:4000/api/articulos/${editedRowData.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editedRowData), // Envía los datos editados
+        body: JSON.stringify(editedRowData),
       });
 
       if (!response.ok) {
         throw new Error('Error al editar el artículo');
       }
 
-      const updatedArticulo = await response.json();
-      reloadArticulos(); // Recargar los artículos después de la edición
-      setEditingRowIndex(null); // Finalizar la edición
+      await response.json();
+      reloadArticulos();
+      setEditingRowIndex(null);
     } catch (error) {
       console.error('Error al editar:', error);
     }
   };
 
-  // Cancelar la edición
   const handleCancel = () => {
     setEditingRowIndex(null);
   };
 
-  // Maneja la eliminación de una fila
-  const handleDelete = async (row) => {
-    const id = row.id; // Usamos el ID directamente
-
-    try {
-      const response = await fetch(`http://localhost:4000/api/articulos/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al eliminar el artículo');
-      }
-      setTimeout(() => {
-        setIsLoading(false); // Ocultar el loader después de 2 segundos
-      }, 2000); // 2000 ms
-      const result = await response.json();
-      console.log(result.message);
-      reloadArticulos(); // Recargar los artículos después de la eliminación
-    } catch (error) {
-      console.error('Error al eliminar:', error);
-    }
-  };
-  
-
   return (
     <>
+      <ModalBaja
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleDelete}
+      />
 
-<ModalConfirmacion
-  isOpen={isModalOpen}
-  onClose={() => setIsModalOpen(false)} // Cerrar el modal sin hacer nada
-  onConfirm={() => {
-    if (articuloToDelete) {
-      handleDelete(articuloToDelete); // Eliminar el artículo si se confirma
-    }
-    setIsModalOpen(false); // Cerrar el modal después de la confirmación
-  }}
-  message="¿Está seguro de que desea dar de baja este artículo?"
-/>
       <div className="space-y-4">
-        {/* Buscador con botón */}
         <div className="flex flex-col md:flex-row items-stretch space-y-2 md:space-y-0 md:space-x-2">
-        <div className="relative flex-1 max-w-full md:max-w-md">
+          <div className="relative flex-1 max-w-full md:max-w-md">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400 " />
+              <Search className="h-5 w-5 text-gray-400" />
             </div>
             <input
-            type="text"
-            placeholder="Buscar por nombre de producto..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="w-full pl-8 sm:pl-10 pr-2 sm:pr-4 py-1.5 sm:py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div className="flex flex-wrap gap-2 justify-start md:justify-end">
+              type="text"
+              placeholder="Buscar por nombre de producto..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="w-full pl-8 sm:pl-10 pr-2 sm:pr-4 py-1.5 sm:py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="flex flex-wrap gap-2 justify-start md:justify-end">
             <ButtonGroup
               isStorageSelected={true}
               reloadArticulos={reloadArticulos}
@@ -159,37 +145,36 @@ const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
           </div>
         </div>
 
-        {/* Tabla */}
         <div className="overflow-x-auto">
           <AuxMaintenanceTable
-          headers={headers}
-          rows={filteredArticulos.map((articulo) => ({
-            id: articulo.id,
-            producto: articulo.producto,
-            cantidad_productos: articulo.cantidad_productos,
-            modulo: articulo.modulo,
-            estante: articulo.estante,
-            estado: articulo.estado,
-            entrada: articulo.entrada,
-            salida: articulo.salida,
-            cantidad: articulo.cantidad,
-          }))}
-          onEdit={handleEdit}
-          onDelete={handleDeleteClick} 
-          editingRowIndex={editingRowIndex}
-          editedRowData={editedRowData}
-          handleInputChange={(e, field) => {
-            if (['id', 'cantidad', 'cantidad_productos'].includes(field)) {
-              e.preventDefault();
-            } else {
-              handleInputChange(e, field);
-            }
-          }}
-          handleSave={handleSave}
-          handleCancel={handleCancel}
-          disableFields={['id', 'cantidad', 'cantidad_productos']}
-        />
-              </div>
+            headers={headers}
+            rows={filteredArticulos.map((articulo) => ({
+              id: articulo.id,
+              producto: articulo.producto,
+              cantidad_productos: articulo.cantidad_productos,
+              modulo: articulo.modulo,
+              estante: articulo.estante,
+              estado: articulo.estado,
+              entrada: articulo.entrada,
+              salida: articulo.salida,
+              cantidad: articulo.cantidad,
+            }))}
+            onEdit={handleEdit}
+            onDelete={handleDeleteClick}
+            editingRowIndex={editingRowIndex}
+            editedRowData={editedRowData}
+            handleInputChange={(e, field) => {
+              if (['id', 'cantidad', 'cantidad_productos'].includes(field)) {
+                e.preventDefault();
+              } else {
+                handleInputChange(e, field);
+              }
+            }}
+            handleSave={handleSave}
+            handleCancel={handleCancel}
+            disableFields={['id', 'cantidad', 'cantidad_productos']}
+          />
+        </div>
       </div>
     </>
   );

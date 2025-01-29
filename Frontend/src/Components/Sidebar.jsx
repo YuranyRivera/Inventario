@@ -1,28 +1,16 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { useUser } from '../Context/UserContext';
 import { Link } from 'react-router-dom';
 
-const Sidebar = ({ onClose, isMobile }) => {
-  const navigate = useNavigate();
-  const { user, logoutUser } = useUser();
+const Sidebar = ({ onClose, isMobile, handleLogout}) => {
+ 
+  const { user } = useUser();
 
-  const handleLogout = async () => {
-    try {
-      await fetch('http://localhost:4000/api/logout', {
-        method: 'POST',
-        credentials: 'include'
-      });
 
-      logoutUser();
-      navigate('/Inicio');
-    } catch (error) {
-      console.error('Logout failed', error);
-    }
-  };
 
   return (
-    <div className="flex flex-col w-64 h-full bg-[#00A305] text-white p-4 relative">
+<div className="flex flex-col w-64 h-full bg-[#00A305] text-white p-4 relative">
       {/* Close button only for mobile */}
       {isMobile && (
         <button 
@@ -33,15 +21,16 @@ const Sidebar = ({ onClose, isMobile }) => {
         </button>
       )}
 
-      {/* Logo */}
-      <div className="flex items-center mb-8">
+     {/* Logo */}
+     <div className="flex items-center mb-8">
         <img
           src="/Img/logo.png"
           alt="Logo del Colegio"
           className="h-12 w-12 mr-2"
         />
-      <div className=''>
-        <span className="text-2xl font-semibold ">Inventario</span>
+        <div>
+          <span className="text-2xl font-semibold">Inventario</span>
+    
             {/* Mostrar el nombre del usuario si está logueado */}
             {user && (
        <span className="flex">
@@ -92,8 +81,8 @@ const Sidebar = ({ onClose, isMobile }) => {
         </Link>
       </div>
 
-      {/* Logout Option */}
-      <div 
+     {/* Logout Option */}
+     <div 
         onClick={handleLogout} 
         className="mt-auto flex items-center text-lg hover:bg-[#41B646] p-2 rounded cursor-pointer"
       >

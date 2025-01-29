@@ -150,7 +150,7 @@ const ModalSalida = ({ isOpen, onClose }) => {
     <div className="fixed z-50 inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 overflow-y-auto">
       <div className="bg-white rounded-lg w-full max-w-4xl mx-auto p-6 max-h-[90vh] overflow-auto">
         <div className="flex justify-between items-center p-4 sm:p-6 border-b">
-          <h3 className="text-lg sm:text-xl font-semibold">Registro de Salida</h3>
+          <h3 className="text-lg sm:text-xl font-semibold">Registro de Traslados</h3>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
             <span className="text-xl">&times;</span>
           </button>
@@ -196,7 +196,7 @@ const ModalSalida = ({ isOpen, onClose }) => {
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead>
-                  <tr className="bg-red-500 text-white">
+                  <tr className="bg-[#00A305] text-white">
                     <th className="px-3 py-2 sm:px-4 sm:py-3 text-left text-xs sm:text-sm font-medium">
                       Producto
                     </th>

@@ -197,6 +197,9 @@ const Moduloadmin = () => {
       case 'bajas':
         navigate('/articulosbaja');
         break;
+        case 'bajas2':
+          navigate('/articulosbaja2');
+          break;
     }
   };
   return (
@@ -253,8 +256,20 @@ const Moduloadmin = () => {
               onChange={handleOptionChange}
               className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2 cursor-pointer"
             />
-            <span className="text-gray-700">Dados de baja</span>
+                <span className="text-gray-700">Historial de bajas-Administración</span>
+        
           </label>
+          <label className="flex items-center space-x-2 cursor-pointer">
+    <input
+      type="radio"
+      name="navigation"
+      value="bajas2"
+      checked={selectedOption === 'bajas2'}
+      onChange={handleOptionChange}
+      className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2 cursor-pointer"
+    />
+    <span className="text-gray-700">Historial de bajas-Almacenamiento</span>
+  </label>
         </div>
 
 

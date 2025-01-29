@@ -1,7 +1,11 @@
 import express from 'express';
 import { pool } from '../config/db.js';
 import transporter from '../config/nodemailerConfig.js';
-import {eliminarMovimiento, obtenerTotalArticulosAlmacenamiento, getUltimoRegistro, obtenerTotalArticulosActivos, obtenerTotalArticulosInactivos, eliminarArticuloBaja, editarTraslado, obtenerArticulosBaja, eliminarTraslado, getTraslados, insertarTraslado, getProductosPorUbicacion, editarArticuloAdministrativo, eliminarArticuloAdministrativo, updateMovimiento, getArticulosAdministrativos, deleteMovimiento, getLastArticuloAdministrativoId, createArticuloAdministrativo, updateProfile, updatePassword, checkIfUserExists, checkEmailExists,editarPerfil, crearUsuario, obtenerUsuarios, eliminarUsuario,   loginUser, editarArticulo, eliminarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createArticulo } from '../controllers/datacontroler.js';
+import { upload } from '../middleware/uploadConfig.js';
+import {  obtenerArticulosBajaHistorial,
+  eliminarMovimiento, eliminarArticuloHistorial,
+
+  eliminarArticuloAlmacenamiento, handleMulterError , obtenerTotalArticulosAlmacenamiento, getUltimoRegistro, obtenerTotalArticulosActivos, obtenerTotalArticulosInactivos, eliminarArticuloBaja, editarTraslado, obtenerArticulosBaja, eliminarTraslado, getTraslados, insertarTraslado, getProductosPorUbicacion, editarArticuloAdministrativo, eliminarArticuloAdministrativo, updateMovimiento, getArticulosAdministrativos, deleteMovimiento, getLastArticuloAdministrativoId, createArticuloAdministrativo, updateProfile, updatePassword, checkIfUserExists, checkEmailExists,editarPerfil, crearUsuario, obtenerUsuarios, eliminarUsuario,   loginUser, editarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createArticulo } from '../controllers/datacontroler.js';
 import jwt from 'jsonwebtoken';
 
 import bcrypt from 'bcrypt';
@@ -12,7 +16,8 @@ import { verifyToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-
+// Ruta para eliminar un artículo del historial
+router.delete('/articulos_baja_historial/:id', eliminarArticuloHistorial);
 // Ruta para eliminar un movimiento por su ID y reordenar los IDs
 router.delete('/eliminar-movimiento/:id', eliminarMovimiento);
 // Ruta para obtener el último registro
@@ -273,8 +278,17 @@ router.get('/articulos', getArticulos);
 router.put('/articulos/:id', editarArticulo);
 
 // Ruta para eliminar un artículo
-router.delete('/articulos/:id', eliminarArticulo);
+// Routes
+router.post('/articulos-baja/:id', 
+  upload.single('imagen'),
+  handleMulterError,
+  eliminarArticuloAlmacenamiento
+);
 
+
+
+// Ruta para obtener todos los artículos dados de baja del historial
+router.get('/articulos-baja-historial', obtenerArticulosBajaHistorial);
 
 // Ruta para obtener el reporte general
 router.get('/reporte-general', getReporteGeneral);

@@ -14,6 +14,7 @@ import OlvidarContraseña from './Pages/Principal/OlvidarContraseña';
 import ActualizarContrasena from './Pages/Principal/ActualizarContrasena';
 import Moduloadmin from './Pages/Inventario/ModuloAdmin';
 import ArticulosBaja from './Pages/Inventario/ArticulosBaja'
+import ArticulosBaja2 from './Pages/Inventario/ArticulosBaja2'
 import { UserProvider } from './Context/UserContext';
 
 
@@ -53,6 +54,18 @@ const App = () => {
             } 
           />
 <Route 
+
+/>
+<Route 
+            path="/ArticulosBaja2" 
+            element={
+              <ProtectedRoute>
+                <ArticulosBaja2 />
+              </ProtectedRoute>
+            } 
+          />
+<Route 
+
             path="/ModuloAdmin" 
             element={
               <ProtectedRoute>

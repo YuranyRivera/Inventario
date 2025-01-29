@@ -137,29 +137,48 @@ const [articuloToDelete, setArticuloToDelete] = useState(null);
   }, []);
 
   const handleDelete = async (row) => {
-    setIsLoading(true); // Mostrar el loader
+    setIsLoading(true); // Mostrar el loader antes de eliminar
+
     const id = row[0];
     try {
+      // Eliminar el artículo
       const response = await fetch(`http://localhost:4000/api/articulos_baja/${id}`, {
         method: 'DELETE',
       });
-  
+
       if (!response.ok) {
         throw new Error('Error al eliminar el artículo');
       }
-  
+
+      // Filtrar el artículo eliminado de la lista
       setRows((prevRows) => prevRows.filter((item) => item[0] !== id));
-  
-      // Retrasar la ocultación del loader por 2 segundos
-      setTimeout(() => {
-        setIsLoading(false); // Ocultar el loader después de 2 segundos
-      }, 2000); // 2000 ms = 2 segundos
-    } 
-    catch (error) {
+
+      // Recargar los artículos después de eliminar uno
+      setTimeout(async () => {
+        const response = await fetch('http://localhost:4000/api/articulos_baja');
+        if (!response.ok) {
+          throw new Error('Error al obtener los datos');
+        }
+        const data = await response.json();
+        const mappedRows = data.map((item) => [
+          item.id,
+          item.codigo,
+          formatDate(item.fecha_baja),
+          item.descripcion,
+          item.proveedor,
+          item.ubicacion,
+          item.observacion,
+        ]);
+        setRows(mappedRows);
+        setIsLoading(false); // Ocultar el loader después de recargar
+      }, 1000); // Recargar después de 1 segundo (ajusta este tiempo si lo deseas)
+    } catch (error) {
       console.error('Error al eliminar:', error);
       setIsLoading(false); // Ocultar el loader si ocurre un error
     }
   };
+
+  
 
   const handleEdit = (row) => {
     console.log('Editar', row);
@@ -238,6 +257,9 @@ const [articuloToDelete, setArticuloToDelete] = useState(null);
       case 'bajas':
         navigate('/articulosbaja');
         break;
+        case 'bajas2':
+          navigate('/articulosbaja2');
+          break;
     }
   };
 
@@ -309,8 +331,20 @@ const [articuloToDelete, setArticuloToDelete] = useState(null);
               onChange={handleOptionChange}
               className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2 cursor-pointer"
             />
-            <span className="text-gray-700">Dados de baja</span>
+                <span className="text-gray-700">Historial de bajas-Administración</span>
+            
           </label>
+          <label className="flex items-center space-x-2 cursor-pointer">
+    <input
+      type="radio"
+      name="navigation"
+      value="bajas2"
+      checked={selectedOption === 'bajas2'}
+      onChange={handleOptionChange}
+      className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2 cursor-pointer"
+    />
+   <span className="text-gray-700">Historial de bajas-Almacenamiento </span>
+  </label>
         </div>
     
     
