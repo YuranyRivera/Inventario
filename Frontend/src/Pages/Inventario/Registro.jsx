@@ -84,7 +84,7 @@ const Example = () => {
       ) : (
         <div className="mb-6 m-5">
           <h1 className="text-3xl font-bold text-center text-black mb-10">
-            Registro General
+            Registro General De Entradas y Salidas
           </h1>
 
           <div className="flex gap-6 mt-4 mb-6">

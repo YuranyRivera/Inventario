@@ -137,6 +137,7 @@ const Dashboard = () => {
             <div className="flex justify-between">
               <div className="w-1/2">
                 <div className="bg-white h-64 rounded-lg p-4">
+                  <label>Grafico de Administracion:</label>
                   <Pie data={pieData} options={{ responsive: true }} />
                 </div>
               </div>

@@ -76,10 +76,8 @@ export const eliminarArticuloAlmacenamiento = async (req, res) => {
       [id, articulo.producto, motivo_baja, usuario_baja, imagen_url]
     );
 
-    await pool.query(
-      'DELETE FROM articulos_almacenamiento WHERE id = $1',
-      [id]
-    );
+   
+ 
 
     await pool.query('COMMIT');
 
@@ -1210,12 +1208,12 @@ export const createArticulo = async (req, res) => {
     // Verificar si ya existe un artículo con los mismos valores de modulo, estante y producto
     const checkArticuloQuery = `
     SELECT * FROM articulos_almacenamiento
-    WHERE (modulo = $1 AND estante = $2 AND producto = $3)
+    WHERE producto = $1 
 `;
-    const checkResult = await client.query(checkArticuloQuery, [modulo, estante, producto]);
+const checkResult = await client.query(checkArticuloQuery, [producto]);
 
     if (checkResult.rows.length > 0) {
-      return res.status(400).json({ error: 'Ya existe un artículo con los mismos valores de módulo, estante y producto' });
+      return res.status(400).json({ error: 'Ya existe un artículo con el mismo nombre' });
     }
 
     // Iniciar transacción

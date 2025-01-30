@@ -113,11 +113,27 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
   const handleSave = async () => {
     const newErrors = rows.map((row, index) => validateRow(row, index));
     setErrors(newErrors);
-  
+    setDuplicateError(null); // Reset duplicate error at start of save
+
     if (newErrors.some(err => Object.keys(err).length > 0)) {
       return;
     }
-  
+
+    // Check for duplicates within the current rows being added
+    const duplicateInCurrentRows = rows.some((row, index) => 
+      rows.some((otherRow, otherIndex) => 
+        index !== otherIndex && 
+        row.modulo === otherRow.modulo && 
+        row.estante === otherRow.estante && 
+        row.producto === otherRow.producto
+      )
+    );
+
+    if (duplicateInCurrentRows) {
+      setDuplicateError('Existen productos duplicados en las filas actuales');
+      return;
+    }
+
     try {
       for (const row of rows) {
         const result = await addArticulos({
@@ -128,14 +144,13 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
           cantidad: row.cantidad,
           estado: row.estado
         });
-  
-        // Si el producto ya existe, muestra el error
+
         if (!result.success) {
-          setDuplicateError('El producto ya existe en el inventario');
+          setDuplicateError(result.error || `El producto "${row.producto}" ya existe en el módulo ${row.modulo}, estante ${row.estante}`);
           return;
         }
       }
-  
+
       onSave();
       onClose();
     } catch (error) {

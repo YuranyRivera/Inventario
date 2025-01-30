@@ -19,7 +19,10 @@ const useArticulos = (refreshArticulos) => {
       const data = await response.json();
   
       if (!response.ok) {
-        return { success: false, error: data.message || 'Error al guardar el artículo' };
+        return { 
+          success: false, 
+          error: data.error || 'Error al guardar el artículo'
+        };
       }
   
       setArticulos((prevArticulos) => {
@@ -34,7 +37,10 @@ const useArticulos = (refreshArticulos) => {
       return { success: true, data };
     } catch (error) {
       console.error('Add article error:', error);
-      return { success: false, error: 'Error al guardar el artículo' };
+      return { 
+        success: false, 
+        error: error.message || 'Error al guardar el artículo'
+      };
     } finally {
       setLoading(false);
     }
