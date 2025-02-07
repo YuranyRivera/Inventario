@@ -145,21 +145,22 @@ const Contactos = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
     setIsLoading(true);
+    
     const nuevoContacto = {
       fullName: formData.fullName,
       email: formData.email,
       password: formData.password,
       role: formData.role,
     };
-
+  
     try {
       await axios.post('http://localhost:4000/api/usuarios', nuevoContacto);
       await fetchContactos();
       setMessage('Usuario guardado exitosamente!');
       setIsConfirmModalOpen(true);
       setTimeout(() => setIsConfirmModalOpen(false), 2000);
+      
       // Reset form after successful submission
       setFormData({
         fullName: '',
@@ -168,34 +169,39 @@ const Contactos = () => {
         confirmPassword: '',
         role: '',
       });
-      setFormErrors({
-        fullName: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-        role: '',
-      });
+      setFormErrors({});
+      
     } catch (error) {
+      console.error('Error details:', error.response || error);
+      
       let errorMsg = 'Hubo un error al guardar el usuario.';
-      if (error.response) {
-        switch (error.response.status) {
-          case 400:
-            errorMsg = error.response.data.error.includes('correo') 
-              ? 'El correo electrónico ya está registrado.'
-              : error.response.data.error;
-            break;
-          case 409:
-            errorMsg = 'Ya existe un usuario con este correo electrónico.';
-            break;
-          case 500:
-            errorMsg = 'Error interno del servidor. Por favor, intente nuevamente.';
-            break;
-          default:
-            errorMsg = error.response.data.error || 'Hubo un error inesperado.';
+      
+      // Verificar primero si hay alguna indicación de correo duplicado en la respuesta
+      if (error.response && error.response.data) {
+        const errorData = error.response.data;
+        const errorString = JSON.stringify(errorData).toLowerCase();
+        
+        // Buscar cualquier indicación de correo duplicado en la respuesta
+        if (
+          errorString.includes('duplicate') ||
+          errorString.includes('duplicado') ||
+          errorString.includes('correo') ||
+          errorString.includes('email') ||
+          errorString.includes('e-mail') ||
+          errorString.includes('ya existe')
+        ) {
+          errorMsg = 'Ya existe un usuario con este correo electrónico.';
+        }
+        // Solo si no es un error de correo duplicado, usar el mensaje genérico
+        else if (error.response.status === 500) {
+          errorMsg = 'Error interno del servidor. Por favor, intente nuevamente.';
         }
       }
+      
       setErrorMessage(errorMsg);
       setIsErrorModalOpen(true);
+        // Hacer que el modal de error desaparezca después de 2 segundos
+  setTimeout(() => setIsErrorModalOpen(false), 2000);
     } finally {
       setIsLoading(false);
     }

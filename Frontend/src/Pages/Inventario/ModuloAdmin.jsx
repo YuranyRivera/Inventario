@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import AuxMaintenanceTable from '../../Components/Moduloadmin';
+import AuxMaintenanceTable from '../../Components/TablaArt';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { Search } from 'lucide-react';
 import Select from 'react-select';

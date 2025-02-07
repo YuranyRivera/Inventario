@@ -4,12 +4,14 @@ const ModalBaja = ({ isOpen, onClose, onSave, articleData }) => {
   const [formData, setFormData] = useState({
     motivo_baja: '',
     usuario_baja: '',
+    cantidad: '', // Agregar campo cantidad
     imagen: null
   });
 
   const [errors, setErrors] = useState({
     motivo_baja: '',
     usuario_baja: '',
+    cantidad: '', // Agregar campo cantidad
     imagen: ''
   });
 
@@ -19,6 +21,7 @@ const ModalBaja = ({ isOpen, onClose, onSave, articleData }) => {
     const newErrors = {
       motivo_baja: '',
       usuario_baja: '',
+      cantidad: '', // Validación para cantidad
       imagen: ''
     };
 
@@ -31,6 +34,15 @@ const ModalBaja = ({ isOpen, onClose, onSave, articleData }) => {
 
     if (formData.usuario_baja.trim() === '') {
       newErrors.usuario_baja = 'El usuario es requerido';
+      isValid = false;
+    }
+
+    // Validar cantidad
+    if (formData.cantidad.trim() === '') {
+      newErrors.cantidad = 'La cantidad es requerida';
+      isValid = false;
+    } else if (isNaN(formData.cantidad) || formData.cantidad <= 0) {
+      newErrors.cantidad = 'La cantidad debe ser un número positivo';
       isValid = false;
     }
 
@@ -96,6 +108,7 @@ const ModalBaja = ({ isOpen, onClose, onSave, articleData }) => {
       const sendData = new FormData();
       sendData.append('motivo_baja', formData.motivo_baja);
       sendData.append('usuario_baja', formData.usuario_baja);
+      sendData.append('cantidad', formData.cantidad); // Agregar cantidad
       if (formData.imagen) {
         sendData.append('imagen', formData.imagen);
       }
@@ -198,6 +211,24 @@ const ModalBaja = ({ isOpen, onClose, onSave, articleData }) => {
               />
               {errors.usuario_baja && (
                 <p className="text-red-500 text-sm mt-1">{errors.usuario_baja}</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Cantidad
+              </label>
+              <input
+                type="number"
+                name="cantidad"
+                className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
+                  errors.cantidad ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="Cantidad del artículo"
+                value={formData.cantidad}
+                onChange={handleInputChange}
+              />
+              {errors.cantidad && (
+                <p className="text-red-500 text-sm mt-1">{errors.cantidad}</p>
               )}
             </div>
           </div>

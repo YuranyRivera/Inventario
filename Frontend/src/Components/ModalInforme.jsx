@@ -6,7 +6,7 @@ import 'jspdf-autotable'; // Para la tabla en PDF
 const ModalInforme = ({ isOpen, onClose, data }) => {
   if (!isOpen) return null;
 
-  const headers = ['FECHA DE SOLICIUTD', 'DESCRIPCION DEL PROUDCTO', 'CANTIDAD', 'FECHA DE ENTREGA', 'FIRMA DE ENTREGA'];
+  const headers = ['FECHA DE SOLICITUD', 'DESCRIPCION DEL PRODUCTO', 'CANTIDAD', 'FECHA DE ENTREGA', 'FIRMA DE ENTREGA'];
 
   const exportToExcel = () => {
     const worksheetData = [

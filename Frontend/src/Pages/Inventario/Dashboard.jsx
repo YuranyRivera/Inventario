@@ -15,6 +15,7 @@ const Dashboard = () => {
   const [totalArticulosAlmacenamiento, setTotalArticulosAlmacenamiento] = useState(0);
   const [actividadReciente, setActividadReciente] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [totalHistorialBajas, setTotalHistorialBajas] = useState(0);
 
   const resumenHeaders = ['Artículos Totales', 'Artículos Administrativos', 'Artículos Aux. Mantenimiento'];
   const actividadHeaders = ['Fecha ', 'Tipo de reporte', 'Descripcion'];
@@ -33,17 +34,18 @@ const Dashboard = () => {
   };
 
   const barData = {
-    labels: ['Artículos Administrativos', 'Artículos Aux. Mantenimiento'],
+    labels: [ 'Artículos Activos', 'Articulo Inactivos'],
     datasets: [
       {
         label: 'Cantidad',
-        data: [totalArticulosActivos, totalArticulosAlmacenamiento],
-        backgroundColor: ['#00A305', '#fef200'],
-        borderColor: ['#00A305', '#FFEB50'],
+        data: [ totalArticulosAlmacenamiento, totalHistorialBajas],
+        backgroundColor: ['#00A305', '#FF5733'],
+        borderColor: [ '#FFEB50', '#FF5733'],
         borderWidth: 1,
       },
     ],
   };
+  
 
   const barOptions = {
     responsive: true,
@@ -53,7 +55,7 @@ const Dashboard = () => {
       },
       title: {
         display: true,
-        text: 'Distribución de Artículos',
+        text: 'Grafico de Aux Mantenimiento',
       },
     },
   };
@@ -65,39 +67,44 @@ const Dashboard = () => {
           activosResponse,
           inactivosResponse,
           almacenamientoResponse,
+          historialResponse,
           actividadResponse,
         ] = await Promise.all([
           fetch('http://localhost:4000/api/total-activos'),
           fetch('http://localhost:4000/api/total-inactivos'),
           fetch('http://localhost:4000/api/total-articulos-almacenamiento'),
+          fetch('http://localhost:4000/api/total-historial-bajas'), // Nueva API
           fetch('http://localhost:4000/api/ultimo-registro'),
         ]);
-
+  
         const activosData = await activosResponse.json();
         const inactivosData = await inactivosResponse.json();
         const almacenamientoData = await almacenamientoResponse.json();
+        const historialData = await historialResponse.json(); // Nueva API
         const actividadData = await actividadResponse.json();
-
+  
         setTotalArticulosActivos(activosData.total_activos);
         setTotalArticulosInactivos(inactivosData.total_inactivos);
         setTotalArticulosAlmacenamiento(almacenamientoData.total_registros);
-
+        setTotalHistorialBajas(historialData.total_historial); // Guardar total historial de bajas
+  
         if (actividadData) {
           const fechaFormateada = new Date(actividadData.fecha).toLocaleDateString();
           setActividadReciente([
             [fechaFormateada, actividadData.tipo_tabla, actividadData.descripcion],
           ]);
         }
-
-        setIsLoading(false); // Una vez que todos los datos están cargados, ocultar el loader
+  
+        setIsLoading(false); 
       } catch (error) {
         console.error('Error al cargar los datos:', error);
-        setIsLoading(false); // Incluso en caso de error, ocultar el loader
+        setIsLoading(false);
       }
     };
-
+  
     fetchData();
   }, []);
+  
 
   return (
     <DashboardLayout>

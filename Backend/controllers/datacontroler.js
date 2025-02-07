@@ -67,13 +67,13 @@ export const eliminarArticuloAlmacenamiento = async (req, res) => {
 
     const articulo = articuloResult.rows[0];
     const { motivo_baja, usuario_baja } = req.body;
-
+    const cantidad = articulo.cantidad; 
     const insertResult = await pool.query(
-      `INSERT INTO articulos_baja_historial 
-      (id_articulo, producto, motivo_baja, usuario_baja, imagen_baja) 
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING *`,
-      [id, articulo.producto, motivo_baja, usuario_baja, imagen_url]
+      `INSERT INTO public.articulos_baja_historial 
+      (id_articulo, producto, motivo_baja, usuario_baja, imagen_baja, cantidad)
+    VALUES ($1, $2, $3, $4, $5, $6) 
+    RETURNING *;`,
+      [id, articulo.producto, motivo_baja, usuario_baja, imagen_url, cantidad]
     );
 
    
@@ -222,6 +222,20 @@ export const obtenerTotalArticulosInactivos = async (req, res) => {
     });
   }
 };
+
+export const obtenerTotalArticulosBajaHistorial = async (req, res) => {
+  try {
+    const result = await pool.query('SELECT COUNT(*) AS total_historial FROM articulos_baja_historial');
+    res.status(200).json(result.rows[0]); // Devuelve el total de artículos en el historial de bajas
+  } catch (error) {
+    console.error('Error al obtener el total de artículos en el historial de bajas:', error);
+    res.status(500).json({
+      message: 'Error al obtener el total de artículos en el historial de bajas',
+      details: error.message,
+    });
+  }
+};
+
 export const eliminarArticuloBaja = async (req, res) => {
   const { id } = req.params; // Obtiene el ID desde los parámetros de la ruta
 

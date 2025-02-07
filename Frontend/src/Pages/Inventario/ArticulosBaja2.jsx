@@ -100,6 +100,7 @@ const HistorialBajas = () => {
           item.id,
           item.producto,
           item.motivo_baja,
+          
           formatDate(item.fecha_baja),
           item.usuario_baja,
           item.imagen_baja ? (
@@ -214,78 +215,179 @@ const filteredRows = rows.map(row => row.slice(0, row.length - 2));
  
   const handleRowPDF = (row) => {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    
+    // Definir colores corporativos
+    const colors = {
+      primary: [0, 163, 5], 
+      secondary: [88, 88, 88],
+      text: [51, 51, 51],
+      accent: [242, 242, 242]
+    };
   
-    const imagePath = '/Img/encabezado.png';
-    const imgHeader = new Image();
-    imgHeader.src = imagePath;
-  
-    imgHeader.onload = () => {
-      // Agregar encabezado con imagen
-      const imgWidth = 190;
-      const imgHeight = (imgHeader.height * imgWidth) / imgHeader.width;
-      const x = (doc.internal.pageSize.width - imgWidth) / 2;
-      const y = 10;
-  
-      doc.addImage(imgHeader, 'PNG', x, y, imgWidth, imgHeight);
-  
-      const titleY = y + imgHeight + 10;
-  
-      // Título del reporte
-      doc.setFontSize(18);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(0, 163, 5); // Verde profesional
-      doc.text('Reporte de Baja', 105, titleY, { align: 'center' });
-      doc.setDrawColor(0, 163, 5);
-      doc.line(20, titleY + 5, 190, titleY + 5); // Línea debajo del título
-  
-      // Datos del reporte
-      const columns = ['ID', 'Artículo', 'Motivo de Baja', 'Fecha de Baja', 'Usuario'];
-      const startY = titleY + 20;
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 0); // Negro para el texto
-  
-      columns.forEach((col, index) => {
-        const yPosition = startY + (index * 10);
-        doc.setTextColor(0, 163, 5); // Verde para los títulos
-        doc.text(`${col}:`, 20, yPosition);
-        doc.setTextColor(0, 0, 0); // Negro para los valores
-        doc.text(`${row[index]}`, 60, yPosition);
-      });
-  
-      // Imagen del artículo (si está disponible)
-      if (row[5] && typeof row[5] === 'string') {
-        const img = new Image();
-        img.src = row[5];
-  
-        img.onload = () => {
-          doc.setFontSize(12);
-          doc.setTextColor(0, 163, 5);
-          doc.text('Imagen:', 20, startY + (columns.length * 10) + 10);
-          doc.addImage(img, 'PNG', 20, startY + (columns.length * 10) + 15, 100, 70); // Imagen alineada
-          doc.save(`baja_${row[0]}.pdf`);
-        };
-  
-        img.onerror = () => {
-          // Si ocurre un error al cargar la imagen
-          doc.setFontSize(12);
-          doc.setTextColor(255, 0, 0); // Rojo para advertencia
-          doc.text('Imagen: No disponible', 20, startY + (columns.length * 10) + 10);
-          doc.save(`baja_${row[0]}.pdf`);
-        };
-      } else {
-        // Si no hay imagen
-        doc.setFontSize(12);
-        doc.setTextColor(255, 0, 0); // Rojo para advertencia
-        doc.text('Imagen: No disponible', 20, startY + (columns.length * 10) + 10);
-        doc.save(`baja_${row[0]}.pdf`);
+    // Configuración de estilos
+    const styles = {
+      header: {
+        fontSize: 20,
+        fontStyle: 'bold',
+        color: colors.primary
+      },
+      subheader: {
+        fontSize: 14,
+        fontStyle: 'bold',
+        color: colors.secondary
+      },
+      normal: {
+        fontSize: 11,
+        fontStyle: 'normal',
+        color: colors.text
       }
     };
-
-  imgHeader.onerror = () => {
-    alert('Error cargando la imagen de encabezado.');
+  
+    // Función para manejar texto largo
+    const addWrappedText = (text, x, y, maxWidth) => {
+      doc.setFontSize(styles.normal.fontSize);
+      const lines = doc.splitTextToSize(text, maxWidth);
+      doc.text(lines, x, y);
+      return (lines.length * 7); // Retorna el alto total del texto
+    };
+  
+    const loadImage = (imagePath) => {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = imagePath;
+      });
+    };
+  
+    const addHeader = async () => {
+      try {
+        const headerImage = await loadImage('/Img/encabezado.png');
+        const imgWidth = 190;
+        const imgHeight = (headerImage.height * imgWidth) / headerImage.width;
+        const x = (doc.internal.pageSize.width - imgWidth) / 2;
+        doc.addImage(headerImage, 'PNG', x, 10, imgWidth, imgHeight);
+        return 10 + imgHeight;
+      } catch (error) {
+        console.error('Error al cargar el encabezado:', error);
+        return 10;
+      }
+    };
+  
+    const addTitle = (yPosition) => {
+      doc.setFillColor(...colors.accent);
+      doc.rect(0, yPosition, doc.internal.pageSize.width, 15, 'F');
+      
+      doc.setFontSize(styles.header.fontSize);
+      doc.setFont('helvetica', styles.header.fontStyle);
+      doc.setTextColor(...colors.primary);
+      doc.text('Reporte de Baja', doc.internal.pageSize.width / 2, yPosition + 10, { align: 'center' });
+      
+      return yPosition + 25;
+    };
+  
+    const addDetails = (yPosition) => {
+      const columns = [
+        { label: 'ID', value: row[0] },
+        { label: 'Artículo', value: row[1] },
+        { label: 'Fecha de Baja', value: row[3] },
+        { label: 'Usuario', value: row[4] }
+      ];
+  
+      let currentY = yPosition;
+  
+      // Agregar datos básicos
+      columns.forEach((col) => {
+        doc.setFontSize(styles.subheader.fontSize);
+        doc.setFont('helvetica', styles.subheader.fontStyle);
+        doc.setTextColor(...colors.secondary);
+        doc.text(col.label, 20, currentY);
+        
+        doc.setFontSize(styles.normal.fontSize);
+        doc.setFont('helvetica', styles.normal.fontStyle);
+        doc.setTextColor(...colors.text);
+        doc.text(col.value?.toString() || '', 60, currentY);
+        
+        currentY += 10;
+      });
+  
+      // Agregar motivo de baja con manejo especial para texto largo
+      currentY += 5;
+      doc.setFontSize(styles.subheader.fontSize);
+      doc.setFont('helvetica', styles.subheader.fontStyle);
+      doc.setTextColor(...colors.secondary);
+      doc.text('Motivo de Baja:', 20, currentY);
+      
+      currentY += 7;
+      const textHeight = addWrappedText(
+        row[2]?.toString() || '',
+        20,
+        currentY,
+        170 // Ancho máximo para el texto
+      );
+  
+      return currentY + textHeight + 10;
+    };
+  
+    const addImage = async (yPosition) => {
+      if (row[5] && typeof row[5] === 'string') {
+        try {
+          const img = await loadImage(row[5]);
+          
+          doc.setFillColor(...colors.accent);
+          doc.rect(20, yPosition - 5, 170, 90, 'F');
+          
+          doc.setFontSize(styles.subheader.fontSize);
+          doc.setFont('helvetica', styles.subheader.fontStyle);
+          doc.setTextColor(...colors.secondary);
+          doc.text('Imagen del Artículo:', 30, yPosition + 5);
+          
+          const maxWidth = 150;
+          const maxHeight = 70;
+          let imgWidth = maxWidth;
+          let imgHeight = (img.height * maxWidth) / img.width;
+          
+          if (imgHeight > maxHeight) {
+            imgHeight = maxHeight;
+            imgWidth = (img.width * maxHeight) / img.height;
+          }
+          
+          const x = 30 + (maxWidth - imgWidth) / 2;
+          doc.addImage(img, 'PNG', x, yPosition + 10, imgWidth, imgHeight);
+        } catch (error) {
+          doc.setTextColor(180, 0, 0);
+          doc.text('Imagen no disponible', 30, yPosition + 30);
+        }
+      }
+    };
+  
+    const generatePDF = async () => {
+      let currentY = await addHeader();
+      currentY = addTitle(currentY);
+      currentY = addDetails(currentY);
+      await addImage(currentY);
+      
+      // Pie de página
+      const pageCount = doc.internal.getNumberOfPages();
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(8);
+      doc.setTextColor(...colors.secondary);
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.text(
+          `Página ${i} de ${pageCount}`,
+          doc.internal.pageSize.width / 2,
+          doc.internal.pageSize.height - 10,
+          { align: 'center' }
+        );
+      }
+      
+      doc.save(`baja_${row[0]}.pdf`);
+    };
+  
+    generatePDF();
   };
-};
+
 
 const handleDeleteClick = (row) => {
   setSelectedRowToDelete(row);

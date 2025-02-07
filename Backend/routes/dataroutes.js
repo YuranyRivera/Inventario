@@ -5,7 +5,7 @@ import { upload } from '../middleware/uploadConfig.js';
 import {  obtenerArticulosBajaHistorial,
   eliminarMovimiento, eliminarArticuloHistorial,
 
-  eliminarArticuloAlmacenamiento, handleMulterError , obtenerTotalArticulosAlmacenamiento, getUltimoRegistro, obtenerTotalArticulosActivos, obtenerTotalArticulosInactivos, eliminarArticuloBaja, editarTraslado, obtenerArticulosBaja, eliminarTraslado, getTraslados, insertarTraslado, getProductosPorUbicacion, editarArticuloAdministrativo, eliminarArticuloAdministrativo, updateMovimiento, getArticulosAdministrativos, deleteMovimiento, getLastArticuloAdministrativoId, createArticuloAdministrativo, updateProfile, updatePassword, checkIfUserExists, checkEmailExists,editarPerfil, crearUsuario, obtenerUsuarios, eliminarUsuario,   loginUser, editarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createArticulo } from '../controllers/datacontroler.js';
+  eliminarArticuloAlmacenamiento, handleMulterError , obtenerTotalArticulosBajaHistorial,  obtenerTotalArticulosAlmacenamiento, getUltimoRegistro, obtenerTotalArticulosActivos, obtenerTotalArticulosInactivos, eliminarArticuloBaja, editarTraslado, obtenerArticulosBaja, eliminarTraslado, getTraslados, insertarTraslado, getProductosPorUbicacion, editarArticuloAdministrativo, eliminarArticuloAdministrativo, updateMovimiento, getArticulosAdministrativos, deleteMovimiento, getLastArticuloAdministrativoId, createArticuloAdministrativo, updateProfile, updatePassword, checkIfUserExists, checkEmailExists,editarPerfil, crearUsuario, obtenerUsuarios, eliminarUsuario,   loginUser, editarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createArticulo } from '../controllers/datacontroler.js';
 import jwt from 'jsonwebtoken';
 
 import bcrypt from 'bcrypt';
@@ -28,6 +28,8 @@ router.get('/total-articulos-almacenamiento', obtenerTotalArticulosAlmacenamient
 
 // Rutas para obtener el número total de artículos activos e inactivos
 router.get('/total-activos', obtenerTotalArticulosActivos);
+router.get('/total-historial-bajas', obtenerTotalArticulosBajaHistorial);
+
 router.get('/total-inactivos', obtenerTotalArticulosInactivos);
 // Ruta para eliminar un artículo por ID
 router.delete('/articulos_baja/:id', eliminarArticuloBaja);
