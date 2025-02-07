@@ -1,20 +1,29 @@
-# Usa una imagen ligera de Node.js
-FROM node:18-alpine
+# Usa una imagen ligera de Node.js para construir
+FROM node:18-alpine AS builder
 
-# Configura el directorio de trabajo
 WORKDIR /app
 
-# Copia los archivos de dependencias
+# Copia archivos de dependencias
 COPY package.json package-lock.json ./
 
-# Instala TODAS las dependencias (incluyendo devDependencies)
-RUN npm install
+# Instala dependencias
+RUN npm install 
 
 # Copia el resto del código
 COPY . .
 
-# Expone el puerto 5173
-EXPOSE 5173
+# Construye la aplicación
+RUN npm run build
 
-# Comando de inicio
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+# ---- Segunda etapa ----
+FROM nginx:alpine
+
+# Copia el archivo de configuración de Nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copia solo los archivos de producción
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
