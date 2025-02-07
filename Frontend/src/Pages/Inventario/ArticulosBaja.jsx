@@ -6,7 +6,7 @@ import * as XLSX from 'xlsx';
 import { Search } from 'lucide-react';
 import DateInput from '../../Components/DateInput';
 import CategorySelect from '../../Components/CategorySelect';
-import DashboardLayout from '../../layouts/DashboardLayout';
+import DashboardLayout from '../../Layouts/DashboardLayout';
 import TablaArt from '../../Components/TablaArt';
 import BotonPrincipal from '../../Components/Boton';
 import ModalConfirmacion from '../../Components/ModalConf';
@@ -110,7 +110,7 @@ const [articuloToDelete, setArticuloToDelete] = useState(null);
     const fetchArticulosBaja = async () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
       try {
-        const response = await fetch('http://localhost:4000/api/articulos_baja');
+        const response = await fetch('https://inventarioschool-v1.onrender.com/api/articulos_baja');
         if (!response.ok) {
           throw new Error('Error al obtener los datos');
         }
@@ -142,7 +142,7 @@ const [articuloToDelete, setArticuloToDelete] = useState(null);
     const id = row[0];
     try {
       // Eliminar el artículo
-      const response = await fetch(`http://localhost:4000/api/articulos_baja/${id}`, {
+      const response = await fetch(`https://inventarioschool-v1.onrender.com/api/articulos_baja/${id}`, {
         method: 'DELETE',
       });
 
@@ -155,7 +155,7 @@ const [articuloToDelete, setArticuloToDelete] = useState(null);
 
       // Recargar los artículos después de eliminar uno
       setTimeout(async () => {
-        const response = await fetch('http://localhost:4000/api/articulos_baja');
+        const response = await fetch('https://inventarioschool-v1.onrender.com/api/articulos_baja');
         if (!response.ok) {
           throw new Error('Error al obtener los datos');
         }

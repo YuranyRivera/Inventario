@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import DashboardLayout from '../../layouts/DashboardLayout';
+import DashboardLayout from '../../Layouts/DashboardLayout';
 import Table from '../../Components/Table';
 import { Pie } from 'react-chartjs-2';
 import { Bar } from 'react-chartjs-2';
@@ -67,10 +67,10 @@ const Dashboard = () => {
           almacenamientoResponse,
           actividadResponse,
         ] = await Promise.all([
-          fetch('http://localhost:4000/api/total-activos'),
-          fetch('http://localhost:4000/api/total-inactivos'),
-          fetch('http://localhost:4000/api/total-articulos-almacenamiento'),
-          fetch('http://localhost:4000/api/ultimo-registro'),
+          fetch('https://inventarioschool-v1.onrender.com/api/total-activos'),
+          fetch('https://inventarioschool-v1.onrender.com/api/total-inactivos'),
+          fetch('https://inventarioschool-v1.onrender.com/api/total-articulos-almacenamiento'),
+          fetch('https://inventarioschool-v1.onrender.com/api/ultimo-registro'),
         ]);
 
         const activosData = await activosResponse.json();

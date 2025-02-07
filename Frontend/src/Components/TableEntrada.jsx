@@ -15,7 +15,7 @@ const TableEntrada = ({ headers, rows, setRows, reloadArticulos }) => {
     setLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:4000/api/movimiento/${movimientoId}`);
+      const response = await fetch(`https://inventarioschool-v1.onrender.com/api/movimiento/${movimientoId}`);
       if (!response.ok) throw new Error('Error al obtener los detalles');
       const data = await response.json();
       setModalData(data);
@@ -43,7 +43,7 @@ const TableEntrada = ({ headers, rows, setRows, reloadArticulos }) => {
     setLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:4000/api/eliminar-movimiento/${deleteRowId}`, {
+      const response = await fetch(`https://inventarioschool-v1.onrender.com/api/eliminar-movimiento/${deleteRowId}`, {
         method: 'DELETE',
       });
 

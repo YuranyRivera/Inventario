@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AuxMaintenanceTable from '../../Components/Moduloadmin';
-import DashboardLayout from '../../layouts/DashboardLayout';
+import DashboardLayout from '../../Layouts/DashboardLayout';
 import { Search } from 'lucide-react';
 import Select from 'react-select';
 import CategorySelect from '../../Components/CategorySelect';
@@ -49,7 +49,7 @@ const Moduloadmin = () => {
     const fetchTraslados = async () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
       try {
-        const response = await fetch('http://localhost:4000/api/traslados');
+        const response = await fetch('https://inventarioschool-v1.onrender.com/api/traslados');
         const data = await response.json();
 
         const formattedRows = data.map((traslado) => {
@@ -80,7 +80,7 @@ const Moduloadmin = () => {
       const formattedDate = formatDate(editedRowData.fecha);
       const formattedData = { ...editedRowData, fecha: formattedDate };
 
-      const response = await fetch(`http://localhost:4000/api/traslados/${formattedData.id}`, {
+      const response = await fetch(`https://inventarioschool-v1.onrender.com/api/traslados/${formattedData.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formattedData),
@@ -110,7 +110,7 @@ const Moduloadmin = () => {
     const id = rowToDelete.id;
   
     try {
-      const response = await fetch(`http://localhost:4000/api/traslados/${id}`, {
+      const response = await fetch(`https://inventarioschool-v1.onrender.com/api/traslados/${id}`, {
         method: 'DELETE',
       });
   

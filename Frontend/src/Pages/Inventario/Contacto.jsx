@@ -57,7 +57,7 @@ const Contactos = () => {
   const fetchContactos = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get('http://localhost:4000/api/usuarios');
+      const response = await axios.get('https://inventarioschool-v1.onrender.com/api/usuarios');
       setContactos(response.data);
     } catch (error) {
       console.error('Error al obtener los usuarios:', error);
@@ -81,7 +81,7 @@ const Contactos = () => {
     setIsLoading(true);
     
     try {
-      await axios.delete(`http://localhost:4000/api/usuarios/${userToDelete}`);
+      await axios.delete(`https://inventarioschool-v1.onrender.com/api/usuarios/${userToDelete}`);
       await fetchContactos();
       setMessage('Usuario eliminado exitosamente');
       setIsConfirmModalOpen(true);
@@ -155,7 +155,7 @@ const Contactos = () => {
     };
 
     try {
-      await axios.post('http://localhost:4000/api/usuarios', nuevoContacto);
+      await axios.post('https://inventarioschool-v1.onrender.com/api/usuarios', nuevoContacto);
       await fetchContactos();
       setMessage('Usuario guardado exitosamente!');
       setIsConfirmModalOpen(true);

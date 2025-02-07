@@ -8,7 +8,7 @@ import {  obtenerArticulosBajaHistorial,
   eliminarArticuloAlmacenamiento, handleMulterError , obtenerTotalArticulosAlmacenamiento, getUltimoRegistro, obtenerTotalArticulosActivos, obtenerTotalArticulosInactivos, eliminarArticuloBaja, editarTraslado, obtenerArticulosBaja, eliminarTraslado, getTraslados, insertarTraslado, getProductosPorUbicacion, editarArticuloAdministrativo, eliminarArticuloAdministrativo, updateMovimiento, getArticulosAdministrativos, deleteMovimiento, getLastArticuloAdministrativoId, createArticuloAdministrativo, updateProfile, updatePassword, checkIfUserExists, checkEmailExists,editarPerfil, crearUsuario, obtenerUsuarios, eliminarUsuario,   loginUser, editarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createArticulo } from '../controllers/datacontroler.js';
 import jwt from 'jsonwebtoken';
 
-import bcrypt from 'bcrypt';
+import bcryptjs from 'bcryptjs';
 
 
 import { verifyToken } from '../middleware/authMiddleware.js';
@@ -145,7 +145,7 @@ router.post('/update-profile', verifyToken, async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    const isMatch = await bcrypt.compare(currentPassword, result.rows[0].contraseña);
+    const isMatch = await bcryptjs.compare(currentPassword, result.rows[0].contraseña);
     if (!isMatch) {
       return res.status(400).json({ error: 'Contraseña actual incorrecta' });
     }
@@ -168,7 +168,7 @@ router.post('/update-profile', verifyToken, async (req, res) => {
     }
 
     if (newPassword) {
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      const hashedPassword = await bcryptjs.hash(newPassword, 10);
       query += ` contraseña = $${valueIndex},`;
       values.push(hashedPassword);
       valueIndex++;

@@ -84,7 +84,7 @@ const ActualizarContrasena = () => {
     try {
       const requestBody = { token, email: correo, newPassword: contrasena };
   
-      const response = await fetch('http://localhost:4000/api/update-password', {
+      const response = await fetch('https://inventarioschool-v1.onrender.com/api/update-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -7,7 +7,7 @@ import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { Search, Image as ImageIcon } from 'lucide-react';
 import DateInput from '../../Components/DateInput';
-import DashboardLayout from '../../layouts/DashboardLayout';
+import DashboardLayout from '../../Layouts/DashboardLayout';
 import TablaArt from '../../Components/TablaArt';
 import '@dotlottie/player-component';
 import ModalConfi from '../../Components/ModalConf';
@@ -91,7 +91,7 @@ const HistorialBajas = () => {
     const fetchHistorialBajas = async () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
       try {
-        const response = await fetch('http://localhost:4000/api/articulos-baja-historial');
+        const response = await fetch('https://inventarioschool-v1.onrender.com/api/articulos-baja-historial');
         if (!response.ok) {
           throw new Error('Error al obtener los datos');
         }
@@ -295,7 +295,7 @@ const handleConfirmDelete = async () => {
   setIsLoading(true); // Mostrar el loader
   const id = selectedRowToDelete[0];
   try {
-    const response = await fetch(`http://localhost:4000/api/articulos_baja_historial/${id}`, {
+    const response = await fetch(`https://inventarioschool-v1.onrender.com/api/articulos_baja_historial/${id}`, {
       method: 'DELETE',
     });
 

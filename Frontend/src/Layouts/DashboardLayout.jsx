@@ -10,7 +10,7 @@ const DashboardLayout = ({ children }) => {
   const handleLogout = async () => {
     setLoading(true); // Mostrar el loader
     try {
-      await fetch('http://localhost:4000/api/logout', {
+      await fetch('https://inventarioschool-v1.onrender.com/api/logout', {
         method: 'POST',
         credentials: 'include'
       });

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DashboardLayout from '../../layouts/DashboardLayout';
+import DashboardLayout from '../../Layouts/DashboardLayout';
 
 import BotonPrincipal from '../../Components/Boton';
 import BotonSecundario from '../../Components/BotonSecundario';

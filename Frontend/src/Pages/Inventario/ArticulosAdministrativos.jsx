@@ -202,7 +202,7 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
         precio: currencyToNumber(editedRowData.precio)  // Convertir el precio a número
       };
   
-      const response = await fetch(`http://localhost:4000/api/articulos_administrativos/${editedRowData.id}`, {
+      const response = await fetch(`https://inventarioschool-v1.onrender.com/api/articulos_administrativos/${editedRowData.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -233,7 +233,7 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
     }
 
     try {
-      const url = `http://localhost:4000/api/articulos_administrativos/${articuloToDelete.id}`;
+      const url = `https://inventarioschool-v1.onrender.com/api/articulos_administrativos/${articuloToDelete.id}`;
 
       const response = await fetch(url, {
         method: 'DELETE',

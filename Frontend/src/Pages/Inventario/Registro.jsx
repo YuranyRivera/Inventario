@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import TableEntrada from '../../Components/TableEntrada';
-import DashboardLayout from '../../layouts/DashboardLayout';
+import DashboardLayout from '../../Layouts/DashboardLayout';
 import { useNavigate } from 'react-router-dom';
 import '@dotlottie/player-component';
 
@@ -17,7 +17,7 @@ const Example = () => {
       setIsLoading(true);
       
       try {
-        const response = await fetch('http://localhost:4000/api/reporte-general');
+        const response = await fetch('https://inventarioschool-v1.onrender.com/api/reporte-general');
         if (!response.ok) {
           throw new Error('Error al obtener el reporte general');
         }

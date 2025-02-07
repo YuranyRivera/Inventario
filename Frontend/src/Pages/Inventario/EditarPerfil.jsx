@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import DashboardLayout from '../../layouts/DashboardLayout';
+import DashboardLayout from '../../Layouts/DashboardLayout';
 import InputField from '../../Components/InputField';
 import Boton from '../../Components/Boton';
 import { useUser } from '../../Context/UserContext';
@@ -136,7 +136,7 @@ const EditarPerfil = () => {
     }
   
     try {
-      const response = await fetch('http://localhost:4000/api/update-profile', {
+      const response = await fetch('https://inventarioschool-v1.onrender.com/api/update-profile', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

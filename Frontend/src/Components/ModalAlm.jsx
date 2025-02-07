@@ -17,7 +17,7 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
   useEffect(() => {
     const fetchLastId = async () => {
       try {
-        const response = await fetch('http://localhost:4000/api/articulos/last-id');
+        const response = await fetch('https://inventarioschool-v1.onrender.com/api/articulos/last-id');
         const data = await response.json();
         setRows([{ id: data.id + 1, modulo: '', estante: '', cantidad: '', producto: '', estado: '' }]);
       } catch (error) {

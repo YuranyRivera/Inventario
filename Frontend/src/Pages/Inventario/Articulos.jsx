@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import DashboardLayout from '../../layouts/DashboardLayout';
+import DashboardLayout from '../../Layouts/DashboardLayout';
 import CheckboxGroup from '../../Components/CheckboxGroup';
 import ButtonGroup from '../../Components/ButtonGroup';
 import ArticulosAdministrativos from '../Inventario/ArticulosAdministrativos';

@@ -21,7 +21,7 @@ const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
     const id = selectedArticulo.id;
   
     try {
-      const response = await fetch(`http://localhost:4000/api/articulos-baja/${id}`, {
+      const response = await fetch(`https://inventarioschool-v1.onrender.com/api/articulos-baja/${id}`, {
         method: 'POST',
         body: formData
       });
@@ -85,7 +85,7 @@ const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
 
   const handleSave = async () => {
     try {
-      const response = await fetch(`http://localhost:4000/api/articulos/${editedRowData.id}`, {
+      const response = await fetch(`https://inventarioschool-v1.onrender.com/api/articulos/${editedRowData.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editedRowData),

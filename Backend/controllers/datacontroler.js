@@ -2,7 +2,7 @@ import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import { pool } from '../config/db.js';
 import fs from 'fs';
-import bcrypt from 'bcrypt';
+import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 // Configure Cloudinary
 cloudinary.config({
@@ -642,7 +642,7 @@ export const updatePassword = async (req, res) => {
 
     // Step 2: Hash the new password
     const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+    const hashedPassword = await bcryptjs.hash(newPassword, saltRounds);
 
     // Step 3: Update the password in the database
     const client = await pool.connect();
@@ -700,8 +700,8 @@ export const crearUsuario = async (req, res) => {
   console.log('Datos recibidos en el backend:', req.body); // Verificar qué datos están llegando
 
   // Cifrar la contraseña
-  const salt = await bcrypt.genSalt(10); // Genera un "salt" con 10 rondas de cifrado
-  const hashedPassword = await bcrypt.hash(password, salt); // Cifra la contraseña
+  const salt = await bcryptjs.genSalt(10); // Genera un "salt" con 10 rondas de cifrado
+  const hashedPassword = await bcryptjs.hash(password, salt); // Cifra la contraseña
 
   try {
     const result = await pool.query(
@@ -1268,7 +1268,7 @@ export const loginUser = async (correo, contraseña) => {
         return null;
       }
 
-      const match = await bcrypt.compare(contraseña, user.contraseña);
+      const match = await bcryptjs.compare(contraseña, user.contraseña);
       if (match) {
         const token = jwt.sign(
           { id: user.id, rol: user.rol, correo: user.correo },
@@ -1309,7 +1309,7 @@ export const updateUserProfile = async (userId, currentPassword, newPassword, no
     const storedHashedPassword = userVerificationResult.rows[0].contraseña;
     
     // Verify current password
-    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, storedHashedPassword);
+    const isCurrentPasswordValid = await bcryptjs.compare(currentPassword, storedHashedPassword);
     if (!isCurrentPasswordValid) {
       throw new Error('Contraseña actual incorrecta');
     }
@@ -1319,7 +1319,7 @@ export const updateUserProfile = async (userId, currentPassword, newPassword, no
     let values = [];
 
     // Hash new password if provided
-    const hashedNewPassword = newPassword ? await bcrypt.hash(newPassword, 10) : null;
+    const hashedNewPassword = newPassword ? await bcryptjs.hash(newPassword, 10) : null;
 
     // Construct dynamic update query
     const updateFields = [];

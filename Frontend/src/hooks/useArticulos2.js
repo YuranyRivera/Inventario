@@ -10,7 +10,7 @@ const useArticulosAdministrativos = () => {
     const fetchArticulos = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:4000/api/articulos-administrativos');
+        const response = await fetch('https://inventarioschool-v1.onrender.com/api/articulos-administrativos');
         console.log('Fetch response:', response); // Debugging log
 
         if (!response.ok) {

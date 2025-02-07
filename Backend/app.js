@@ -17,35 +17,44 @@ cloudinary.config({
 const app = express();
 const PORT = 4000;
 app.use(express.urlencoded({ extended: true }));
+
 // Define allowed origins
 const allowedOrigins = [
   'http://localhost:5173',   // Local development
-  'http://127.0.0.1:5173',   // Another local dev variation
-  'https://your-vercel-domain.app', // Replace with your actual deployed frontend domain
-  'https://your-netlify-domain.app' // Add other possible domains
+  'http://127.0.0.1:5173',   // Otra variante local
+  'https://front-inventarioschool-v1.onrender.com', // Frontend en Render
+  'https://inventarioschool-v1.onrender.com' // Backend en Render
 ];
 
 // CORS configuration
 const corsOptions = {
-    origin: function (origin, callback) {
-      // En desarrollo, permitir todos los orígenes
-      if (!origin || 
-          origin.includes('localhost') || 
-          origin.includes('127.0.0.1')) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-  };
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin) || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
 app.use(cors(corsOptions));
+
+// Permitir preflight requests
+app.options('*', cors(corsOptions));
+
+// Middleware para asegurar que las cabeceras CORS siempre estén presentes
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://front-inventarioschool-v1.onrender.com');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  next();
+});
 
 // Middleware
 app.use(express.json()); // Para procesar JSON en el cuerpo de la solicitud
-
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 

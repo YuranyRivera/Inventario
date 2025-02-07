@@ -17,7 +17,7 @@ const useMovimientosAlmacen = (isOpen, onClose, reloadArticulos) => {
   const fetchProductos = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:4000/api/productos');
+      const response = await fetch('https://inventarioschool-v1.onrender.com/api/productos');
       if (!response.ok) {
         throw new Error('Error al obtener productos');
       }
@@ -98,7 +98,7 @@ const useMovimientosAlmacen = (isOpen, onClose, reloadArticulos) => {
 
       console.log('Enviando movimiento:', movimiento);
 
-      const response = await fetch('http://localhost:4000/api/movimientos', {
+      const response = await fetch('https://inventarioschool-v1.onrender.com/api/movimientos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

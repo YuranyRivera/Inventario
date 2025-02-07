@@ -30,7 +30,7 @@ const OlvidarContrasena = () => {
 
     try {
       // Solicitud POST para recuperar contraseña
-      const response = await fetch('http://localhost:4000/api/reset-password', {
+      const response = await fetch('https://inventarioschool-v1.onrender.com/api/reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
