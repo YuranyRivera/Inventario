@@ -1,20 +1,20 @@
-import React, { useState } from 'react';
-import AdminArticlesTable from '../../Components/AdminArticlesTable';
-import { useNavigate } from 'react-router-dom'; 
-import CategorySelect from '../../Components/CategorySelect';
-import DateInput from '../../Components/DateInput';
-import { Search } from 'lucide-react';
-import ButtonGroup from '../../Components/PDF';
-import ExcelExportButton from '../../Components/Excel';
-import ModalConfirmacion from '../../Components/ModalConf';
-import ModalObservacion from '../../Components/ModalObs';
-import Select from 'react-select';
+import React, { useState } from "react";
+import AdminArticlesTable from "../../Components/AdminArticlesTable";
+import { useNavigate } from "react-router-dom";
+import CategorySelect from "../../Components/CategorySelect";
+import DateInput from "../../Components/DateInput";
+import { Search } from "lucide-react";
+import ButtonGroup from "../../Components/PDF";
+import ExcelExportButton from "../../Components/Excel";
+import ModalConfirmacion from "../../Components/ModalConf";
+import ModalObservacion from "../../Components/ModalObs";
+import Select from "react-select";
 
-const MAX_PRECIO = 9999999999 
+const MAX_PRECIO = 9999999999;
 const formatCurrency = (value) => {
-  if (!value && value !== 0) return '';
-  return new Intl.NumberFormat('es-CO', {
-    style: 'decimal',
+  if (!value && value !== 0) return "";
+  return new Intl.NumberFormat("es-CO", {
+    style: "decimal",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(value);
@@ -22,36 +22,50 @@ const formatCurrency = (value) => {
 
 const currencyToNumber = (value) => {
   if (!value && value !== 0) return 0;
-  const cleanValue = value.toString().replace(/\./g, '').replace(',', '.');
+  const cleanValue = value.toString().replace(/\./g, "").replace(",", ".");
   return Number(cleanValue);
 };
 
-
 const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
-  const headers = ['ID', 'Código', 'Fecha', 'Descripción', 'Proveedor', 'Ubicación', 'Observación', 'Precio'];
+  const headers = [
+    "ID",
+    "Código",
+    "Fecha",
+    "Descripción",
+    "Proveedor",
+    "Ubicación",
+    "Observación",
+    "Precio",
+  ];
 
   const ubicaciones = [
-    { value: 'Recepción', label: 'Recepción' },
-    { value: 'Tesorería', label: 'Tesorería' },
-    { value: 'Coordinación convivencia', label: 'Coordinación convivencia' },
-    { value: 'Rectoría', label: 'Rectoría' },
-    { value: 'Secretaría académica', label: 'Secretaría académica' },
-    { value: 'Coordinación académica', label: 'Coordinación académica' },
-    { value: 'Sala de profesores', label: 'Sala de profesores' },
-    { value: 'Aux contable y financiera', label: 'Aux contable y financiera' },
-    { value: 'Aux administrativa y contable', label: 'Aux administrativa y contable' },
-    { value: 'Contadora', label: 'Contadora' },
-    { value: 'Cocina', label: 'Cocina' },
-    { value: 'Almacén', label: 'Almacén' },
-    { value: 'Espacio de servicios generales', label: 'Espacio de servicios generales' },
-    { value: 'Sala audiovisuales', label: 'Sala audiovisuales' },
-    { value: 'Sala lúdica', label: 'Sala lúdica' },
-    { value: 'Capilla', label: 'Capilla' },
+    { value: "Recepción", label: "Recepción" },
+    { value: "Tesorería", label: "Tesorería" },
+    { value: "Coordinación convivencia", label: "Coordinación convivencia" },
+    { value: "Rectoría", label: "Rectoría" },
+    { value: "Secretaría académica", label: "Secretaría académica" },
+    { value: "Coordinación académica", label: "Coordinación académica" },
+    { value: "Sala de profesores", label: "Sala de profesores" },
+    { value: "Aux contable y financiera", label: "Aux contable y financiera" },
+    {
+      value: "Aux administrativa y contable",
+      label: "Aux administrativa y contable",
+    },
+    { value: "Contadora", label: "Contadora" },
+    { value: "Cocina", label: "Cocina" },
+    { value: "Almacén", label: "Almacén" },
+    {
+      value: "Espacio de servicios generales",
+      label: "Espacio de servicios generales",
+    },
+    { value: "Sala audiovisuales", label: "Sala audiovisuales" },
+    { value: "Sala lúdica", label: "Sala lúdica" },
+    { value: "Capilla", label: "Capilla" },
   ];
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedLocation, setSelectedLocation] = useState('');
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [editingRowIndex, setEditingRowIndex] = useState(null);
   const [editedRowData, setEditedRowData] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,7 +73,7 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
   const [articuloToDelete, setArticuloToDelete] = useState(null);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate(); // Hook para navegación
-  
+
   const handleCancel = () => {
     setEditingRowIndex(null);
     setEditedRowData({});
@@ -69,125 +83,139 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
   const validateRow = (row) => {
     const newErrors = {};
     if (!row.descripcion?.trim()) {
-      newErrors.descripcion = 'La descripción es requerida';
+      newErrors.descripcion = "La descripción es requerida";
     }
     if (!row.fecha?.trim()) {
-      newErrors.fecha = 'La fecha es requerida';
+      newErrors.fecha = "La fecha es requerida";
     }
     const precio = currencyToNumber(row.precio);
     if (!precio || precio <= 0) {
-      newErrors.precio = 'El precio debe ser mayor que 0';
+      newErrors.precio = "El precio debe ser mayor que 0";
     }
     if (precio > MAX_PRECIO) {
-      throw new Error('El precio excede el límite permitido');
+      throw new Error("El precio excede el límite permitido");
     }
     return newErrors;
   };
 
+  const filteredArticulos = articulos.filter((articulo) => {
+    const matchesSearch =
+      (articulo.descripcion || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      (articulo.proveedor || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      (articulo.ubicacion || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
 
-  const filteredArticulos = articulos.filter(articulo => {
-    const matchesSearch = 
-      (articulo.descripcion || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (articulo.proveedor || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (articulo.ubicacion || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesLocation =
+      !selectedLocation ||
+      articulo.ubicacion.trim() === selectedLocation.value.trim();
 
-    const matchesLocation = !selectedLocation || articulo.ubicacion === selectedLocation;
-    
     if (!fromDate && !toDate) return matchesSearch && matchesLocation;
-    
-    const fechaArticuloStr = articulo.fecha ? articulo.fecha.split('T')[0] : '';
-    const [year, month, day] = fechaArticuloStr.split('-').map(num => parseInt(num, 10));
+
+    const fechaArticuloStr = articulo.fecha ? articulo.fecha.split("T")[0] : "";
+    const [year, month, day] = fechaArticuloStr
+      .split("-")
+      .map((num) => parseInt(num, 10));
     const fechaArticulo = new Date(Date.UTC(year, month - 1, day));
-    
+
     let fechaInicio = null;
     let fechaFin = null;
-    
+
     if (fromDate) {
-      const [startYear, startMonth, startDay] = fromDate.split('-').map(num => parseInt(num, 10));
+      const [startYear, startMonth, startDay] = fromDate
+        .split("-")
+        .map((num) => parseInt(num, 10));
       fechaInicio = new Date(Date.UTC(startYear, startMonth - 1, startDay));
     }
-    
+
     if (toDate) {
-      const [endYear, endMonth, endDay] = toDate.split('-').map(num => parseInt(num, 10));
-      fechaFin = new Date(Date.UTC(endYear, endMonth - 1, endDay, 23, 59, 59, 999));
+      const [endYear, endMonth, endDay] = toDate
+        .split("-")
+        .map((num) => parseInt(num, 10));
+      fechaFin = new Date(
+        Date.UTC(endYear, endMonth - 1, endDay, 23, 59, 59, 999)
+      );
     }
 
     const cumpleFechaInicio = !fechaInicio || fechaArticulo >= fechaInicio;
     const cumpleFechaFin = !fechaFin || fechaArticulo <= fechaFin;
-    
-    return matchesSearch && matchesLocation && cumpleFechaInicio && cumpleFechaFin;
+
+    return (
+      matchesSearch && matchesLocation && cumpleFechaInicio && cumpleFechaFin
+    );
   });
 
   const formatDateForDisplay = (dateString) => {
-    if (!dateString) return '';
+    if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
+    return date.toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
     });
   };
 
-  const tableRows = filteredArticulos.map(articulo => ({
+  const tableRows = filteredArticulos.map((articulo) => ({
     id: articulo.id,
-    codigo: articulo.codigo || 'Nuevo Código',
+    codigo: articulo.codigo || "Nuevo Código",
     fecha: formatDateForDisplay(articulo.fecha),
-    descripcion: articulo.descripcion || '',
-    proveedor: articulo.proveedor || '',
-    ubicacion: articulo.ubicacion || '',
-    observacion: articulo.observacion || '',
-    precio: formatCurrency(articulo.precio)
+    descripcion: articulo.descripcion || "",
+    proveedor: articulo.proveedor || "",
+    ubicacion: articulo.ubicacion || "",
+    observacion: articulo.observacion || "",
+    precio: formatCurrency(articulo.precio),
   }));
 
   const handleEdit = (row, index) => {
-    const [day, month, year] = row.fecha.split('/');
+    const [day, month, year] = row.fecha.split("/");
     const formattedDate = `${year}-${month}-${day}`;
-    
+
     const precio = row.precio ? currencyToNumber(row.precio) : 0;
-    
+
     setEditingRowIndex(index);
     setEditedRowData({
       ...row,
       fecha: formattedDate,
-      precio: precio
+      precio: precio,
     });
     setErrors({});
   };
-  
+
   const handleInputChange = (e, field) => {
-    if (field === 'id') return;
-  
+    if (field === "id") return;
+
     let value = e.target.value;
-  
-    if (field === 'precio') {
+
+    if (field === "precio") {
       // Remover caracteres no numéricos excepto el punto
-      const numericValue = value.replace(/[^\d]/g, '');
-  
+      const numericValue = value.replace(/[^\d]/g, "");
+
       // Convertir a número
       let numberValue = numericValue ? parseInt(numericValue, 10) : 0;
-  
+
       // Si el valor excede el límite, mantener el valor anterior
       if (numberValue > MAX_PRECIO) {
         return;
       }
-  
+
       // Formatear el valor con puntos como separadores de miles
-      value = formatCurrency(numberValue);  // Usar la función formatCurrency para agregar los puntos
+      value = formatCurrency(numberValue); // Usar la función formatCurrency para agregar los puntos
     }
-  
-    setEditedRowData(prev => ({
+
+    setEditedRowData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
-  
-    setErrors(prev => ({
+
+    setErrors((prev) => ({
       ...prev,
-      [field]: undefined
+      [field]: undefined,
     }));
   };
-  
-  
-  
 
   const handleSave = async () => {
     const validationErrors = validateRow(editedRowData);
@@ -195,40 +223,42 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
       setErrors(validationErrors);
       return;
     }
-  
+
     try {
       const dataToSend = {
         ...editedRowData,
-        precio: currencyToNumber(editedRowData.precio)  // Convertir el precio a número
+        precio: currencyToNumber(editedRowData.precio), // Convertir el precio a número
       };
-  
-      const response = await fetch(`https://inventarioschool-v1.onrender.com/api/articulos_administrativos/${editedRowData.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify(dataToSend),
-      });
-  
+
+      const response = await fetch(
+        `https://inventarioschool-v1.onrender.com/api/articulos_administrativos/${editedRowData.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(dataToSend),
+        }
+      );
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al actualizar el artículo');
+        throw new Error(errorData.message || "Error al actualizar el artículo");
       }
-  
+
       await response.json();
       reloadArticulos();
       handleCancel();
     } catch (error) {
-      console.error('Error al guardar:', error);
+      console.error("Error al guardar:", error);
       alert(`Error al guardar los cambios: ${error.message}`);
     }
   };
 
-  
   const handleDelete = async (observacion) => {
     if (!articuloToDelete?.id) {
-      console.error('No hay ID de artículo para eliminar');
+      console.error("No hay ID de artículo para eliminar");
       return;
     }
 
@@ -236,17 +266,17 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
       const url = `https://inventarioschool-v1.onrender.com/api/articulos_administrativos/${articuloToDelete.id}`;
 
       const response = await fetch(url, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify({ observacion }), // Incluir la observación
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al eliminar el artículo');
+        throw new Error(errorData.message || "Error al eliminar el artículo");
       }
 
       await response.json();
@@ -255,9 +285,9 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
       setArticuloToDelete(null);
 
       // Navegar a la página ArticulosBaja.jsx
-      navigate('/ArticulosBaja'); // Cambia la ruta según tu configuración
+      navigate("/ArticulosBaja"); // Cambia la ruta según tu configuración
     } catch (error) {
-      console.error('Error al eliminar:', error);
+      console.error("Error al eliminar:", error);
       alert(`Error al eliminar el artículo: ${error.message}`);
     }
   };
@@ -271,9 +301,9 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
     setIsObservacionModalOpen(false);
     setIsModalOpen(true); // Mostrar modal de confirmación después de la observación
     // Guardar la observación junto con el artículo a eliminar
-    setArticuloToDelete(prev => ({
+    setArticuloToDelete((prev) => ({
       ...prev,
-      observacion
+      observacion,
     }));
   };
 
@@ -305,7 +335,7 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        
+
         <div className="flex flex-wrap gap-2">
           <ButtonGroup
             isStorageSelected={false}
@@ -313,7 +343,7 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
             filteredData={filteredArticulos}
             allData={articulos}
           />
-          <ExcelExportButton 
+          <ExcelExportButton
             filteredData={filteredArticulos}
             allData={articulos}
           />
@@ -322,25 +352,35 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">Ubicación</label>
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Ubicación
+          </label>
           <Select
             options={ubicaciones}
-            value={selectedLocation}
-            onChange={setSelectedLocation}
+            value={
+              ubicaciones.find(
+                (option) => option.value === selectedLocation?.value
+              ) || null
+            }
+            onChange={(option) => setSelectedLocation(option)}
             isClearable
             placeholder="Seleccionar ubicación..."
             className="text-sm"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Desde</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Desde
+          </label>
           <DateInput
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Hasta</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Hasta
+          </label>
           <DateInput
             value={toDate}
             onChange={(e) => setToDate(e.target.value)}
@@ -360,7 +400,7 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
           handleSave={handleSave}
           handleCancel={handleCancel}
           errors={errors}
-          disableFields={['id']}
+          disableFields={["id"]}
         />
       </div>
     </div>

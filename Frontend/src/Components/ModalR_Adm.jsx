@@ -55,7 +55,7 @@ const ModalSalida = ({ isOpen, onClose }) => {
     }
 
     try {
-      const response = await fetch(`http://localhost:4000/api/productos/${selectedOption.value}`);
+      const response = await fetch(`https://inventarioschool-v1.onrender.com/api/productos/${selectedOption.value}`);
       const data = await response.json();
 
       if (Array.isArray(data) && data.length > 0) {
@@ -117,7 +117,7 @@ const ModalSalida = ({ isOpen, onClose }) => {
           responsable: solicitante,
         };
 
-        const response = await fetch('http://localhost:4000/api/traslados', {
+        const response = await fetch('https://inventarioschool-v1.onrender.com/api/traslados', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(trasladoData),
