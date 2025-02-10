@@ -64,58 +64,60 @@ const TableEntrada = ({ headers, rows, setRows, reloadArticulos }) => {
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full mt-10 table-auto rounded-lg overflow-hidden shadow-lg">
-        <thead>
-          <tr className="bg-[#00A305] text-white">
-            {headers.map((header, index) => (
-              <th key={index} className="px-4 py-2 text-left">{header}</th>
+    <table className="w-full table-auto rounded-lg overflow-hidden shadow-lg">
+      <thead>
+        <tr className="bg-[#00A305] text-white">
+          {headers.map((header, index) => (
+            <th key={index} className="px-2 sm:px-4 py-2 text-left text-xs sm:text-sm">{header}</th>
+          ))}
+          <th className="px-2 sm:px-4 py-2 text-left text-xs sm:text-sm">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row, rowIndex) => (
+          <tr
+            key={rowIndex}
+            className={`border-t ${rowIndex % 2 === 0 ? 'bg-gray-100' : 'bg-gray-200'} hover:bg-gray-300 transition-colors`}
+          >
+            {row.map((cell, cellIndex) => (
+              <td key={cellIndex} className="px-2 sm:px-4 py-2 text-xs sm:text-sm">{cell}</td>
             ))}
-            <th className="px-4 py-2 text-left">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, rowIndex) => (
-            <tr
-              key={rowIndex}
-              className={`border-t ${rowIndex % 2 === 0 ? 'bg-gray-100' : 'bg-gray-200'} hover:bg-gray-300 transition-colors`}
-            >
-              {row.map((cell, cellIndex) => (
-                <td key={cellIndex} className="px-4 py-2">{cell}</td>
-              ))}
-              <td className="px-4 py-2 flex space-x-2">
+            <td className="px-2 sm:px-4 py-2">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                 <button
                   onClick={() => handleOpenModal(row)}
                   disabled={loading}
-                  className="bg-[#00A305] text-white py-1 px-3 rounded flex items-center hover:bg-green-700 transition-colors"
+                  className="bg-[#00A305] text-white py-1 px-2 sm:px-3 rounded text-xs sm:text-sm flex items-center justify-center hover:bg-green-700 transition-colors w-full sm:w-auto"
                 >
-                  <i className="fas fa-file-alt mr-2"></i> {loading ? 'Cargando...' : 'Informe'}
+                  <i className="fas fa-file-alt mr-1 sm:mr-2"></i> 
+                  {loading ? 'Cargando...' : 'Informe'}
                 </button>
                 <button
                   onClick={() => handleDeleteConfirm(row[0])}
                   disabled={loading}
-                  className="bg-red-500 text-white py-1 px-3 rounded flex items-center hover:bg-red-700 transition-colors"
+                  className="bg-red-500 text-white py-1 px-2 sm:px-3 rounded text-xs sm:text-sm flex items-center justify-center hover:bg-red-700 transition-colors w-full sm:w-auto"
                 >
-                  <i className="fas fa-trash mr-2"></i> Eliminar
+                  <i className="fas fa-trash mr-1 sm:mr-2"></i> Eliminar
                 </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
 
-      {/* Modal para mostrar información detallada */}
-      {isModalOpen && (
-        <ModalInforme isOpen={isModalOpen} onClose={handleCloseModal} data={modalData} />
-      )}
+    {/* Existing modal components remain the same */}
+    {isModalOpen && (
+      <ModalInforme isOpen={isModalOpen} onClose={handleCloseModal} data={modalData} />
+    )}
 
-      {/* Modal de confirmación para eliminar */}
-      <ModalConfi
-        isOpen={isDeleteConfirmOpen}
-        onClose={() => setIsDeleteConfirmOpen(false)}
-        onConfirm={handleDelete}
-        message="¿Estás seguro de que deseas eliminar este registro?"
-      />
-    </div>
+    <ModalConfi
+      isOpen={isDeleteConfirmOpen}
+      onClose={() => setIsDeleteConfirmOpen(false)}
+      onConfirm={handleDelete}
+      message="¿Estás seguro de que deseas eliminar este registro?"
+    />
+  </div>
   );
 };
 

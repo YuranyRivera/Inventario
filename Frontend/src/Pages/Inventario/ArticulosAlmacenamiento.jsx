@@ -1,55 +1,34 @@
 import React, { useState } from 'react';
-import AuxMaintenanceTable from '../../Components/AuxMaintenanceTable';
+import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
+import { useArticulos, useArticuloSearch } from '../../hooks/useArticulosAlmacenamiento';
+import AuxMaintenanceTable from '../../Components/AuxMaintenanceTable';
 import ButtonGroup from '../../Components/PDFAlm';
 import ExcelExportButton from '../../Components/Excel';
 import ModalBaja from '../../Components/ModalBaja';
-import { useNavigate } from 'react-router-dom'; 
-const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
+
+const ArticulosAlmacenamiento = () => {
   const headers = ['ID', 'Producto/Detalle', 'Cantidad Inicial', 'Módulo', 'Estante', 'Estado', 'Entrada', 'Salida', 'Restante'];
-  const [searchTerm, setSearchTerm] = useState('');
+  const { articulos, loading, error, fetchArticulos, updateArticulo, deleteArticulo } = useArticulos();
+  const { searchTerm, setSearchTerm, filteredArticulos } = useArticuloSearch(articulos);
+  const navigate = useNavigate();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedArticulo, setSelectedArticulo] = useState(null);
   const [editingRowIndex, setEditingRowIndex] = useState(null);
   const [editedRowData, setEditedRowData] = useState({});
-  const navigate = useNavigate(); // Hook para navegación
+
   const handleDeleteClick = (row) => {
     setSelectedArticulo(row);
     setIsModalOpen(true);
   };
+
   const handleDelete = async (formData) => {
-    const id = selectedArticulo.id;
-  
-    try {
-      const response = await fetch(`https://inventarioschool-v1.onrender.com/api/articulos-baja/${id}`, {
-        method: 'POST',
-        body: formData
-      });
-  
-      const result = await response.json();
-  
-      if (!response.ok) {
-        throw new Error(result.message || 'Error al eliminar el artículo');
-      }
-  
-      console.log(result.message);
-      if (result.imagen_url) {
-        console.log('Imagen subida:', result.imagen_url);
-      }
-      reloadArticulos();
-            // Navegar a la página ArticulosBaja.jsx
-            navigate('/ArticulosBaja2'); // Cambia la ruta según tu configuración
-    } catch (error) {
-      console.error('Error al eliminar:', error);
-      alert(error.message || 'Error al eliminar el artículo');
+    if (selectedArticulo) {
+      await deleteArticulo(selectedArticulo.id, formData);
+      navigate('/ArticulosBaja2');
     }
   };
-
-  const filteredArticulos = articulos.filter(articulo =>
-    articulo.producto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    articulo.modulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    articulo.estante.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -57,23 +36,18 @@ const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
 
   const handleInputChange = (e, field) => {
     const value = e.target.value;
-    if (field === 'id' || field === 'cantidad') {
-      return;
-    }
-  
+    if (['id', 'cantidad'].includes(field)) return;
+
     setEditedRowData((prev) => {
-      const updatedData = {
-        ...prev,
-        [field]: value,
-      };
-  
-      if (field === 'entrada' || field === 'salida') {
+      const updatedData = { ...prev, [field]: value };
+
+      if (['entrada', 'salida'].includes(field)) {
         const entrada = parseInt(updatedData.entrada || 0, 10);
         const salida = parseInt(updatedData.salida || 0, 10);
         const cantidadInicial = parseInt(prev.cantidad_productos || 0, 10);
         updatedData.cantidad = cantidadInicial + entrada - salida;
       }
-  
+
       return updatedData;
     });
   };
@@ -84,28 +58,16 @@ const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
   };
 
   const handleSave = async () => {
-    try {
-      const response = await fetch(`https://inventarioschool-v1.onrender.com/api/articulos/${editedRowData.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editedRowData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al editar el artículo');
-      }
-
-      await response.json();
-      reloadArticulos();
-      setEditingRowIndex(null);
-    } catch (error) {
-      console.error('Error al editar:', error);
-    }
+    await updateArticulo(editedRowData.id, editedRowData);
+    setEditingRowIndex(null);
   };
 
   const handleCancel = () => {
     setEditingRowIndex(null);
   };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <>
@@ -132,7 +94,7 @@ const ArticulosAlmacenamiento = ({ articulos, reloadArticulos }) => {
           <div className="flex flex-wrap gap-2 justify-start md:justify-end">
             <ButtonGroup
               isStorageSelected={true}
-              reloadArticulos={reloadArticulos}
+              reloadArticulos={fetchArticulos}
               filteredData={searchTerm ? filteredArticulos : []}
               allData={articulos}
               className="flex-grow md:flex-grow-0"

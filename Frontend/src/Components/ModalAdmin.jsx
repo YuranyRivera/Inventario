@@ -7,24 +7,21 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
 
   const headers = ['ID', 'Fecha', 'Descripción', 'Proveedor', 'Ubicación', 'Observación', 'Precio', 'Acciones'];
   const [rows, setRows] = useState([
-    { id: null, fecha: '', descripcion: '', proveedor: '', ubicacion: '', observacion: '', precio: '', },
+    { id: null, fecha: '', descripcion: '', proveedor: '', ubicacion: '', observacion: '', precio: '' }
   ]);
   const [errors, setErrors] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [saveStatus, setSaveStatus] = useState({ total: 0, current: 0 });
 
   const { agregarArticulo } = useArticulosAdministrativos();
 
-  // Función para formatear el precio a número
   const formatPrecioToNumber = (precio) => {
     if (!precio) return '';
-    // Eliminar el símbolo de peso, puntos y espacios
     return precio.replace(/\$|\./g, '').trim();
   };
 
-  // Función para formatear el precio a moneda colombiana
   const formatPrecioToCurrency = (precio) => {
     if (!precio) return '';
-    // Convertir a número y formatear
     const number = Number(precio.replace(/\D/g, ''));
     return new Intl.NumberFormat('es-CO', {
       style: 'decimal',
@@ -38,7 +35,7 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
         const response = await fetch('https://inventarioschool-v1.onrender.com/api/articulos-administrativos/last-id');
         const data = await response.json();
         const newId = data.id ? data.id + 1 : 1;
-        setRows([{ id: newId, fecha: '', descripcion: '', proveedor: '', ubicacion: '', observacion: '', precio: '', }]);
+        setRows([{ id: newId, fecha: '', descripcion: '', proveedor: '', ubicacion: '', observacion: '', precio: '' }]);
       } catch (error) {
         console.error('Error al obtener el último ID:', error);
       }
@@ -47,10 +44,11 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
     if (isOpen) {
       fetchLastId();
       setErrors([]);
+      setSaveStatus({ total: 0, current: 0 });
     }
   }, [isOpen]);
 
-  const validateRow = (row, index) => {
+  const validateRow = (row) => {
     const rowErrors = {};
     if (!row.fecha) rowErrors.fecha = 'La fecha es obligatoria';
     if (!row.precio) rowErrors.precio = 'El precio es obligatorio';
@@ -60,12 +58,11 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
     if (row.observacion.trim() && row.observacion.length > 500) rowErrors.observacion = 'La observación no puede exceder 500 caracteres';
     return rowErrors;
   };
+
   const handleDeleteRow = (indexToDelete) => {
-    // Prevent deleting the last row
     if (rows.length > 1) {
       const updatedRows = rows.filter((_, index) => index !== indexToDelete);
       const updatedErrors = errors.filter((_, index) => index !== indexToDelete);
-      
       setRows(updatedRows);
       setErrors(updatedErrors);
     }
@@ -74,30 +71,30 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
   const handleAddRow = () => {
     const lastRow = rows[rows.length - 1];
     const newId = lastRow.id + 1;
-    setRows([...rows, { 
-      id: newId, 
-      fecha: '', 
-      descripcion: '', 
-      proveedor: '', 
-      ubicacion: '', 
-      observacion: '', 
-      precio: '' 
+    setRows([...rows, {
+      id: newId,
+      fecha: '',
+      descripcion: '',
+      proveedor: '',
+      ubicacion: '',
+      observacion: '',
+      precio: ''
     }]);
     setErrors([...errors, {}]);
   };
 
   const handleRowChange = (value, rowIndex, field) => {
     let processedValue = value;
-  
+
     if (field === 'precio') {
       processedValue = formatPrecioToCurrency(value);
     }
-  
+
     const updatedRows = rows.map((row, index) =>
       index === rowIndex ? { ...row, [field]: processedValue } : row
     );
     setRows(updatedRows);
-  
+
     const updatedErrors = [...errors];
     if (!value) {
       updatedErrors[rowIndex] = { ...updatedErrors[rowIndex], [field]: `${field} es obligatorio` };
@@ -108,43 +105,45 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
     }
     setErrors(updatedErrors);
   };
-  
 
   const handleSave = async () => {
     if (loading) return;
 
-    // Validar todas las filas
-    const newErrors = [];
-    for (const [index, row] of rows.entries()) {
-      const rowErrors = validateRow(row, index);
-      newErrors.push(rowErrors);
-    }
+    const newErrors = rows.map(row => validateRow(row));
     setErrors(newErrors);
 
-    if (newErrors.some((err) => Object.keys(err).length > 0)) {
+    if (newErrors.some(err => Object.keys(err).length > 0)) {
       return;
     }
 
     try {
       setLoading(true);
-      // Convertir el precio a número antes de enviar
+      setSaveStatus({ total: rows.length, current: 0 });
+
       const processedRows = rows.map(row => ({
         ...row,
         precio: Number(formatPrecioToNumber(row.precio))
       }));
-      
-      const savePromises = processedRows.map(row => agregarArticulo(row));
-      await Promise.all(savePromises);
-      
+
+      // Guardar artículos de forma secuencial para mantener el orden
+      for (let i = 0; i < processedRows.length; i++) {
+        await agregarArticulo(processedRows[i]);
+        setSaveStatus(prev => ({ ...prev, current: i + 1 }));
+      }
+
       if (typeof refreshArticulos === 'function') {
         await refreshArticulos();
       }
 
-      onClose();
-      window.location.reload();
-      
+      // Pequeño delay antes de cerrar el modal y recargar
+      setTimeout(() => {
+        onClose();
+        window.location.reload();
+      }, 500);
+
     } catch (error) {
       console.error('Error al guardar artículos:', error);
+      alert('Hubo un error al guardar los artículos. Por favor, inténtelo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -176,6 +175,8 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
           </button>
         </div>
 
+   
+
         <div className="overflow-x-auto">
           <table className="min-w-full table-auto">
             <thead>
@@ -201,45 +202,39 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
                     {renderInput("text", row.proveedor, (e) => handleRowChange(e.target.value, rowIndex, 'proveedor'), "Proveedor", errors[rowIndex]?.proveedor)}
                   </td>
                   <td className="px-4 py-2">
-                  <CategorySelect
-  value={row.ubicacion}
-  onChange={(e) => handleRowChange(e.target.value, rowIndex, 'ubicacion')}
-  error={errors[rowIndex]?.ubicacion}
-  disabled={loading}
-/>
+                    <CategorySelect
+                      value={row.ubicacion}
+                      onChange={(e) => handleRowChange(e.target.value, rowIndex, 'ubicacion')}
+                      error={errors[rowIndex]?.ubicacion}
+                      disabled={loading}
+                    />
                     {errors[rowIndex]?.ubicacion && <p className="text-red-500 text-xs mt-1">{errors[rowIndex].ubicacion}</p>}
                   </td>
                   <td className="px-4 py-2">
                     {renderInput("text", row.observacion, (e) => handleRowChange(e.target.value, rowIndex, 'observacion'), "Observación (opcional)", errors[rowIndex]?.observacion)}
                   </td>
                   <td className="px-4 py-2">
-                    {renderInput(
-                      "number",
-                      row.precio,
-                      (e) => handleRowChange(e.target.value, rowIndex, "precio"),
-                      "Precio",
-                      errors[rowIndex]?.precio
-                    )}
+                    {renderInput("number", row.precio, (e) => handleRowChange(e.target.value, rowIndex, "precio"), "Precio", errors[rowIndex]?.precio)}
                   </td>
                   <td className="px-4 py-2 text-center">
-  {rows.length > 1 && rowIndex !== rows.length - 1 ? (
-    <button 
-      onClick={() => handleDeleteRow(rowIndex)} 
-      className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700 text-sm lg:text-base" 
-      disabled={loading}
-    >
-      <i className="fas fa-trash mr-1"></i> Eliminar
-    </button>
-  ) : rowIndex === rows.length - 1 ? (
-    <button 
-      onClick={handleAddRow} 
-      className="bg-[#00A305] text-white px-3 py-1 rounded hover:bg-green-700 text-sm lg:text-base" 
-      disabled={loading}
-    >
-      <i className="fas fa-plus mr-1"></i> Agregar
-    </button>
-  ) : null}
-</td>
+                    {rows.length > 1 && rowIndex !== rows.length - 1 ? (
+                      <button
+                        onClick={() => handleDeleteRow(rowIndex)}
+                        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700 text-sm lg:text-base"
+                        disabled={loading}
+                      >
+                        <i className="fas fa-trash mr-1"></i> Eliminar
+                      </button>
+                    ) : rowIndex === rows.length - 1 ? (
+                      <button
+                        onClick={handleAddRow}
+                        className="bg-[#00A305] text-white px-3 py-1 rounded hover:bg-green-700 text-sm lg:text-base"
+                        disabled={loading}
+                      >
+                        <i className="fas fa-plus mr-1"></i> Agregar
+                      </button>
+                    ) : null}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -247,11 +242,19 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
         </div>
 
         <div className="flex justify-end space-x-4 mt-4">
-          <button onClick={onClose} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700" disabled={loading}>
+          <button
+            onClick={onClose}
+            className="bg-white hover:bg-[#00A305] text-green-600  border-2 border-green-600 hover:text-white transition duration-300 rounded-[8px]  px-3 py-2 text-sm sm:px-4 "
+            disabled={loading}
+          >
             Cancelar
           </button>
-          <button onClick={handleSave} className="bg-[#00A305] text-white px-4 py-2 rounded hover:bg-green-700" disabled={loading}>
-            Guardar
+          <button
+            onClick={handleSave}
+            className="bg-[#00A305] text-white px-4 py-2 rounded hover:bg-green-700"
+            disabled={loading}
+          >
+            {loading ? 'Guardando...' : 'Guardar'}
           </button>
         </div>
       </div>

@@ -282,8 +282,9 @@ const ModalSalida = ({ isOpen, onClose }) => {
         )}
 
         <div className="flex flex-col sm:flex-row justify-end gap-2 p-4 sm:p-6 border-t bg-gray-50">
+        <BotonSecundario Text="Cancelar" onClick={onClose} />
           <BotonPrincipal Text="Guardar" onClick={handleSave} />
-          <BotonSecundario Text="Cancelar" onClick={onClose} />
+       
         </div>
       </div>
 

@@ -287,7 +287,7 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
         <div className="flex justify-end space-x-4 mt-4">
           <button
             onClick={onClose}
-            className="bg-gray-500 text-white px-3 py-2 text-sm sm:px-4 rounded hover:bg-gray-700"
+            className="bg-white hover:bg-[#00A305] text-green-600  border-2 border-green-600 hover:text-white transition duration-300 rounded-[8px]  px-3 py-2 text-sm sm:px-4 "
           >
             Cancelar
           </button>

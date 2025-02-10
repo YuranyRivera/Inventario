@@ -275,14 +275,15 @@ if (!responsable || !responsable.trim()) {
 </div>
 
         <div className="flex justify-end mt-4 space-x-4">
-          <BotonPrincipal 
-            Text={loading ? "Guardando..." : "Guardar"} 
-            onClick={handleGuardar}
-            disabled={loading}
-          />
+       
           <BotonSecundario 
             Text="Cancelar" 
             onClick={onClose}
+            disabled={loading}
+          />
+             <BotonPrincipal 
+            Text={loading ? "Guardando..." : "Guardar"} 
+            onClick={handleGuardar}
             disabled={loading}
           />
         </div>

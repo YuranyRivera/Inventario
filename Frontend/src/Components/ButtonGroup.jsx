@@ -10,7 +10,7 @@ const ButtonGroup = ({ isStorageSelected, onSave, reloadArticulos }) => {
 
   const handleOpenEntradaModal = () => {
     setIsModalEntradaOpen(true);
-    reloadArticulos();
+ 
   };
 
   const handleCloseEntradaModal = () => setIsModalEntradaOpen(false);
