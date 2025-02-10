@@ -11,63 +11,73 @@ dotenv.config();
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 const app = express();
 const PORT = 4000;
-app.use(express.urlencoded({ extended: true }));
 
-// Define allowed origins
+// Lista de orígenes permitidos
 const allowedOrigins = [
   'http://localhost:5173',   // Local development
   'http://127.0.0.1:5173',   // Otra variante local
   'https://front-inventarioschool-v1.onrender.com', // Frontend en Render
-  'https://inventarioschool-v1.onrender.com' // Backend en Render
+  'https://inventarioschool-v1.onrender.com', // Backend en Render
 ];
 
-// CORS configuration
+// Configuración de CORS
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin) || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+    // Permitir solicitudes sin origen (como Postman) o con orígenes permitidos
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true,
+  credentials: true, // Para permitir cookies y autenticación
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
 };
+
 app.use(cors(corsOptions));
 
-// Permitir preflight requests
+// Manejo de solicitudes preflight (OPTIONS)
 app.options('*', cors(corsOptions));
 
-// Middleware para asegurar que las cabeceras CORS siempre estén presentes
+// Middleware para agregar cabeceras CORS de forma dinámica
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://front-inventarioschool-v1.onrender.com');
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.header('Access-Control-Allow-Credentials', 'true');
   next();
 });
 
-// Middleware
-app.use(express.json()); // Para procesar JSON en el cuerpo de la solicitud
+// Middleware para procesar JSON y formularios
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Routes
+// Rutas
 app.use('/api', dataRoutes);
 
-// Error handling
+// Manejo de errores
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Algo salió mal', details: err.message });
 });
 
-// Server start
+// Ver origen de las solicitudes (Debug)
+app.use((req, res, next) => {
+  console.log('Origen de la solicitud:', req.headers.origin);
+  next();
+});
+
+// Iniciar el servidor
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });

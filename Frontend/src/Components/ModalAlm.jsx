@@ -151,12 +151,12 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
         }
       }
 
-      onSave();
-      onClose();
-    } catch (error) {
-      console.error('Error al guardar artículos:', error);
-      setDuplicateError('Error al guardar el artículo');
-    }
+      onSave(); // Ejecuta la función proporcionada para acciones posteriores al guardado.
+    window.location.reload(); // Recarga la página después de guardar.
+  } catch (error) {
+    console.error('Error al guardar artículos:', error);
+    setDuplicateError('Error al guardar el artículo');
+  }
   };
 
   return (
