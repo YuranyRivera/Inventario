@@ -15,7 +15,7 @@ const AuxMaintenanceTable = ({
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full mt-10 table-auto rounded-lg shadow-lg">
+    <table className="w-full table-auto rounded-lg mt-10 overflow-hidden shadow-lg">
         <thead>
           <tr className="bg-[#00A305] text-white">
             {headers.map((header, index) => (

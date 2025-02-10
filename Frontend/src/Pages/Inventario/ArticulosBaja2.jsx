@@ -1,4 +1,3 @@
-// HistorialBajas.jsx
 import React from 'react';
 import { Search, Image as ImageIcon } from 'lucide-react';
 import DateInput from '../../Components/DateInput';
@@ -9,7 +8,7 @@ import ModalConfi from '../../Components/ModalConf';
 import { useHistorialBajas } from '../../hooks/useHistorialBajas';
 
 const HistorialBajas = () => {
-  // Create button rendering functions
+  // Define las funciones createImageButton y createPDFButton antes de usarlas
   const createImageButton = (imageUrl, onClick) => {
     if (imageUrl) {
       return (
@@ -34,6 +33,7 @@ const HistorialBajas = () => {
     </button>
   );
 
+  // Ahora puedes usar el hook useHistorialBajas
   const {
     isLoading,
     selectedOption,
@@ -51,7 +51,10 @@ const HistorialBajas = () => {
     handleOptionChange,
     handleDeleteClick,
     handleConfirmDelete,
-    setShowDeleteConfirmation
+    setShowDeleteConfirmation,
+    exportToPDF,
+    exportToExcel,
+    handleRowPDF
   } = useHistorialBajas(createImageButton, createPDFButton);
 
   const ImageModal = ({ url, onClose }) => {
@@ -93,27 +96,26 @@ const HistorialBajas = () => {
             Historial de Artículos Dados de Baja
           </h1>
           
-          {/* Radio buttons */}
-          <div className="flex gap-6 mt-4 mb-6">
-            {[
-              { value: 'general', label: 'General' },
-              { value: 'traslados', label: 'Traslados' },
-              { value: 'bajas', label: 'Historial de bajas-Administración' },
-              { value: 'bajas2', label: 'Historial de bajas-Almacenamiento' }
-            ].map(({ value, label }) => (
-              <label key={value} className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="navigation"
-                  value={value}
-                  checked={selectedOption === value}
-                  onChange={handleOptionChange}
-                  className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2 cursor-pointer"
-                />
-                <span className="text-gray-700">{label}</span>
-              </label>
-            ))}
-          </div>
+          <div className="flex flex-wrap gap-2 md:gap-4 mt-4 mb-6">
+              {['general', 'traslados', 'bajas', 'bajas2'].map((option) => (
+                <label key={option} className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="navigation"
+                    value={option}
+                    checked={selectedOption === option}
+                    onChange={handleOptionChange}
+                    className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2 cursor-pointer"
+                  />
+                  <span className="text-gray-700">
+                    {option === 'general' && 'General'}
+                    {option === 'traslados' && 'Traslados'}
+                    {option === 'bajas' && 'Historial de bajas-Administración'}
+                    {option === 'bajas2' && 'Historial de bajas-Almacenamiento'}
+                  </span>
+                </label>
+              ))}
+            </div>
 
           <div className="space-y-4">
             {/* Search and filters */}
@@ -129,6 +131,21 @@ const HistorialBajas = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
+              </div>
+              {/* Botones de exportación */}
+              <div className="flex gap-1">
+                <button
+                  onClick={exportToPDF}
+                  className="bg-white text-green-600 py-2 px-4 border-2 border-green-600 rounded hover:text-white hover:bg-[#00A305] whitespace-nowrap"
+                >
+                  <i className="fas fa-file-pdf mr-2"></i> PDF
+                </button>
+                <button
+                  onClick={exportToExcel}
+                  className="bg-[#00A305] text-white py-2 px-4 rounded hover:bg-green-700 whitespace-nowrap"
+                >
+                  <i className="fas fa-file-excel mr-2"></i> Excel
+                </button>
               </div>
             </div>
 

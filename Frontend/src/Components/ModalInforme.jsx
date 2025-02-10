@@ -106,57 +106,59 @@ const ModalInforme = ({ isOpen, onClose, data }) => {
     
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-      <div className="bg-white p-6 rounded-lg w-3/4 overflow-auto max-h-[80vh]">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 overflow-auto">
+      <div className="bg-white p-4 sm:p-6 rounded-lg w-full sm:w-3/4 max-h-[90vh] overflow-auto relative">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold">Informe Detallado</h3>
+          <h3 className="text-lg sm:text-xl font-semibold">Informe Detallado</h3>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-red-500 text-2xl font-bold"
+            className="text-gray-500 hover:text-red-500 text-xl sm:text-2xl font-bold"
           >
             ×
           </button>
         </div>
 
         {/* Botones de exportación */}
-        <div className="flex justify-end space-x-4 mb-4">
+        <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4 mb-4">
           <button
             onClick={exportToExcel}
-            className="bg-[#00A305] text-white py-2 px-4 rounded hover:bg-green-700"
+            className="bg-[#00A305] text-white py-2 px-4 rounded hover:bg-green-700 w-full sm:w-auto"
           >
             <i className="fas fa-file-excel mr-2"></i> Excel
           </button>
           <button
             onClick={exportToPDF}
-            className="bg-white text-green-600 py-2 px-4 border-2 border-green-600 rounded hover:text-white hover:bg-[#00A305]"
+            className="bg-white text-green-600 py-2 px-4 border-2 border-green-600 rounded hover:text-white hover:bg-[#00A305] w-full sm:w-auto"
           >
             <i className="fas fa-file-pdf mr-2"></i> PDF
           </button>
         </div>
 
-        <table className="min-w-full table-auto rounded-lg overflow-hidden shadow-lg">
-          <thead>
-            <tr className="bg-[#00A305] text-white">
-              {headers.map((header, index) => (
-                <th key={index} className="px-4 py-2 text-left">{header}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((item, index) => (
-              <tr
-                key={index}
-                className={`border-t ${index % 2 === 0 ? 'bg-gray-100' : 'bg-gray-200'} hover:bg-gray-300 transition-colors`}
-              >
-                <td className="px-4 py-2">{item.fechaSolicitud}</td>
-                <td className="px-4 py-2">{item.producto}</td> {/* Mostrar nombre del producto */}
-                <td className="px-4 py-2">{item.cantidad}</td>
-                <td className="px-4 py-2">{item.fechaEntrega}</td>
-                <td className="px-4 py-2">{item.firmaEntrega}</td>
+        <div className="overflow-x-auto">
+          <table className="w-full table-auto rounded-lg overflow-hidden shadow-lg">
+            <thead>
+              <tr className="bg-[#00A305] text-white">
+                {headers.map((header, index) => (
+                  <th key={index} className="px-2 sm:px-4 py-2 text-left text-xs sm:text-sm">{header}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {data.map((item, index) => (
+                <tr
+                  key={index}
+                  className={`border-t ${index % 2 === 0 ? 'bg-gray-100' : 'bg-gray-200'} hover:bg-gray-300 transition-colors`}
+                >
+                  <td className="px-2 sm:px-4 py-2 text-xs sm:text-sm">{item.fechaSolicitud}</td>
+                  <td className="px-2 sm:px-4 py-2 text-xs sm:text-sm">{item.producto}</td>
+                  <td className="px-2 sm:px-4 py-2 text-xs sm:text-sm">{item.cantidad}</td>
+                  <td className="px-2 sm:px-4 py-2 text-xs sm:text-sm">{item.fechaEntrega}</td>
+                  <td className="px-2 sm:px-4 py-2 text-xs sm:text-sm">{item.firmaEntrega}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
