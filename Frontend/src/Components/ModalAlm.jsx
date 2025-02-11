@@ -99,6 +99,7 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
       setDuplicateError(null); // Limpia el error de duplicado cuando se cambia el nombre del producto
     }
   };
+
   const handleDeleteRow = (indexToDelete) => {
     // Prevent deleting the last row
     if (rows.length > 1) {
@@ -113,13 +114,12 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
   const handleSave = async () => {
     const newErrors = rows.map((row, index) => validateRow(row, index));
     setErrors(newErrors);
-    setDuplicateError(null); // Reset duplicate error at start of save
-
+    setDuplicateError(null);
+  
     if (newErrors.some(err => Object.keys(err).length > 0)) {
       return;
     }
-
-    // Check for duplicates within the current rows being added
+  
     const duplicateInCurrentRows = rows.some((row, index) => 
       rows.some((otherRow, otherIndex) => 
         index !== otherIndex && 
@@ -128,12 +128,12 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
         row.producto === otherRow.producto
       )
     );
-
+  
     if (duplicateInCurrentRows) {
       setDuplicateError('Existen productos duplicados en las filas actuales');
       return;
     }
-
+  
     try {
       for (const row of rows) {
         const result = await addArticulos({
@@ -144,20 +144,25 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
           cantidad: row.cantidad,
           estado: row.estado
         });
-
+  
         if (!result.success) {
           setDuplicateError(result.error || `El producto "${row.producto}" ya existe en el módulo ${row.modulo}, estante ${row.estante}`);
           return;
         }
       }
-
-      onSave();
+  
+      onSave(); // Forzar actualización
+      setTimeout(() => {
+        window.location.reload(); // 🔄 Forzar recarga de la tabla
+      }, 500);
+  
       onClose();
     } catch (error) {
       console.error('Error al guardar artículos:', error);
       setDuplicateError('Error al guardar el artículo');
     }
   };
+  
 
   return (
     <div className="modal z-50 fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4">
@@ -167,11 +172,10 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
         </h2>
 
         {duplicateError && (
-  <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-    {duplicateError}
-  </div>
-)}
-  
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {duplicateError}
+          </div>
+        )}
 
         {/* Vista móvil: Cards */}
         <div className="md:hidden space-y-4">
@@ -259,25 +263,25 @@ const ModalAlm = ({ isOpen, onClose, onSave }) => {
                       </div>
                     </td>
                   ))}
-                           <td className="px-4 py-2 text-center">
-  {rows.length > 1 && rowIndex !== rows.length - 1 ? (
-    <button 
-      onClick={() => handleDeleteRow(rowIndex)} 
-      className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700 text-sm lg:text-base" 
-      disabled={loading}
-    >
-      <i className="fas fa-trash mr-1"></i> Eliminar
-    </button>
-  ) : rowIndex === rows.length - 1 ? (
-    <button 
-      onClick={handleAddRow} 
-      className="bg-[#00A305] text-white px-3 py-1 rounded hover:bg-green-700 text-sm lg:text-base" 
-      disabled={loading}
-    >
-      <i className="fas fa-plus mr-1"></i> Agregar
-    </button>
-  ) : null}
-</td>
+                  <td className="px-4 py-2 text-center">
+                    {rows.length > 1 && rowIndex !== rows.length - 1 ? (
+                      <button 
+                        onClick={() => handleDeleteRow(rowIndex)} 
+                        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700 text-sm lg:text-base" 
+                        disabled={loading}
+                      >
+                        <i className="fas fa-trash mr-1"></i> Eliminar
+                      </button>
+                    ) : rowIndex === rows.length - 1 ? (
+                      <button 
+                        onClick={handleAddRow} 
+                        className="bg-[#00A305] text-white px-3 py-1 rounded hover:bg-green-700 text-sm lg:text-base" 
+                        disabled={loading}
+                      >
+                        <i className="fas fa-plus mr-1"></i> Agregar
+                      </button>
+                    ) : null}
+                  </td>
                 </tr>
               ))}
             </tbody>

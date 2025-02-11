@@ -4,13 +4,12 @@ import ModalRAlm from './ModalR_Alm';
 import ModalAdmin from './ModalAdmin';
 import ModalAlm from './ModalAlm';
 
-const ButtonGroup = ({ isStorageSelected, onSave, reloadArticulos }) => {
+const ButtonGroup = ({ isStorageSelected, reloadArticulos }) => {
   const [isModalEntradaOpen, setIsModalEntradaOpen] = useState(false);
   const [isModalAddOpen, setIsModalAddOpen] = useState(false);
 
   const handleOpenEntradaModal = () => {
     setIsModalEntradaOpen(true);
- 
   };
 
   const handleCloseEntradaModal = () => setIsModalEntradaOpen(false);
@@ -18,11 +17,12 @@ const ButtonGroup = ({ isStorageSelected, onSave, reloadArticulos }) => {
   const handleOpenAddModal = () => setIsModalAddOpen(true);
   const handleCloseAddModal = () => setIsModalAddOpen(false);
 
-  const refreshArticulos = () => {
-    onSave();
+  const handleSave = () => {
+    if (reloadArticulos) {
+      reloadArticulos();
+    }
     handleCloseAddModal();
   };
-  
 
   return (
     <div>
@@ -39,7 +39,6 @@ const ButtonGroup = ({ isStorageSelected, onSave, reloadArticulos }) => {
           className="bg-white text-green-600 py-2 px-4 border-2 border-green-600 rounded hover:text-white hover:bg-[#00A305]"
           onClick={handleOpenEntradaModal}
         >
-      
           {isStorageSelected ? 'Reporte' : 'Traslados'}
         </button>
       </div>
@@ -54,7 +53,7 @@ const ButtonGroup = ({ isStorageSelected, onSave, reloadArticulos }) => {
           <ModalAlm
             isOpen={isModalAddOpen}
             onClose={handleCloseAddModal}
-            onSave={refreshArticulos}
+            onSave={handleSave}
           />
         </>
       ) : (
@@ -63,7 +62,7 @@ const ButtonGroup = ({ isStorageSelected, onSave, reloadArticulos }) => {
           <ModalAdmin
             isOpen={isModalAddOpen}
             onClose={handleCloseAddModal}
-            onSave={refreshArticulos}
+            onSave={handleSave}
           />
         </>
       )}

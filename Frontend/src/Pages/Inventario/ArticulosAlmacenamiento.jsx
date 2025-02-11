@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { useArticulos, useArticuloSearch } from '../../hooks/useArticulosAlmacenamiento';
@@ -9,7 +9,7 @@ import ModalBaja from '../../Components/ModalBaja';
 
 const ArticulosAlmacenamiento = () => {
   const headers = ['ID', 'Producto/Detalle', 'Cantidad Inicial', 'Módulo', 'Estante', 'Estado', 'Entrada', 'Salida', 'Restante'];
-  const { articulos, loading, error, fetchArticulos, updateArticulo, deleteArticulo } = useArticulos();
+  const { articulos, loading, error, fetchArticulos, deleteArticulo, addArticulos } = useArticulos();
   const { searchTerm, setSearchTerm, filteredArticulos } = useArticuloSearch(articulos);
   const navigate = useNavigate();
 
@@ -18,6 +18,14 @@ const ArticulosAlmacenamiento = () => {
   const [editingRowIndex, setEditingRowIndex] = useState(null);
   const [editedRowData, setEditedRowData] = useState({});
 
+  useEffect(() => {
+    fetchArticulos();
+  }, []); // Se ejecuta solo al montar el componente
+  
+  useEffect(() => {
+    console.log("Artículos actualizados:", articulos);
+  }, [articulos]); // Se ejecuta cada vez que cambian los artículos
+  
   const handleDeleteClick = (row) => {
     setSelectedArticulo(row);
     setIsModalOpen(true);
@@ -26,7 +34,8 @@ const ArticulosAlmacenamiento = () => {
   const handleDelete = async (formData) => {
     if (selectedArticulo) {
       await deleteArticulo(selectedArticulo.id, formData);
-      navigate('/ArticulosBaja2');
+      await fetchArticulos();
+      setIsModalOpen(false);
     }
   };
 
@@ -59,11 +68,20 @@ const ArticulosAlmacenamiento = () => {
 
   const handleSave = async () => {
     await updateArticulo(editedRowData.id, editedRowData);
+    await fetchArticulos(); // Asegura que se actualicen los datos
     setEditingRowIndex(null);
   };
 
   const handleCancel = () => {
     setEditingRowIndex(null);
+  };
+
+  const handleArticulosUpdate = async () => {
+    try {
+      await fetchArticulos();
+    } catch (error) {
+      console.error('Error actualizando artículos:', error);
+    }
   };
 
   if (loading) return <div>Loading...</div>;
@@ -92,9 +110,10 @@ const ArticulosAlmacenamiento = () => {
             />
           </div>
           <div className="flex flex-wrap gap-2 justify-start md:justify-end">
-            <ButtonGroup
+          <ButtonGroup
               isStorageSelected={true}
-              reloadArticulos={fetchArticulos}
+              reloadArticulos={handleArticulosUpdate}
+              onSave={handleArticulosUpdate}
               filteredData={searchTerm ? filteredArticulos : []}
               allData={articulos}
               className="flex-grow md:flex-grow-0"
