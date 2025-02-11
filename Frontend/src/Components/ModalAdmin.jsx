@@ -125,7 +125,6 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
         precio: Number(formatPrecioToNumber(row.precio))
       }));
 
-      // Guardar artículos de forma secuencial para mantener el orden
       for (let i = 0; i < processedRows.length; i++) {
         await agregarArticulo(processedRows[i]);
         setSaveStatus(prev => ({ ...prev, current: i + 1 }));
@@ -135,7 +134,6 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
         await refreshArticulos();
       }
 
-      // Pequeño delay antes de cerrar el modal y recargar
       setTimeout(() => {
         onClose();
         window.location.reload();
@@ -175,9 +173,46 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
           </button>
         </div>
 
-   
+        <div className="sm:hidden">
+          {rows.map((row, rowIndex) => (
+            <div key={rowIndex} className="mb-4 border p-3 rounded-lg shadow">
+              <h3 className="font-bold mb-2">Artículo {rowIndex + 1}</h3>
+              <div className="grid grid-cols-1 gap-2">
+                {renderInput("date", row.fecha, (e) => handleRowChange(e.target.value, rowIndex, 'fecha'), "Fecha", errors[rowIndex]?.fecha)}
+                {renderInput("text", row.descripcion, (e) => handleRowChange(e.target.value, rowIndex, 'descripcion'), "Descripción", errors[rowIndex]?.descripcion)}
+                {renderInput("text", row.proveedor, (e) => handleRowChange(e.target.value, rowIndex, 'proveedor'), "Proveedor", errors[rowIndex]?.proveedor)}
+                <CategorySelect
+                  value={row.ubicacion}
+                  onChange={(e) => handleRowChange(e.target.value, rowIndex, 'ubicacion')}
+                  error={errors[rowIndex]?.ubicacion}
+                  disabled={loading}
+                />
+                {renderInput("text", row.observacion, (e) => handleRowChange(e.target.value, rowIndex, 'observacion'), "Observación (opcional)", errors[rowIndex]?.observacion)}
+                {renderInput("number", row.precio, (e) => handleRowChange(e.target.value, rowIndex, "precio"), "Precio", errors[rowIndex]?.precio)}
+              </div>
+              <div className="flex justify-end mt-2">
+                {rows.length > 1 && (
+                  <button
+                    onClick={() => handleDeleteRow(rowIndex)}
+                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700 text-sm"
+                    disabled={loading}
+                  >
+                    Eliminar
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+          <button
+            onClick={handleAddRow}
+            className="bg-[#00A305] text-white px-4 py-2 rounded hover:bg-green-700 w-full"
+            disabled={loading}
+          >
+            Agregar Artículo
+          </button>
+        </div>
 
-        <div className="overflow-x-auto">
+        <div className="hidden sm:block overflow-x-auto">
           <table className="min-w-full table-auto">
             <thead>
               <tr className="bg-[#00A305] text-white">
@@ -223,7 +258,7 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
                         className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700 text-sm lg:text-base"
                         disabled={loading}
                       >
-                        <i className="fas fa-trash mr-1"></i> Eliminar
+                        Eliminar
                       </button>
                     ) : rowIndex === rows.length - 1 ? (
                       <button
@@ -231,7 +266,7 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
                         className="bg-[#00A305] text-white px-3 py-1 rounded hover:bg-green-700 text-sm lg:text-base"
                         disabled={loading}
                       >
-                        <i className="fas fa-plus mr-1"></i> Agregar
+                        Agregar
                       </button>
                     ) : null}
                   </td>
@@ -244,7 +279,7 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
         <div className="flex justify-end space-x-4 mt-4">
           <button
             onClick={onClose}
-            className="bg-white hover:bg-[#00A305] text-green-600  border-2 border-green-600 hover:text-white transition duration-300 rounded-[8px]  px-3 py-2 text-sm sm:px-4 "
+            className="bg-white hover:bg-[#00A305] text-green-600 border-2 border-green-600 hover:text-white transition duration-300 rounded-[8px] px-3 py-2 text-sm sm:px-4"
             disabled={loading}
           >
             Cancelar

@@ -34,16 +34,15 @@ const Contactos = () => {
     toggleConfirmPasswordVisibility,
     setIsConfirmModalOpen,
     setIsErrorModalOpen,
-    setIsDeleteConfirmModalOpen
+    setIsDeleteConfirmModalOpen,
   } = useContactManagement();
 
   return (
     <MainLayout>
-      <ModalConf 
+      <ModalConf
         isOpen={isDeleteConfirmModalOpen}
         onClose={() => {
           setIsDeleteConfirmModalOpen(false);
-          setUserToDelete(null);
         }}
         onConfirm={eliminarUsuario}
         message="¿Estás seguro de que deseas eliminar este usuario?"
@@ -62,54 +61,45 @@ const Contactos = () => {
       )}
 
       {isContentReady && (
-        <div className="justify-center items-center flex flex-col pt-[7em]  h-full">
+        <div className="justify-center items-center flex flex-col pt-[7em] h-full">
           <div className="w-full max-w-3xl p-12 shadow-md rounded-lg overflow-hidden">
             <h1 className="text-3xl font-bold text-gray-800 mb-10 text-center">
               Agregar Nuevo Usuario
             </h1>
 
-            <form onSubmit={handleSubmit} className="">
+            <form onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="w-full">
-                  <InputField
-                    label="Nombre Completo"
-                    type="text"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    placeholder="Ingresa tu nombre completo"
-                    className={`border-b ${formErrors.fullName ? 'border-red-500' : ''}`}
-                  />
-                  {formErrors.fullName && (
-                    <div className="text-red-500 mt-1 text-sm">
-                      {formErrors.fullName}
-                    </div>
-                  )}
-                </div>
-
-                <div className="mb-6 w-full">
-                  <InputField
-                    label="Correo"
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="Ingresa tu correo"
-                    className={`border-b ${formErrors.email ? 'border-red-500' : ''}`}
-                  />
-                  {formErrors.email && (
-                    <div className="text-red-500 mt-1 text-sm">
-                      {formErrors.email}
-                    </div>
-                  )}
-                </div>
+                <InputField
+                  label="Nombre Completo"
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  placeholder="Ingresa tu nombre completo"
+                  className={`border-b ${formErrors.fullName ? 'border-red-500' : ''}`}
+                />
+                {formErrors.fullName && (
+                  <div className="text-red-500 mt-1 text-sm">{formErrors.fullName}</div>
+                )}
+                <InputField
+                  label="Correo"
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Ingresa tu correo"
+                  className={`border-b ${formErrors.email ? 'border-red-500' : ''}`}
+                />
+                {formErrors.email && (
+                  <div className="text-red-500 mt-1 text-sm">{formErrors.email}</div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 relative">
                 <div className="relative">
                   <InputField
                     label="Contraseña"
-                    type={showPassword ? "text" : "password"}
+                    type={showPassword ? 'text' : 'password'}
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
@@ -121,17 +111,18 @@ const Contactos = () => {
                     className="absolute top-1/2 right-2 transform -translate-y-1/2 text-gray-500"
                     onClick={togglePasswordVisibility}
                   >
-                    <i className={`bx ${showPassword ? "bx-hide" : "bx-show"} cursor-pointer mt-[30px] text-[20px]`}></i>
+                    <i
+                      className={`bx ${showPassword ? 'bx-hide' : 'bx-show'} cursor-pointer mt-[30px] text-[20px]`}
+                    ></i>
                   </button>
                   {formErrors.password && (
                     <p className="text-red-500 mt-2 text-sm">{formErrors.password}</p>
                   )}
                 </div>
-
                 <div className="relative">
                   <InputField
                     label="Confirmar Contraseña"
-                    type={showConfirmPassword ? "text" : "password"}
+                    type={showConfirmPassword ? 'text' : 'password'}
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
@@ -143,7 +134,11 @@ const Contactos = () => {
                     className="absolute top-1/2 right-2 transform -translate-y-1/2 text-gray-500"
                     onClick={toggleConfirmPasswordVisibility}
                   >
-                    <i className={`bx ${showConfirmPassword ? "bx-hide" : "bx-show"} cursor-pointer mt-[30px] text-[20px]`}></i>
+                    <i
+                      className={`bx ${
+                        showConfirmPassword ? 'bx-hide' : 'bx-show'
+                      } cursor-pointer mt-[30px] text-[20px]`}
+                    ></i>
                   </button>
                   {formErrors.confirmPassword && (
                     <p className="text-red-500 mt-2 text-sm">{formErrors.confirmPassword}</p>
@@ -168,7 +163,7 @@ const Contactos = () => {
                   <button
                     type="button"
                     onClick={toggleModal}
-                    className="bg-[#00A305] hover:bg-green-700 relative cursor-pointer font-semibold overflow-hidden border border-verde group w-[180px] h-[50px] py-[10px] rounded-[8px] mt-3 self-center text-white  "
+                    className="bg-[#00A305] hover:bg-green-700 font-semibold overflow-hidden border border-verde group w-[180px] h-[50px] py-[10px] rounded-[8px] mt-3 text-white"
                   >
                     Ver Contactos
                   </button>
@@ -179,13 +174,13 @@ const Contactos = () => {
         </div>
       )}
 
-      <ModalConfirmacion 
+      <ModalConfirmacion
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
         message={message}
       />
 
-      <ModalError 
+      <ModalError
         isOpen={isErrorModalOpen}
         onClose={() => setIsErrorModalOpen(false)}
         message={errorMessage}
@@ -193,7 +188,7 @@ const Contactos = () => {
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-lg shadow-lg w-[80%] sm:w-[60%] p-6 max-h-screen overflow-hidden relative">
+          <div className="bg-white rounded-lg shadow-lg w-[90%] sm:w-[70%] p-6 max-h-screen overflow-y-auto relative">
             <button
               type="button"
               className="absolute top-4 right-4 text-gray-500"
@@ -202,18 +197,54 @@ const Contactos = () => {
               X
             </button>
 
-            <Table
-              title="Lista de Contactos"
-              headers={['Nombre Completo', 'Correo', 'Rol']}
-              rows={contactos}
-              onDelete={handleDeleteConfirmation}
-              className="z-[10px]" 
-            />
-            
+            <h2 className="text-xl font-bold mb-4 text-center">Lista de Contactos</h2>
+
+            <div className="hidden md:block">
+              <Table
+                title="Lista de Contactos"
+                headers={['Nombre Completo', 'Correo', 'Rol']}
+                rows={contactos}
+                onDelete={handleDeleteConfirmation}
+              />
+            </div>
+
+            <div className="block md:hidden">
+  {contactos.length > 0 ? (
+    contactos.map((contacto, index) => (
+      <div
+        key={index}
+        className="border rounded-lg p-4 mb-4 shadow-sm bg-gray-100"
+      >
+        <p className="mb-2">
+          <span className="font-bold">Nombre Completo:</span>{" "}
+          {contacto.nombre || "No disponible"} {/* Cambia 'nombre' si es necesario */}
+        </p>
+        <p className="mb-2">
+          <span className="font-bold">Correo:</span>{" "}
+          {contacto.correo || "No disponible"} {/* Cambia 'correo' si es necesario */}
+        </p>
+        <p>
+          <span className="font-bold">Rol:</span>{" "}
+          {contacto.rol || "No disponible"} {/* Cambia 'rol' si es necesario */}
+        </p>
+        <div className="mt-4 flex justify-end space-x-4">
+          <button
+            onClick={() => handleDeleteConfirmation(contacto)}
+            className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-700 transition-colors"
+          >
+            Eliminar
+          </button>
+        </div>
+      </div>
+    ))
+  ) : (
+    <p className="text-center text-gray-500">No hay contactos disponibles.</p>
+  )}
+</div>
+
           </div>
         </div>
-  
-  )}
+      )}
     </MainLayout>
   );
 };
