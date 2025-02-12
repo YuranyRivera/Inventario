@@ -64,11 +64,11 @@ const Dashboard = () => {
                 headers={adjustedResumenHeaders}
                 rows={[
                   [
-                    <div className="text-center">
+                    <div className="">
                       {parseInt(totalArticulosActivos) + parseInt(totalArticulosAlmacenamiento)}
                     </div>,
-                    <div className="text-center">{totalArticulosActivos}</div>,
-                    <div className="text-center">{totalArticulosAlmacenamiento}</div>,
+                    <div className="">{totalArticulosActivos}</div>,
+                    <div className="">{totalArticulosAlmacenamiento}</div>,
                   ],
                 ]}
               />
@@ -81,7 +81,7 @@ const Dashboard = () => {
                 title="Actividad Reciente"
                 headers={actividadHeaders}
                 rows={actividadReciente.map((row) =>
-                  row.map((data) => <div className="text-center">{data}</div>)
+                  row.map((data) => <div className="">{data}</div>)
                 )}
               />
             </div>
