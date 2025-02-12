@@ -86,6 +86,8 @@ const ModalSalida = ({ isOpen, onClose }) => {
     
   ];
 
+  
+
   const handleUbicacionInicialChange = async (selectedOption) => {
     setErrors({ ...errors, ubicacionInicial: '' });
     setUbicacionInicial(selectedOption?.value || '');
@@ -104,7 +106,10 @@ const ModalSalida = ({ isOpen, onClose }) => {
       if (Array.isArray(data) && data.length > 0) {
         setProductosDisponibles(data.map(producto => ({
           value: producto.id,
-          label: `${producto.codigo} - ${producto.descripcion} `
+          label: `${producto.codigo} - ${producto.descripcion} `,
+          codigo: producto.codigo, // Guardamos el código para búsqueda
+    descripcion: producto.descripcion,
+
         })));
       } else {
         setProductosDisponibles([]);
@@ -115,6 +120,9 @@ const ModalSalida = ({ isOpen, onClose }) => {
       setErrors({ ...errors, productos: 'Error al cargar los productos' });
     }
   };
+
+
+  
 
   const handleUbicacionFinalChange = (selectedOption) => {
     setErrors({ ...errors, ubicacionFinal: '' });
@@ -127,10 +135,13 @@ const ModalSalida = ({ isOpen, onClose }) => {
 
   const handleSelectProduct = (selectedOptions) => {
     setErrors({ ...errors, productos: '' });
+
+     setSelectedProducts(selectedOptions || []);
     if (!selectedOptions || selectedOptions.length === 0) {
       setErrors({ ...errors, productos: 'Debe seleccionar al menos un producto' });
       return;
     }
+    
     setSelectedProducts(selectedOptions);
   };
 
@@ -221,14 +232,23 @@ const ModalSalida = ({ isOpen, onClose }) => {
                 Selecciona los productos
               </label>
               <Select
-                isMulti
-                options={productosDisponibles}
-                value={selectedProducts}
-                onChange={handleSelectProduct}
-                placeholder="Seleccionar productos..."
-                closeMenuOnSelect={false}
-                className={errors.productos ? 'border-red-500' : ''}
-              />
+  isMulti
+  options={productosDisponibles}
+  value={selectedProducts}
+  onChange={handleSelectProduct}
+  placeholder="Seleccionar productos..."
+  isClearable// Permite eliminar todas las opciones
+  closeMenuOnSelect={false} // Mantiene el menú abierto para múltiples selecciones
+  className={errors.productos ? 'border-red-500' : ''}
+  filterOption={(option, inputValue) => {
+    return (
+      option.label.toLowerCase().includes(inputValue.toLowerCase()) || 
+      option.data.codigo.toLowerCase().includes(inputValue.toLowerCase())
+    );
+  }}
+/>
+
+
               {errors.productos && (
                 <p className="text-red-500 text-sm mt-1">{errors.productos}</p>
               )}

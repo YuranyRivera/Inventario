@@ -8,6 +8,7 @@ import ButtonGroup from "../../Components/PDF";
 import ExcelExportButton from "../../Components/Excel";
 import ModalConfirmacion from "../../Components/ModalConf";
 import ModalObservacion from "../../Components/ModalObs";
+import BarcodeGenerator from "../../Components/BarcodeGenerator";
 import Select from "react-select";
 
 const MAX_PRECIO = 9999999999;
@@ -141,6 +142,9 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
       (articulo.proveedor || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+        (articulo.codigo || "")
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
       (articulo.ubicacion || "")
@@ -380,13 +384,14 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
             filteredData={filteredArticulos}
             allData={articulos}
           />
+
           <ExcelExportButton
             filteredData={filteredArticulos}
             allData={articulos}
           />
         </div>
       </div>
-
+      <BarcodeGenerator articulos={articulos}></BarcodeGenerator>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">

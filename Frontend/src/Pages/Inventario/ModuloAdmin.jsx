@@ -189,6 +189,7 @@ const Moduloadmin = () => {
       (row.producto || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (row.responsable || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (row.ubicacion_inicial || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (row.codigo || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (row.ubicacion_final || '').toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesLocationInitial = !selectedLocationInitial || row.ubicacion_inicial === selectedLocationInitial.value;
