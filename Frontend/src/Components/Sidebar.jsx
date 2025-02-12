@@ -7,7 +7,7 @@ const Sidebar = ({ onClose, isMobile, handleLogout}) => {
  
   const { user } = useUser();
 
-
+  const { logoutUser } = useUser();
 
   return (
 <div className="flex flex-col w-64 h-full bg-[#00A305] text-white p-4 relative">
@@ -83,7 +83,7 @@ const Sidebar = ({ onClose, isMobile, handleLogout}) => {
 
      {/* Logout Option */}
      <div 
-        onClick={handleLogout} 
+        onClick={logoutUser} 
         className="mt-auto flex items-center text-lg hover:bg-[#41B646] p-2 rounded cursor-pointer"
       >
         <i className="fas fa-sign-out-alt mr-3"></i> Salir

@@ -45,14 +45,24 @@ export const UserProvider = ({ children }) => {
 
   const logoutUser = () => {
     setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('userData');
+    localStorage.clear();
+  
+    // Reemplazamos la entrada actual del historial con la página de inicio
+    window.history.replaceState(null, '', '/Inicio');
+  
+    // Agregamos una nueva entrada al historial para evitar que el usuario navegue hacia atrás
+    window.history.pushState(null, '', '/Inicio');
+  
+    // Forzamos una recarga completa de la página para resetear el historial
+    window.location.href = '/Inicio';
+  
+    // Prevenimos la navegación hacia atrás
+    window.addEventListener('popstate', function (event) {
+      // Reemplazamos cualquier intento de navegación hacia atrás con la página de inicio
+      window.history.replaceState(null, '', '/Inicio');
+    });
   };
-
-  if (!isInitialized) {
-    return null;
-  }
-
+  
   return (
     <UserContext.Provider value={{ user, loginUser, logoutUser, updateUser }}>
       {children}
