@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
@@ -11,7 +9,7 @@ import ModalBaja from '../../Components/ModalBaja';
 
 const ArticulosAlmacenamiento = () => {
   const headers = ['ID', 'Producto/Detalle', 'Cantidad Inicial', 'Módulo', 'Estante', 'Estado', 'Entrada', 'Salida', 'Restante'];
-  const { articulos, loading, error, fetchArticulos, deleteArticulo, addArticulos } = useArticulos();
+  const { articulos, loading, error, fetchArticulos, deleteArticulo, updateArticulo  } = useArticulos();
   const { searchTerm, setSearchTerm, filteredArticulos } = useArticuloSearch(articulos);
   const navigate = useNavigate();
 
