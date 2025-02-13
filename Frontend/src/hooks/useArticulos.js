@@ -14,7 +14,7 @@ const useArticulos = (refreshArticulos) => {
 
     try {
 
-      const response = await fetch('http://localhost:4000/api/articulos', {
+      const response = await fetch('https://inventarioschool-v1.onrender.com/api/articulos', {
 
         method: 'POST',
 
