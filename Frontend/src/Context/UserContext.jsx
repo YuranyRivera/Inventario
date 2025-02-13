@@ -37,34 +37,17 @@ export const UserProvider = ({ children }) => {
       ...prevUser,
       ...userData
     }));
-    // Actualizar también en localStorage
-    const storedUser = JSON.parse(localStorage.getItem('userData'));
-    const updatedUser = { ...storedUser, ...userData };
-    localStorage.setItem('userData', JSON.stringify(updatedUser));
+    localStorage.setItem('userData', JSON.stringify({ ...JSON.parse(localStorage.getItem('userData')), ...userData }));
   };
 
   const logoutUser = () => {
     setUser(null);
     localStorage.clear();
-  
-    // Reemplazamos la entrada actual del historial con la página de inicio
-    window.history.replaceState(null, '', '/Inicio');
-  
-    // Agregamos una nueva entrada al historial para evitar que el usuario navegue hacia atrás
-    window.history.pushState(null, '', '/Inicio');
-  
-    // Forzamos una recarga completa de la página para resetear el historial
     window.location.href = '/Inicio';
-  
-    // Prevenimos la navegación hacia atrás
-    window.addEventListener('popstate', function (event) {
-      // Reemplazamos cualquier intento de navegación hacia atrás con la página de inicio
-      window.history.replaceState(null, '', '/Inicio');
-    });
   };
-  
+
   return (
-    <UserContext.Provider value={{ user, loginUser, logoutUser, updateUser }}>
+    <UserContext.Provider value={{ user, loginUser, logoutUser, updateUser, isInitialized }}>
       {children}
     </UserContext.Provider>
   );
