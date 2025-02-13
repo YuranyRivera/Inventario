@@ -29,46 +29,23 @@ export const useArticulos = () => {
     fetchArticulos();
   }, [fetchArticulos]);
 
-  const updateArticulo = async (id, articuloData) => {
-    setLoading(true);
+  const updateArticulo = async (id, updatedData) => {
     try {
-      const response = await fetch(`http://localhost:4000/api/articulos/${id}`, {
+      const response = await fetch(`https://inventarioschool-v1.onrender.com/api/articulos/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(articuloData),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedData),
       });
-  
-      const data = await response.json();
-  
+
       if (!response.ok) {
-        return { 
-          success: false, 
-          error: data.error || 'Error al actualizar el artículo' 
-        };
+        throw new Error('Error updating article');
       }
-  
-      setArticulos((prevArticulos) => 
-        prevArticulos.map(art => (art.id === id ? data.articulo : art))
-      );
-  
-      if (typeof refreshArticulos === 'function') {
-        refreshArticulos();
-      }
-  
-      return { success: true, data };
-    } catch (error) {
-      console.error('Update article error:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Error al actualizar el artículo' 
-      };
-    } finally {
-      setLoading(false);
+
+      fetchArticulos();
+    } catch (err) {
+      setError(err.message);
     }
   };
-  
 
   const deleteArticulo = async (id, formData) => {
     try {

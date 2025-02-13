@@ -79,20 +79,11 @@ export const eliminarArticuloAlmacenamiento = async (req, res) => {
       [id, articulo.producto, motivo_baja, usuario_baja, imagen_url, cantidad]
     );
 
-   // Eliminar el artículo
-   console.log('Intentando eliminar el artículo...');
-   const deleteResult = await pool.query(
-     'DELETE FROM articulos_almacenamiento WHERE id = $1 RETURNING *;',
-     [id]
-   );
-
-   if (deleteResult.rowCount === 0) {
-     console.log('El artículo no se eliminó.');
-     await pool.query('ROLLBACK');
-     return res.status(500).json({ message: 'No se pudo eliminar el artículo' });
-   }
-
-   console.log('Artículo eliminado:', deleteResult.rows[0]);
+    // Eliminar el artículo de la tabla de almacenamiento
+    await pool.query(
+      'DELETE FROM articulos_almacenamiento WHERE id = $1',
+      [id]
+    );
 
     await pool.query('COMMIT');
 
