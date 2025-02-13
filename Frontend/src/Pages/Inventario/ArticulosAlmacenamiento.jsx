@@ -9,7 +9,7 @@ import ModalBaja from '../../Components/ModalBaja';
 
 const ArticulosAlmacenamiento = () => {
   const headers = ['ID', 'Producto/Detalle', 'Cantidad Inicial', 'Módulo', 'Estante', 'Estado', 'Entrada', 'Salida', 'Restante'];
-  const { articulos, loading, error, fetchArticulos, deleteArticulo, updateArticulo  } = useArticulos();
+  const { articulos, loading, error, fetchArticulos, deleteArticulo, addArticulos } = useArticulos();
   const { searchTerm, setSearchTerm, filteredArticulos } = useArticuloSearch(articulos);
   const navigate = useNavigate();
 
@@ -162,6 +162,5 @@ const ArticulosAlmacenamiento = () => {
 };
 
 export default ArticulosAlmacenamiento;
-
 
 
