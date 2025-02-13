@@ -55,6 +55,7 @@ export const eliminarArticuloAlmacenamiento = async (req, res) => {
 
     await pool.query('BEGIN');
 
+    // Obtener el artículo a eliminar
     const articuloResult = await pool.query(
       'SELECT * FROM articulos_almacenamiento WHERE id = $1',
       [id]
@@ -68,16 +69,30 @@ export const eliminarArticuloAlmacenamiento = async (req, res) => {
     const articulo = articuloResult.rows[0];
     const { motivo_baja, usuario_baja } = req.body;
     const cantidad = articulo.cantidad; 
+
+    // Insertar el artículo en el historial de bajas
     const insertResult = await pool.query(
       `INSERT INTO public.articulos_baja_historial 
       (id_articulo, producto, motivo_baja, usuario_baja, imagen_baja, cantidad)
-    VALUES ($1, $2, $3, $4, $5, $6) 
-    RETURNING *;`,
+      VALUES ($1, $2, $3, $4, $5, $6) 
+      RETURNING *;`,
       [id, articulo.producto, motivo_baja, usuario_baja, imagen_url, cantidad]
     );
 
-   
- 
+   // Eliminar el artículo
+   console.log('Intentando eliminar el artículo...');
+   const deleteResult = await pool.query(
+     'DELETE FROM articulos_almacenamiento WHERE id = $1 RETURNING *;',
+     [id]
+   );
+
+   if (deleteResult.rowCount === 0) {
+     console.log('El artículo no se eliminó.');
+     await pool.query('ROLLBACK');
+     return res.status(500).json({ message: 'No se pudo eliminar el artículo' });
+   }
+
+   console.log('Artículo eliminado:', deleteResult.rows[0]);
 
     await pool.query('COMMIT');
 

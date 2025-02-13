@@ -35,10 +35,10 @@ const AdminArticlesTable = ({ headers, rows, onEdit, onDelete }) => {
   };
 
   return (
-    <div className="p-4">
+    <div className="mt-10">
       {/* 🌐 Tabla en pantallas grandes */}
-      <div className="hidden md:block overflow-x-auto">
-        <table className="min-w-full mt-5 bg-white border border-gray-200 rounded-lg shadow-md">
+      <div className="hidden md:block">
+        <table className="min-w-full table-auto rounded-lg overflow-hidden shadow-lg">
           <thead>
             <tr className="bg-[#00A305] text-white">
               {headers.map((header, index) => (
@@ -102,19 +102,19 @@ const AdminArticlesTable = ({ headers, rows, onEdit, onDelete }) => {
                         }}
                         className="bg-[#00A305] text-white py-1 px-3 rounded hover:bg-green-700 transition"
                       >
-                        Editar
+                           <i className="fas fa-pencil-alt mr-2"></i>    Editar
                       </button>
                       <button
                         onClick={() => onDelete(row)}
                         className="bg-white text-[#00A305] py-1 px-3 border border-[#00A305] rounded hover:bg-green-100 transition"
                       >
-                        Dar de baja
+                                <i className="fas fa-trash-alt mr-2"></i>     Dar de baja
                       </button>
                       <button
                         onClick={() => generateBarcodePDF(row.codigo)}
                         className="bg-[#00A305] text-white py-1 px-3 rounded hover:bg-blue-700 transition"
                       >
-                        Código
+                 <i className="fas fa-barcode mr-2"></i> Generar Código
                       </button>
                     </>
                   )}

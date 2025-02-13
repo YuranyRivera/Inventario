@@ -349,7 +349,7 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
   };
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="">
       <ModalObservacion
         isOpen={isObservacionModalOpen}
         onClose={() => setIsObservacionModalOpen(false)}
@@ -364,11 +364,9 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
       />
 
       {/* Responsive Card Container */}
-      <div className="bg-white rounded-lg shadow-md p-4 space-y-4">
-        {/* Search and Buttons Section */}
-        <div className="flex flex-col space-y-4">
-          {/* Search Bar */}
-          <div className="relative">
+      <div className="space-y-4">
+        <div className="flex flex-col md:flex-row items-stretch space-y-2 md:space-y-0 md:space-x-2">
+          <div className="relative flex-1 max-w-full md:max-w-md">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <Search className="h-5 w-5 text-gray-400" />
             </div>
@@ -382,27 +380,25 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
           </div>
 
           {/* Action Buttons Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex flex-wrap gap-2 justify-start md:justify-end">
               <ButtonGroup
                 isStorageSelected={false}
                 reloadArticulos={reloadArticulos}
                 filteredData={filteredArticulos}
                 allData={articulos}
               />
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2">
+    
+
               <ExcelExportButton
                 filteredData={filteredArticulos}
                 allData={articulos}
               />
             </div>
-          </div>
+    
 
-          {/* Barcode Generator */}
-          <div className="w-full">
+     
             <BarcodeGenerator articulos={articulos} />
-          </div>
+
         </div>
 
         {/* Filters Section */}
@@ -449,8 +445,8 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
         </div>
 
         {/* Table Section */}
-        <div className="mt-6 -mx-4 sm:mx-0">
-          <div className="overflow-x-auto rounded-lg border border-gray-200">
+  
+        <div className="overflow-x-auto">
             <AdminArticlesTable
               headers={headers}
               rows={tableRows}
@@ -466,7 +462,7 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
             />
           </div>
         </div>
-      </div>
+  
     </div>
   );
 };
