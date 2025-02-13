@@ -24,9 +24,17 @@ const ArticulosAlmacenamiento = () => {
   };
 
   const handleDelete = async (formData) => {
-    if (selectedArticulo) {
-      await deleteArticulo(selectedArticulo.id, formData);
-      navigate('/ArticulosBaja2');
+    try {
+      if (selectedArticulo) {
+        const success = await deleteArticulo(selectedArticulo.id, formData);
+        if (success) {
+          setIsModalOpen(false);
+          navigate('/ArticulosBaja2');
+        }
+      }
+    } catch (error) {
+      console.error('Error en el proceso de baja:', error);
+      alert('Error al procesar la baja del artículo');
     }
   };
 
@@ -38,7 +46,7 @@ const ArticulosAlmacenamiento = () => {
     const value = e.target.value;
     if (['id', 'cantidad'].includes(field)) return;
 
-    setEditedRowData((prev) => {
+    setEditedRowData(prev => {
       const updatedData = { ...prev, [field]: value };
 
       if (['entrada', 'salida'].includes(field)) {
@@ -58,14 +66,21 @@ const ArticulosAlmacenamiento = () => {
   };
 
   const handleSave = async () => {
-    await updateArticulo(editedRowData.id, editedRowData);
-    setEditingRowIndex(null);
+    try {
+      const success = await updateArticulo(editedRowData.id, editedRowData);
+      if (success) {
+        setEditingRowIndex(null);
+      }
+    } catch (error) {
+      console.error('Error al actualizar:', error);
+      alert('Error al actualizar el artículo');
+    }
   };
 
   const handleCancel = () => {
     setEditingRowIndex(null);
+    setEditedRowData({});
   };
-
 
   if (error) return <div>Error: {error}</div>;
 
@@ -73,7 +88,10 @@ const ArticulosAlmacenamiento = () => {
     <>
       <ModalBaja
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedArticulo(null);
+        }}
         onSave={handleDelete}
       />
 
@@ -100,7 +118,7 @@ const ArticulosAlmacenamiento = () => {
               className="flex-grow md:flex-grow-0"
             />
             <ExcelExportButton 
-              filteredData={searchTerm ? filteredArticulos : []} 
+              filteredData={searchTerm ? filteredArticulos : []}
               allData={articulos}
               className="flex-grow md:flex-grow-0"
             />
@@ -125,13 +143,7 @@ const ArticulosAlmacenamiento = () => {
             onDelete={handleDeleteClick}
             editingRowIndex={editingRowIndex}
             editedRowData={editedRowData}
-            handleInputChange={(e, field) => {
-              if (['id', 'cantidad', 'cantidad_productos'].includes(field)) {
-                e.preventDefault();
-              } else {
-                handleInputChange(e, field);
-              }
-            }}
+            handleInputChange={handleInputChange}
             handleSave={handleSave}
             handleCancel={handleCancel}
             disableFields={['id', 'cantidad', 'cantidad_productos']}

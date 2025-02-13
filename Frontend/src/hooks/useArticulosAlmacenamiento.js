@@ -40,26 +40,40 @@ export const useArticulos = () => {
         throw new Error('Error updating article');
       }
 
-      fetchArticulos();
+      await fetchArticulos();
+      return true;
     } catch (err) {
       setError(err.message);
+      return false;
     }
   };
 
   const deleteArticulo = async (id, formData) => {
     try {
-      const response = await fetch(`https://inventarioschool-v1.onrender.com/api/articulos-baja/${id}`, {
+      // Paso 1: Crear el reporte de baja
+      const bajaResponse = await fetch(`https://inventarioschool-v1.onrender.com/api/articulos-baja/${id}`, {
         method: 'POST',
         body: formData
       });
 
-      if (!response.ok) {
-        throw new Error('Error deleting article');
+      if (!bajaResponse.ok) {
+        throw new Error('Error al generar el reporte de baja');
       }
 
-      fetchArticulos();
+      // Paso 2: Eliminar el artículo
+      const deleteResponse = await fetch(`https://inventarioschool-v1.onrender.com/api/articulos/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (!deleteResponse.ok) {
+        throw new Error('Error al eliminar el artículo');
+      }
+
+      await fetchArticulos();
+      return true;
     } catch (err) {
       setError(err.message);
+      return false;
     }
   };
 

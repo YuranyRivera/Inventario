@@ -1,27 +1,20 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import JsBarcode from "jsbarcode";
 import { jsPDF } from "jspdf";
 
-const AdminArticlesTable = ({ headers, rows, onEdit, onDelete }) => {
-  const [editingRowIndex, setEditingRowIndex] = useState(null);
-  const [editedRowData, setEditedRowData] = useState({});
-
-  const disabledFields = ["id", "fecha_creacion"];
-
-  const handleInputChange = (e, field) => {
-    setEditedRowData((prev) => ({ ...prev, [field]: e.target.value }));
-  };
-
-  const handleSave = () => {
-    onEdit(editedRowData, editingRowIndex);
-    setEditingRowIndex(null);
-    setEditedRowData({});
-  };
-
-  const handleCancel = () => {
-    setEditingRowIndex(null);
-    setEditedRowData({});
-  };
+const AdminArticlesTable = ({
+  headers,
+  rows,
+  onEdit,
+  onDelete,
+  editingRowIndex,
+  editedRowData,
+  handleInputChange,
+  handleSave,
+  handleCancel,
+}) => {
+  // Lista de campos deshabilitados
+  const disabledFields = ['id', 'fecha_creacion'];
 
   const generateBarcodePDF = (codigo) => {
     const doc = new jsPDF();
@@ -35,103 +28,100 @@ const AdminArticlesTable = ({ headers, rows, onEdit, onDelete }) => {
   };
 
   return (
-    <div className="p-4">
-      {/* 🌐 Tabla en pantallas grandes */}
+    <>
+      {/* Tabla para pantallas medianas y grandes */}
       <div className="hidden md:block overflow-x-auto">
-        <table className="min-w-full mt-5 bg-white border border-gray-200 rounded-lg shadow-md">
+        <table className="min-w-full mt-10 table-auto rounded-lg overflow-hidden shadow-lg">
           <thead>
             <tr className="bg-[#00A305] text-white">
               {headers.map((header, index) => (
-                <th key={index} className="px-4 py-3 text-left">{header}</th>
+                <th key={index} className="px-4 py-2 text-left text-xs md:text-sm">
+                  {header}
+                </th>
               ))}
-              <th className="px-4 py-3 text-left">Acciones</th>
+              <th className="px-4 py-2 text-left text-xs md:text-sm">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((row, index) => (
               <tr
                 key={index}
-                className={`border-t ${
-                  index % 2 === 0 ? "bg-gray-100" : "bg-white"
-                } hover:bg-gray-200 transition-colors`}
+                className={`border-t bg-gray-100 hover:bg-gray-200 transition-colors`}
               >
                 {index === editingRowIndex ? (
-                  Object.entries(row).map(([key, value], idx) => {
-                    const isDisabled = disabledFields.includes(key);
-                    return (
-                      <td key={idx} className="px-4 py-2">
-                        <input
-                          type="text"
-                          value={editedRowData[key] || ""}
-                          onChange={(e) => handleInputChange(e, key)}
-                          disabled={isDisabled}
-                          className={`border px-2 py-1 rounded w-full ${
-                            isDisabled ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""
-                          }`}
-                        />
-                      </td>
-                    );
-                  })
-                ) : (
-                  Object.values(row).map((cell, idx) => (
-                    <td key={idx} className="px-4 py-3">{cell}</td>
-                  ))
-                )}
-                <td className="px-4 py-3 flex space-x-2">
-                  {index === editingRowIndex ? (
-                    <>
+                  <>
+                    {Object.entries(row).map(([key, value], idx) => {
+                      const field = key.toLowerCase();
+                      const isDisabled = disabledFields.includes(field);
+                      return (
+                        <td key={idx} className="px-2 py-1 md:px-4 md:py-2">
+                          <input
+                            type="text"
+                            value={editedRowData[field] || ''}
+                            onChange={(e) => handleInputChange(e, field)}
+                            disabled={isDisabled}
+                            className={`border px-1 py-1 rounded w-full text-xs md:text-sm ${isDisabled ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+                          />
+                        </td>
+                      );
+                    })}
+                    <td className="px-2 py-1 md:px-4 md:py-2 flex gap-2">
                       <button
                         onClick={handleSave}
-                        className="bg-[#00A305] text-white py-1 px-3 rounded hover:bg-green-700 transition"
+                        className="bg-[#00A305] text-white py-1 px-2 md:px-3 rounded flex items-center text-xs md:text-sm hover:bg-green-700 transition-colors"
                       >
-                        Guardar
+                        <i className="fas fa-save mr-1 md:mr-2"></i> Guardar
                       </button>
                       <button
                         onClick={handleCancel}
-                        className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-700 transition"
+                        className="bg-red-500 text-white py-1 px-2 md:px-3 rounded flex items-center text-xs md:text-sm hover:bg-red-700 transition-colors"
                       >
-                        Cancelar
+                        <i className="fas fa-times mr-1 md:mr-2"></i> Cancelar
                       </button>
-                    </>
-                  ) : (
-                    <>
+                    </td>
+                  </>
+                ) : (
+                  <>
+                    {Object.values(row).map((cell, idx) => (
+                      <td key={idx} className="px-2 py-1 md:px-4 md:py-2 text-xs md:text-sm">
+                        {cell}
+                      </td>
+                    ))}
+                    <td className="px-2 py-1 md:px-4 md:py-2 flex gap-2">
                       <button
-                        onClick={() => {
-                          setEditingRowIndex(index);
-                          setEditedRowData(row);
-                        }}
-                        className="bg-[#00A305] text-white py-1 px-3 rounded hover:bg-green-700 transition"
+                        onClick={() => onEdit(row, index)}
+                        className="bg-[#00A305] text-white py-1 px-2 md:px-3 rounded flex items-center text-xs md:text-sm hover:bg-green-700 transition-colors"
                       >
-                        Editar
+                        <i className="fas fa-pencil-alt mr-1 md:mr-2"></i> Editar
                       </button>
                       <button
                         onClick={() => onDelete(row)}
-                        className="bg-white text-[#00A305] py-1 px-3 border border-[#00A305] rounded hover:bg-green-100 transition"
+                        className="bg-white text-[#00A305] py-1 px-2 md:px-3 border-2 border-[#00A305] rounded flex items-center text-xs md:text-sm hover:bg-green-100 transition-colors"
                       >
-                        Dar de baja
+                        <i className="fas fa-trash-alt mr-1 md:mr-2"></i> Dar de baja
                       </button>
                       <button
                         onClick={() => generateBarcodePDF(row.codigo)}
-                        className="bg-[#00A305] text-white py-1 px-3 rounded hover:bg-blue-700 transition"
+                        className="bg-blue-500 text-white py-1 px-2 md:px-3 rounded flex items-center text-xs md:text-sm hover:bg-blue-700 transition-colors"
                       >
-                        Código
+                        <i className="fas fa-barcode mr-1 md:mr-2"></i> Código
                       </button>
-                    </>
-                  )}
-                </td>
+                    </td>
+                  </>
+                )}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      {/* 📱 Tarjetas en modo responsive */}
+      {/* Tarjetas para pantallas móviles */}
       <div className="block md:hidden space-y-4 mt-5">
         {rows.map((row, index) => (
           <div key={index} className="p-4 border border-gray-200 rounded-lg shadow-md bg-white">
             {index === editingRowIndex ? (
               Object.entries(row).map(([key, value]) => {
-                const isDisabled = disabledFields.includes(key);
+                const isDisabled = disabledFields.includes(key.toLowerCase());
                 return (
                   <div key={key} className="mb-2">
                     <label className="block text-sm font-semibold capitalize">{key}:</label>
@@ -173,10 +163,7 @@ const AdminArticlesTable = ({ headers, rows, onEdit, onDelete }) => {
               ) : (
                 <>
                   <button
-                    onClick={() => {
-                      setEditingRowIndex(index);
-                      setEditedRowData(row);
-                    }}
+                    onClick={() => onEdit(row, index)}
                     className="bg-[#00A305] text-white py-1 px-3 rounded text-sm hover:bg-green-700 transition"
                   >
                     Editar
@@ -189,7 +176,7 @@ const AdminArticlesTable = ({ headers, rows, onEdit, onDelete }) => {
                   </button>
                   <button
                     onClick={() => generateBarcodePDF(row.codigo)}
-                    className="bg-[#00A305] text-white py-1 px-3 rounded text-sm hover:bg-blue-700 transition"
+                    className="bg-blue-500 text-white py-1 px-3 rounded text-sm hover:bg-blue-700 transition"
                   >
                     Código
                   </button>
@@ -199,7 +186,7 @@ const AdminArticlesTable = ({ headers, rows, onEdit, onDelete }) => {
           </div>
         ))}
       </div>
-    </div>
+    </>
   );
 };
 
