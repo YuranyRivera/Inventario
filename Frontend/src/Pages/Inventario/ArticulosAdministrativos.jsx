@@ -349,125 +349,121 @@ const ArticulosAdministrativos = ({ articulos = [], reloadArticulos }) => {
   };
 
   return (
-    <div className="space-y-4 p-4">
-      <ModalObservacion
-        isOpen={isObservacionModalOpen}
-        onClose={() => setIsObservacionModalOpen(false)}
-        onSave={handleObservacionSave}
-      />
+    <div className="">
+    <ModalObservacion
+      isOpen={isObservacionModalOpen}
+      onClose={() => setIsObservacionModalOpen(false)}
+      onSave={handleObservacionSave}
+    />
 
-      <ModalConfirmacion
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onConfirm={() => handleDelete(articuloToDelete?.observacion)}
-        message="¿Está seguro de que desea dar de baja este artículo?"
-      />
+    <ModalConfirmacion
+      isOpen={isModalOpen}
+      onClose={() => setIsModalOpen(false)}
+      onConfirm={() => handleDelete(articuloToDelete?.observacion)}
+      message="¿Está seguro de que desea dar de baja este artículo?"
+    />
 
-      {/* Responsive Card Container */}
-      <div className="bg-white rounded-lg shadow-md p-4 space-y-4">
-        {/* Search and Buttons Section */}
-        <div className="flex flex-col space-y-4">
-          {/* Search Bar */}
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Buscar por descripción, proveedor..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
+    {/* Responsive Card Container */}
+    <div className="space-y-4">
+      <div className="flex flex-col md:flex-row items-stretch space-y-2 md:space-y-0 md:space-x-2">
+        <div className="relative flex-1 max-w-full md:max-w-md">
+          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
           </div>
-
-          {/* Action Buttons Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <div className="flex flex-col sm:flex-row gap-2">
-              <ButtonGroup
-                isStorageSelected={false}
-                reloadArticulos={reloadArticulos}
-                filteredData={filteredArticulos}
-                allData={articulos}
-              />
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <ExcelExportButton
-                filteredData={filteredArticulos}
-                allData={articulos}
-              />
-            </div>
-          </div>
-
-          {/* Barcode Generator */}
-          <div className="w-full">
-            <BarcodeGenerator articulos={articulos} />
-          </div>
+          <input
+            type="text"
+            placeholder="Buscar por descripción, proveedor..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          />
         </div>
 
-        {/* Filters Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Location Filter */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Ubicación
-            </label>
-            <Select
-              options={ubicaciones}
-              value={ubicaciones.find(
-                (option) => option.value === selectedLocation?.value
-              ) || null}
-              onChange={(option) => setSelectedLocation(option)}
-              isClearable
-              placeholder="Seleccionar ubicación..."
-              className="text-sm"
+        {/* Action Buttons Grid */}
+        <div className="flex flex-wrap gap-2 justify-start md:justify-end">
+            <ButtonGroup
+              isStorageSelected={false}
+              reloadArticulos={reloadArticulos}
+              filteredData={filteredArticulos}
+              allData={articulos}
             />
-          </div>
+  
 
-          {/* Date Filters */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Desde
-            </label>
-            <DateInput
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              className="w-full"
+            <ExcelExportButton
+              filteredData={filteredArticulos}
+              allData={articulos}
             />
           </div>
+  
 
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Hasta
-            </label>
-            <DateInput
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              className="w-full"
-            />
-          </div>
+   
+          <BarcodeGenerator articulos={articulos} />
+
+      </div>
+
+      {/* Filters Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Location Filter */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Ubicación
+          </label>
+          <Select
+            options={ubicaciones}
+            value={ubicaciones.find(
+              (option) => option.value === selectedLocation?.value
+            ) || null}
+            onChange={(option) => setSelectedLocation(option)}
+            isClearable
+            placeholder="Seleccionar ubicación..."
+            className="text-sm"
+          />
         </div>
 
-        {/* Table Section */}
-        <div className="mt-6 -mx-4 sm:mx-0">
-          <div className="overflow-x-auto rounded-lg border border-gray-200">
-            <AdminArticlesTable
-              headers={headers}
-              rows={tableRows}
-              onEdit={handleEdit}
-              onDelete={handleDeleteClick}
-              editingRowIndex={editingRowIndex}
-              editedRowData={editedRowData}
-              handleInputChange={handleInputChange}
-              handleSave={handleSave}
-              handleCancel={handleCancel}
-              errors={errors}
-              disableFields={["id"]}
-            />
-          </div>
+        {/* Date Filters */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Desde
+          </label>
+          <DateInput
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            className="w-full"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Hasta
+          </label>
+          <DateInput
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            className="w-full"
+          />
         </div>
       </div>
-    </div>
+
+      {/* Table Section */}
+
+      <div className="overflow-x-auto">
+          <AdminArticlesTable
+            headers={headers}
+            rows={tableRows}
+            onEdit={handleEdit}
+            onDelete={handleDeleteClick}
+            editingRowIndex={editingRowIndex}
+            editedRowData={editedRowData}
+            handleInputChange={handleInputChange}
+            handleSave={handleSave}
+            handleCancel={handleCancel}
+            errors={errors}
+            disableFields={["id"]}
+          />
+        </div>
+      </div>
+
+  </div>
   );
 };
 

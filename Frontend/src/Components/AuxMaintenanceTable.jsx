@@ -1,5 +1,6 @@
 import React from 'react';
-
+import JsBarcode from "jsbarcode";
+import { jsPDF } from "jspdf";
 const AuxMaintenanceTable = ({ 
   headers,
   rows,
@@ -14,6 +15,16 @@ const AuxMaintenanceTable = ({
   // Lista de campos deshabilitados
   const disabledFields = ['id', 'cantidad', 'cantidad_productos'];
 
+    const generateBarcodePDF = (codigo) => {
+      const doc = new jsPDF();
+      const canvas = document.createElement("canvas");
+  
+      JsBarcode(canvas, codigo, { format: "CODE128" });
+      const barcodeImage = canvas.toDataURL("image/png");
+  
+      doc.addImage(barcodeImage, "PNG", 10, 20, 50, 20);
+      doc.save(`barcode_${codigo}.pdf`);
+    };
   return (
     <div className="mt-10">
       {/* Tabla para pantallas grandes */}
@@ -94,6 +105,12 @@ const AuxMaintenanceTable = ({
                          <i className="fas fa-trash-alt mr-2"></i> 
                         Eliminar
                       </button>
+                      <button
+                        onClick={() => generateBarcodePDF(row.codigo)}
+                        className="bg-blue-500 text-white py-1 px-2 md:px-3 rounded flex items-center text-xs md:text-sm hover:bg-blue-700 transition-colors"
+                      >
+                        <i className="fas fa-barcode mr-1 md:mr-2"></i> Código
+                      </button>
                     </>
                   )}
                 </td>
@@ -159,6 +176,12 @@ const AuxMaintenanceTable = ({
                     className="bg-white text-[#00A305] py-1 px-3 border-2 border-[#00A305] rounded flex-1 hover:bg-green-100 transition-colors"
                   >
                     Eliminar
+                  </button>
+                  <button
+                    onClick={() => generateBarcodePDF(row.codigo)}
+                    className="bg-blue-500 text-white py-1 px-3 rounded text-sm hover:bg-blue-700 transition"
+                  >
+                    Código
                   </button>
                 </>
               )}

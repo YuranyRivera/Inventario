@@ -31,40 +31,6 @@ const useArticulosBaja = () => {
       { value: 'Sala audiovisuales', label: 'Sala audiovisuales' },
       { value: 'Sala lúdica', label: 'Sala lúdica' },
       { value: 'Capilla', label: 'Capilla' },
-      { value: '102 - Pilosos-Curiosos-Comunicativos-Ciudadanos-Amorosos-Expresivos', label: '102 - Pilosos-Curiosos-Comunicativos-Ciudadanos-Amorosos-Expresivos' },
-    { value: '103 - Pilosos-Curiosos-Comunicativos-Ciudadanos-Amorosos-Expresivos', label: '103 - Pilosos-Curiosos-Comunicativos-Ciudadanos-Amorosos-Expresivos' },
-    { value: '104 - Pilosos-Curiosos-Comunicativos-Ciudadanos-Amorosos-Expresivos', label: '104 - Pilosos-Curiosos-Comunicativos-Ciudadanos-Amorosos-Expresivos' },
-    { value: '105 - Curiosos-Pilosos-Ciudadanos-Comunicativos', label: '105 - Curiosos-Pilosos-Ciudadanos-Comunicativos' },
-    { value: '106 - Curiosos-Pilosos-Ciudadanos-Comunicativos', label: '106 - Curiosos-Pilosos-Ciudadanos-Comunicativos' },
-    { value: '107 - Ciudadanos-Comunicativos', label: '107 - Ciudadanos-Comunicativos' },
-    { value: '108 - Curiosos-Pilosos/Pilosos', label: '108 - Curiosos-Pilosos/Pilosos' },
-    { value: '109 - Ciudadanos/Pensamiento Filosófico', label: '109 - Ciudadanos/Pensamiento Filosófico' },
-    { value: '201 - Comunicativos', label: '201 - Comunicativos' },
-    { value: '202 - Comunicativos', label: '202 - Comunicativos' },
-    { value: '203 - Fraternos y Espirituales', label: '203 - Fraternos y Espirituales' },
-    { value: '204 - Pensamiento Matemático', label: '204 - Pensamiento Matemático' },
-    { value: '205 - Ciudadanos', label: '205 - Ciudadanos' },
-    { value: '206 - Activos', label: '206 - Activos' },
-    { value: '206 - Pensamiento Matemático', label: '206 - Pensamiento Matemático' },
-    { value: '207 - Indagación Biológica/Indagación Química', label: '207 - Indagación Biológica/Indagación Química' },
-    { value: '211 - Indagación Biológica/Indagación Química', label: '211 - Indagación Biológica/Indagación Química' },
-    { value: '212 - Indagación Biológica/Indagación Química', label: '212 - Indagación Biológica/Indagación Química' },
-    { value: '301 - Innovadores', label: '301 - Innovadores' },
-    { value: '302 - Fraternos-Espirituales/Ciudadanos', label: '302 - Fraternos-Espirituales/Ciudadanos' },
-    { value: '303 - Ciudadanos/Comunicativos', label: '303 - Ciudadanos/Comunicativos' },
-    { value: '304 - Comunicativos', label: '304 - Comunicativos' },
-    { value: '305 - Curiosos', label: '305 - Curiosos' },
-    { value: '306 - Pilosos/Curiosos', label: '306 - Pilosos/Curiosos' },
-    { value: '307 - Wac', label: '307 - Wac' },
-    { value: '308 - Comunicativos/Semillero de Lectura', label: '308 - Comunicativos/Semillero de Lectura' },
-    { value: '311 - Wac', label: '311 - Wac' },
-    { value: '312 - Indagación Física', label: '312 - Indagación Física' },
-    { value: '313 - Pensamiento Matemático/Indagación Física', label: '313 - Pensamiento Matemático/Indagación Física' },
-    { value: '314 - Pensamiento Matemático/Indagación Física', label: '314 - Pensamiento Matemático/Indagación Física' },
-    { value: 'Sala 1 - 208 - Tecnología/Desarrollo Software/Diseño Gráfico', label: 'Sala 1 - 208 - Tecnología/Desarrollo Software/Diseño Gráfico' },
-    { value: 'Sala 2 - 209 - Desarrollo Software/Diseño Gráfico', label: 'Sala 2 - 209 - Desarrollo Software/Diseño Gráfico' },
-    { value: 'Sala 3 - 210 - Tecnología/Diseño Gráfico', label: 'Sala 3 - 210 - Tecnología/Diseño Gráfico' },
-    { value: 'Lab. Wac 309 - Wac', label: 'Lab. Wac 309 - Wac' }
     ];
   
     const formatDate = (dateString) => {
@@ -78,7 +44,7 @@ const useArticulosBaja = () => {
     const fetchArticulosBaja = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch('https://inventarioschool-v1.onrender.com/api/articulos_baja');
+        const response = await fetch('http://localhost:4000/api/articulos_baja');
         if (!response.ok) throw new Error('Error al obtener los datos');
         const data = await response.json();
         const mappedRows = data.map((item) => [
@@ -105,7 +71,7 @@ const useArticulosBaja = () => {
     const handleDelete = async (id) => {
       setIsLoading(true);
       try {
-        const response = await fetch(`https://inventarioschool-v1.onrender.com/api/articulos_baja/${id}`, {
+        const response = await fetch(`http://localhost:4000/api/articulos_baja/${id}`, {
           method: 'DELETE',
         });
         if (!response.ok) throw new Error('Error al eliminar el artículo');
@@ -174,7 +140,6 @@ const useArticulosBaja = () => {
   
     const filteredRows = rows.filter((row) => {
       const searchFields = [
-        row[1] || '', // Descripción
         row[3] || '', // Descripción
         row[4] || '', // Proveedor
         row[5] || '', // Ubicación

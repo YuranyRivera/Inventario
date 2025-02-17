@@ -51,7 +51,7 @@ export const useArticulos = () => {
   const deleteArticulo = async (id, formData) => {
     try {
       // Paso 1: Crear el reporte de baja
-      const bajaResponse = await fetch(`https://inventarioschool-v1.onrender.com/api/articulos-baja/${id}`, {
+      const bajaResponse = await fetch(`http://localhost:4000/api/articulos-baja/${id}`, {
         method: 'POST',
         body: formData
       });
@@ -61,7 +61,7 @@ export const useArticulos = () => {
       }
 
       // Paso 2: Eliminar el artículo
-      const deleteResponse = await fetch(`https://inventarioschool-v1.onrender.com/api/articulos/${id}`, {
+      const deleteResponse = await fetch(`http://localhost:4000/api/articulos/${id}`, {
         method: 'DELETE'
       });
 
@@ -94,7 +94,8 @@ export const useArticuloSearch = (articulos) => {
   const filteredArticulos = articulos.filter(articulo =>
     articulo.producto.toLowerCase().includes(searchTerm.toLowerCase()) ||
     articulo.modulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    articulo.estante.toLowerCase().includes(searchTerm.toLowerCase())
+    articulo.estante.toLowerCase().includes(searchTerm.toLowerCase())||
+    articulo.codigo.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return {

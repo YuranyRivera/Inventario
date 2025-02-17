@@ -6,9 +6,9 @@ import AuxMaintenanceTable from '../../Components/AuxMaintenanceTable';
 import ButtonGroup from '../../Components/PDFAlm';
 import ExcelExportButton from '../../Components/Excel';
 import ModalBaja from '../../Components/ModalBaja';
-
+import BarcodeGenerator from "../../Components/BarcodeGenerator";
 const ArticulosAlmacenamiento = () => {
-  const headers = ['ID', 'Producto/Detalle', 'Cantidad Inicial', 'Módulo', 'Estante', 'Estado', 'Entrada', 'Salida', 'Restante'];
+  const headers = ['ID','Codigo',  'Producto/Detalle', 'Cantidad Inicial', 'Módulo', 'Estante', 'Estado', 'Entrada', 'Salida', 'Restante'];
   const { articulos, loading, error, fetchArticulos, updateArticulo, deleteArticulo } = useArticulos();
   const { searchTerm, setSearchTerm, filteredArticulos } = useArticuloSearch(articulos);
   const navigate = useNavigate();
@@ -123,6 +123,8 @@ const ArticulosAlmacenamiento = () => {
               className="flex-grow md:flex-grow-0"
             />
           </div>
+
+          <BarcodeGenerator articulos={articulos} />
         </div>
 
         <div className="overflow-x-auto">
@@ -130,6 +132,7 @@ const ArticulosAlmacenamiento = () => {
             headers={headers}
             rows={filteredArticulos.map((articulo) => ({
               id: articulo.id,
+              codigo: articulo.codigo,
               producto: articulo.producto,
               cantidad_productos: articulo.cantidad_productos,
               modulo: articulo.modulo,

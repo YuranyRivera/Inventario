@@ -7,7 +7,7 @@ import Dashboard from './Pages/Inventario/Dashboard';
 import Inicio from './Pages/Principal/Inicio';
 import Registro from './Pages/Inventario/Registro';
 import Articulos from './Pages/Inventario/Articulos';
-
+import Reporte from './Pages/Inventario/Reporte'
 import Contactos from './Pages/Inventario/Contacto';
 import EditarPerfil from './Pages/Inventario/EditarPerfil';
 import OlvidarContraseña from './Pages/Principal/OlvidarContraseña';
@@ -55,6 +55,14 @@ const App = () => {
           />
 <Route 
 
+/>
+<Route 
+  path="/Reporte" 
+  element={
+    <ProtectedRoute>
+      <Reporte />
+    </ProtectedRoute>
+  } 
 />
 <Route 
             path="/ArticulosBaja2" 

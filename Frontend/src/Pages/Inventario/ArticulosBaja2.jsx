@@ -96,26 +96,30 @@ const HistorialBajas = () => {
             Historial de Artículos Dados de Baja
           </h1>
           
-          <div className="flex flex-wrap gap-2 md:gap-4 mt-4 mb-6">
-              {['general', 'traslados', 'bajas', 'bajas2'].map((option) => (
-                <label key={option} className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="navigation"
-                    value={option}
-                    checked={selectedOption === option}
-                    onChange={handleOptionChange}
-                    className="appearance-none h-5 w-5 border border-green-600 rounded-full checked:bg-[#00A305] checked:border-[#00A305] focus:outline-none transition duration-200 mr-2 cursor-pointer"
-                  />
-                  <span className="text-gray-700">
-                    {option === 'general' && 'General'}
-                    {option === 'traslados' && 'Traslados'}
-                    {option === 'bajas' && 'Historial de bajas-Administración'}
-                    {option === 'bajas2' && 'Historial de bajas-Almacenamiento'}
-                  </span>
-                </label>
-              ))}
-            </div>
+          <div className="flex flex-wrap gap-2 md:gap-4 mt-4 mb-6 ">
+            {['general', 'traslados', 'bajas', 'bajas2', 'reporte'].map((option) => (
+              <label key={option} className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="navigation"
+                  value={option}
+                  checked={selectedOption === option}
+                  onChange={handleOptionChange}
+                  className="appearance-none h-5 w-5 border border-green-600 rounded-full 
+                    checked:bg-[#00A305] checked:border-[#00A305] 
+                    focus:outline-none transition duration-200 mr-2 cursor-pointer"
+                />
+                <span className="text-gray-700">
+                  {option === 'general' && 'General'}
+                  {option === 'traslados' && 'Traslados'}
+                  {option === 'bajas' && 'Historial de bajas-Administración'}
+                  {option === 'bajas2' && 'Historial de bajas-Almacenamiento'}
+                  {option === 'reporte' && 'Reporte'}
+                </span>
+              </label>
+            ))}
+          </div>
+
 
           <div className="space-y-4">
             {/* Search and filters */}
