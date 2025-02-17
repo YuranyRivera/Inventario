@@ -209,6 +209,12 @@ if (!responsable || !responsable.trim()) {
           value={selectedProducts}
           onChange={handleProductSelection}
           isDisabled={loading}
+          filterOption={(option, inputValue) => {
+            return (
+              option.label.toLowerCase().includes(inputValue.toLowerCase()) || 
+              option.data.codigo.toLowerCase().includes(inputValue.toLowerCase())
+            );
+          }}
         />
         {errors.productos && (
           <p className="text-red-500 text-sm mt-1 mb-2">{errors.productos}</p>

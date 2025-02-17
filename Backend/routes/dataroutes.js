@@ -2,8 +2,8 @@ import express from 'express';
 import { pool } from '../config/db.js';
 import transporter from '../config/nodemailerConfig.js';
 import { upload } from '../middleware/uploadConfig.js';
-import {  obtenerArticulosBajaHistorial,
-  eliminarMovimiento, eliminarArticuloHistorial,
+import {  obtenerArticulosBajaHistorial, getEstadisticasProveedor,
+  eliminarMovimiento, eliminarArticuloHistorial, getProductosPorProveedor, obtenerProveedores,
 
   eliminarArticuloAlmacenamiento, handleMulterError , obtenerTotalArticulosBajaHistorial,  obtenerTotalArticulosAlmacenamiento, getUltimoRegistro, obtenerTotalArticulosActivos, obtenerTotalArticulosInactivos, eliminarArticuloBaja, editarTraslado, obtenerArticulosBaja, eliminarTraslado, getTraslados, insertarTraslado, getProductosPorUbicacion, editarArticuloAdministrativo, eliminarArticuloAdministrativo, updateMovimiento, getArticulosAdministrativos, deleteMovimiento, getLastArticuloAdministrativoId, createArticuloAdministrativo, updateProfile, updatePassword, checkIfUserExists, checkEmailExists,editarPerfil, crearUsuario, obtenerUsuarios, eliminarUsuario,   loginUser, editarArticulo,  getDetallesMovimiento, getLastId, getReporteGeneral, getMovimientos, createMovimiento, getArticulos, deleteArticulo, getProductos, createArticulo } from '../controllers/datacontroler.js';
 import jwt from 'jsonwebtoken';
@@ -287,11 +287,12 @@ router.post('/articulos-baja/:id',
   eliminarArticuloAlmacenamiento
 );
 
-
-
+router.get('/productos', getProductosPorProveedor);
+// Agregar la ruta
+router.get('/estadisticas', getEstadisticasProveedor);
 // Ruta para obtener todos los artículos dados de baja del historial
 router.get('/articulos-baja-historial', obtenerArticulosBajaHistorial);
-
+router.get("/proveedores", obtenerProveedores);
 // Ruta para obtener el reporte general
 router.get('/reporte-general', getReporteGeneral);
 router.get('/movimiento/:id', getDetallesMovimiento);

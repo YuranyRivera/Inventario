@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { useArticulos, useArticuloSearch } from '../../hooks/useArticulosAlmacenamiento';
@@ -6,10 +6,10 @@ import AuxMaintenanceTable from '../../Components/AuxMaintenanceTable';
 import ButtonGroup from '../../Components/PDFAlm';
 import ExcelExportButton from '../../Components/Excel';
 import ModalBaja from '../../Components/ModalBaja';
-
+import BarcodeGenerator from "../../Components/BarcodeGenerator";
 const ArticulosAlmacenamiento = () => {
-  const headers = ['ID', 'Producto/Detalle', 'Cantidad Inicial', 'Módulo', 'Estante', 'Estado', 'Entrada', 'Salida', 'Restante'];
-  const { articulos, loading, error, fetchArticulos, deleteArticulo, addArticulos } = useArticulos();
+  const headers = ['ID','Codigo',  'Producto/Detalle', 'Cantidad Inicial', 'Módulo', 'Estante', 'Estado', 'Entrada', 'Salida', 'Restante'];
+  const { articulos, loading, error, fetchArticulos, updateArticulo, deleteArticulo } = useArticulos();
   const { searchTerm, setSearchTerm, filteredArticulos } = useArticuloSearch(articulos);
   const navigate = useNavigate();
 
@@ -18,24 +18,23 @@ const ArticulosAlmacenamiento = () => {
   const [editingRowIndex, setEditingRowIndex] = useState(null);
   const [editedRowData, setEditedRowData] = useState({});
 
-  useEffect(() => {
-    fetchArticulos();
-  }, []); // Se ejecuta solo al montar el componente
-  
-  useEffect(() => {
-    console.log("Artículos actualizados:", articulos);
-  }, [articulos]); // Se ejecuta cada vez que cambian los artículos
-  
   const handleDeleteClick = (row) => {
     setSelectedArticulo(row);
     setIsModalOpen(true);
   };
 
   const handleDelete = async (formData) => {
-    if (selectedArticulo) {
-      await deleteArticulo(selectedArticulo.id, formData);
-      await fetchArticulos();
-      setIsModalOpen(false);
+    try {
+      if (selectedArticulo) {
+        const success = await deleteArticulo(selectedArticulo.id, formData);
+        if (success) {
+          setIsModalOpen(false);
+          navigate('/ArticulosBaja2');
+        }
+      }
+    } catch (error) {
+      console.error('Error en el proceso de baja:', error);
+      alert('Error al procesar la baja del artículo');
     }
   };
 
@@ -47,7 +46,7 @@ const ArticulosAlmacenamiento = () => {
     const value = e.target.value;
     if (['id', 'cantidad'].includes(field)) return;
 
-    setEditedRowData((prev) => {
+    setEditedRowData(prev => {
       const updatedData = { ...prev, [field]: value };
 
       if (['entrada', 'salida'].includes(field)) {
@@ -67,31 +66,32 @@ const ArticulosAlmacenamiento = () => {
   };
 
   const handleSave = async () => {
-    await updateArticulo(editedRowData.id, editedRowData);
-    await fetchArticulos(); // Asegura que se actualicen los datos
-    setEditingRowIndex(null);
+    try {
+      const success = await updateArticulo(editedRowData.id, editedRowData);
+      if (success) {
+        setEditingRowIndex(null);
+      }
+    } catch (error) {
+      console.error('Error al actualizar:', error);
+      alert('Error al actualizar el artículo');
+    }
   };
 
   const handleCancel = () => {
     setEditingRowIndex(null);
+    setEditedRowData({});
   };
 
-  const handleArticulosUpdate = async () => {
-    try {
-      await fetchArticulos();
-    } catch (error) {
-      console.error('Error actualizando artículos:', error);
-    }
-  };
-
-  if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
     <>
       <ModalBaja
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedArticulo(null);
+        }}
         onSave={handleDelete}
       />
 
@@ -110,20 +110,21 @@ const ArticulosAlmacenamiento = () => {
             />
           </div>
           <div className="flex flex-wrap gap-2 justify-start md:justify-end">
-          <ButtonGroup
+            <ButtonGroup
               isStorageSelected={true}
-              reloadArticulos={handleArticulosUpdate}
-              onSave={handleArticulosUpdate}
+              reloadArticulos={fetchArticulos}
               filteredData={searchTerm ? filteredArticulos : []}
               allData={articulos}
               className="flex-grow md:flex-grow-0"
             />
             <ExcelExportButton 
-              filteredData={searchTerm ? filteredArticulos : []} 
+              filteredData={searchTerm ? filteredArticulos : []}
               allData={articulos}
               className="flex-grow md:flex-grow-0"
             />
           </div>
+
+          <BarcodeGenerator articulos={articulos} />
         </div>
 
         <div className="overflow-x-auto">
@@ -131,6 +132,7 @@ const ArticulosAlmacenamiento = () => {
             headers={headers}
             rows={filteredArticulos.map((articulo) => ({
               id: articulo.id,
+              codigo: articulo.codigo,
               producto: articulo.producto,
               cantidad_productos: articulo.cantidad_productos,
               modulo: articulo.modulo,
@@ -144,13 +146,7 @@ const ArticulosAlmacenamiento = () => {
             onDelete={handleDeleteClick}
             editingRowIndex={editingRowIndex}
             editedRowData={editedRowData}
-            handleInputChange={(e, field) => {
-              if (['id', 'cantidad', 'cantidad_productos'].includes(field)) {
-                e.preventDefault();
-              } else {
-                handleInputChange(e, field);
-              }
-            }}
+            handleInputChange={handleInputChange}
             handleSave={handleSave}
             handleCancel={handleCancel}
             disableFields={['id', 'cantidad', 'cantidad_productos']}
@@ -162,5 +158,3 @@ const ArticulosAlmacenamiento = () => {
 };
 
 export default ArticulosAlmacenamiento;
-
-

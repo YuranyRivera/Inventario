@@ -1,7 +1,5 @@
-
 import { useState, useEffect, useCallback } from 'react';
 
-// Custom hook for fetching and managing articles
 export const useArticulos = () => {
   const [articulos, setArticulos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,26 +39,41 @@ export const useArticulos = () => {
         throw new Error('Error updating article');
       }
 
-      fetchArticulos();
+      await fetchArticulos(); // Refresh the list after update
+      return true;
     } catch (err) {
       setError(err.message);
+      return false;
     }
   };
 
   const deleteArticulo = async (id, formData) => {
     try {
-      const response = await fetch(`https://inventarioschool-v1.onrender.com/api/articulos-baja/${id}`, {
+      // First, make the POST request to articulos-baja
+      const bajaResponse = await fetch(`http://localhost:4000/api/articulos-baja/${id}`, {
         method: 'POST',
         body: formData
       });
 
-      if (!response.ok) {
+      if (!bajaResponse.ok) {
+        throw new Error('Error registering article removal');
+      }
+
+      // Then, actually delete the article
+      const deleteResponse = await fetch(`https://inventarioschool-v1.onrender.com/api/articulos/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!deleteResponse.ok) {
         throw new Error('Error deleting article');
       }
 
-      fetchArticulos();
+      // Update the local state by removing the deleted article
+      setArticulos(prevArticulos => prevArticulos.filter(art => art.id !== id));
+      return true;
     } catch (err) {
       setError(err.message);
+      return false;
     }
   };
 
@@ -81,7 +94,8 @@ export const useArticuloSearch = (articulos) => {
   const filteredArticulos = articulos.filter(articulo =>
     articulo.producto.toLowerCase().includes(searchTerm.toLowerCase()) ||
     articulo.modulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    articulo.estante.toLowerCase().includes(searchTerm.toLowerCase())
+    articulo.estante.toLowerCase().includes(searchTerm.toLowerCase())||
+    articulo.codigo.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return {

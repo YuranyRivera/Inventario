@@ -235,7 +235,10 @@ const Moduloadmin = () => {
         case 'bajas2':
           navigate('/articulosbaja2');
           break;
-    }
+      case 'reporte':
+    navigate('/reporte');
+    break;
+}
   };
   return (
     <>
@@ -258,7 +261,7 @@ const Moduloadmin = () => {
       <div className="mb-6 m-5">
         <h1 className="text-3xl font-bold text-center text-black mb-10">Traslados</h1>
         <div className="flex flex-wrap gap-2 md:gap-4 mt-4 mb-6 ">
-            {['general', 'traslados', 'bajas', 'bajas2'].map((option) => (
+            {['general', 'traslados', 'bajas', 'bajas2', 'reporte'].map((option) => (
               <label key={option} className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="radio"
@@ -275,6 +278,7 @@ const Moduloadmin = () => {
                   {option === 'traslados' && 'Traslados'}
                   {option === 'bajas' && 'Historial de bajas-Administración'}
                   {option === 'bajas2' && 'Historial de bajas-Almacenamiento'}
+                  {option === 'reporte' && 'Reporte'}
                 </span>
               </label>
             ))}
@@ -285,7 +289,7 @@ const Moduloadmin = () => {
           <div className="flex flex-col md:flex-row items-stretch space-y-2 md:space-y-0 md:space-x-2">
             <div className="relative flex-1 max-w-full md:max-w-md">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-      
+      <label>Buscar Proveedores</label>
                 <Search className="h-5 w-5 text-gray-400" />
               </div>
               <input

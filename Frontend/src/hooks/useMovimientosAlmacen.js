@@ -17,10 +17,11 @@ const useMovimientosAlmacen = (isOpen, onClose, reloadArticulos) => {
   const fetchProductos = async () => {
     try {
       setLoading(true);
-      const response = await fetch('https://inventarioschool-v1.onrender.com/api/productos');
+      const response = await fetch('http://localhost:4000/api/productos');
       if (!response.ok) {
         throw new Error('Error al obtener productos');
       }
+      
       const data = await response.json();
       setProducts(data);
     } catch (error) {
@@ -33,8 +34,10 @@ const useMovimientosAlmacen = (isOpen, onClose, reloadArticulos) => {
 
   const options = products.map((product) => ({
     value: product.id,
-    label: product.producto,
+    label: `${product.producto} - ${product.codigo}` 
   }));
+  
+  
 
   const handleSelectProduct = (selectedOptions) => {
     // Asegurarse de que selectedOptions sea siempre un array

@@ -55,7 +55,6 @@ export const eliminarArticuloAlmacenamiento = async (req, res) => {
 
     await pool.query('BEGIN');
 
-    // Obtener el artículo a eliminar
     const articuloResult = await pool.query(
       'SELECT * FROM articulos_almacenamiento WHERE id = $1',
       [id]
@@ -69,21 +68,16 @@ export const eliminarArticuloAlmacenamiento = async (req, res) => {
     const articulo = articuloResult.rows[0];
     const { motivo_baja, usuario_baja } = req.body;
     const cantidad = articulo.cantidad; 
-
-    // Insertar el artículo en el historial de bajas
     const insertResult = await pool.query(
       `INSERT INTO public.articulos_baja_historial 
-      (id_articulo, producto, motivo_baja, usuario_baja, imagen_baja, cantidad)
-      VALUES ($1, $2, $3, $4, $5, $6) 
-      RETURNING *;`,
-      [id, articulo.producto, motivo_baja, usuario_baja, imagen_url, cantidad]
+      (id_articulo, producto, motivo_baja, usuario_baja, imagen_baja, cantidad, codigo)
+    VALUES ($1, $2, $3, $4, $5, $6, $7) 
+    RETURNING *;`,
+      [id, articulo.producto, motivo_baja, usuario_baja, imagen_url, cantidad, articulo.codigo]
     );
 
-    // Eliminar el artículo de la tabla de almacenamiento
-    await pool.query(
-      'DELETE FROM articulos_almacenamiento WHERE id = $1',
-      [id]
-    );
+   
+ 
 
     await pool.query('COMMIT');
 
@@ -270,7 +264,7 @@ export const eliminarArticuloBaja = async (req, res) => {
 
 export const obtenerArticulosBaja = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM articulos_baja'); // Consulta SQL
+    const result = await pool.query('SELECT * FROM articulos_baja ORDER BY id ASC'); // Consulta SQL
     res.status(200).json(result.rows); // Devuelve los resultados en formato JSON
   } catch (error) {
     console.error('Error al obtener los artículos dados de baja:', error);
@@ -283,8 +277,10 @@ export const obtenerArticulosBaja = async (req, res) => {
 
 export const obtenerArticulosBajaHistorial = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM articulos_baja_historial'); // Consulta SQL a la tabla correcta
-    res.status(200).json(result.rows); // Devuelve los resultados en formato JSON
+    const result = await pool.query(
+      'SELECT * FROM articulos_baja_historial ORDER BY id ASC' // Ordena por ID de menor a mayor
+    );
+    res.status(200).json(result.rows);
   } catch (error) {
     console.error('Error al obtener los artículos dados de baja del historial:', error);
     res.status(500).json({
@@ -293,6 +289,57 @@ export const obtenerArticulosBajaHistorial = async (req, res) => {
     });
   }
 };
+
+// Backend - nueva función para obtener estadísticas
+export const getEstadisticasProveedor = async (req, res) => {
+  try {
+    const { proveedor } = req.query;
+
+    if (!proveedor) {
+      return res.status(400).json({ error: 'Debe proporcionar un proveedor' });
+    }
+
+    const query = `
+      SELECT 
+        (SELECT COUNT(*) FROM articulos_administrativos WHERE proveedor = $1) as activos,
+        (SELECT COUNT(*) FROM articulos_baja WHERE proveedor = $1) as inactivos,
+        (
+          SELECT COUNT(*) 
+          FROM (
+            SELECT id FROM articulos_administrativos WHERE proveedor = $1
+            UNION ALL
+            SELECT id FROM articulos_baja WHERE proveedor = $1
+          ) as total
+        ) as total
+    `;
+
+    const { rows } = await pool.query(query, [proveedor]);
+    res.status(200).json(rows[0]);
+  } catch (error) {
+    console.error('Error al obtener estadísticas:', error);
+    res.status(500).json({ message: 'Error al obtener estadísticas' });
+  }
+};
+
+export const obtenerProveedores = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT DISTINCT proveedor FROM articulos_administrativos
+      UNION
+      SELECT DISTINCT proveedor FROM articulos_baja
+      ORDER BY proveedor ASC;
+    `);
+    
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error("Error al obtener los proveedores:", error);
+    res.status(500).json({
+      message: "Error al obtener los proveedores",
+      details: error.message,
+    });
+  }
+};
+
 
 export const editarTraslado = async (req, res) => {
   const { id } = req.params; // ID del traslado a editar
@@ -347,6 +394,34 @@ export const eliminarTraslado = async (req, res) => {
   }
 };
 
+// Obtener productos activos e inactivos por proveedor
+export const getProductosPorProveedor = async (req, res) => {
+  try {
+    const { proveedor } = req.query;
+
+    if (!proveedor) {
+      return res.status(400).json({ error: 'Debe proporcionar un proveedor' });
+    }
+
+    const query = `
+      SELECT descripcion, proveedor, 'Activo' AS estado
+      FROM articulos_administrativos
+      WHERE proveedor = $1
+
+      UNION ALL
+
+      SELECT descripcion, proveedor, 'Inactivo' AS estado
+      FROM articulos_baja
+      WHERE proveedor = $1;
+    `;
+
+    const { rows } = await pool.query(query, [proveedor]);
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error('Error al obtener productos por proveedor:', error);
+    res.status(500).json({ message: 'Error al obtener productos' });
+  }
+};
 
 export const getTraslados = async (req, res) => {
   try {
@@ -1029,7 +1104,7 @@ export const deleteArticulo = async (req, res) => {
 
 export const getProductos = async (req, res) => {
   try {
-    const result = await pool.query('SELECT id, producto FROM articulos_almacenamiento');
+    const result = await pool.query('SELECT id, codigo, producto FROM articulos_almacenamiento');
     res.status(200).json(result.rows); // Devuelve todos los productos con su id y nombre
   } catch (error) {
     console.error('Error al obtener los productos', error);

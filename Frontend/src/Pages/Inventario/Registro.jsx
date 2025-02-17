@@ -57,6 +57,9 @@ const Example = () => {
         case 'bajas2':
           navigate('/articulosbaja2');
           break;
+          case 'reporte':
+            navigate('/reporte');
+            break;
       default:
         // Do nothing when 'general' is selected
         break;
@@ -86,9 +89,8 @@ const Example = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-center text-black mb-6 sm:mb-10">
             Registro General De Entradas y Salidas
           </h1>
-
           <div className="flex flex-wrap gap-2 md:gap-4 mt-4 mb-6 ">
-            {['general', 'traslados', 'bajas', 'bajas2'].map((option) => (
+            {['general', 'traslados', 'bajas', 'bajas2', 'reporte'].map((option) => (
               <label key={option} className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="radio"
@@ -105,11 +107,11 @@ const Example = () => {
                   {option === 'traslados' && 'Traslados'}
                   {option === 'bajas' && 'Historial de bajas-Administración'}
                   {option === 'bajas2' && 'Historial de bajas-Almacenamiento'}
+                  {option === 'reporte' && 'Reporte'}
                 </span>
               </label>
             ))}
           </div>
-
           <TableEntrada 
             headers={headers} 
             rows={rows} 

@@ -78,7 +78,7 @@ const useArticulosBaja = () => {
     const fetchArticulosBaja = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch('https://inventarioschool-v1.onrender.com/api/articulos_baja');
+        const response = await fetch('http://localhost:4000/api/articulos_baja');
         if (!response.ok) throw new Error('Error al obtener los datos');
         const data = await response.json();
         const mappedRows = data.map((item) => [
