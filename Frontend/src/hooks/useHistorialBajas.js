@@ -17,7 +17,7 @@ export const useHistorialBajas = (createImageButton, createPDFButton) => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [selectedRowToDelete, setSelectedRowToDelete] = useState(null);
 
-  const headers = ['ID', 'Codigo', 'Artículo', 'Motivo de Baja', 'Fecha de Baja', 'Usuario', 'Imagen', 'Exportar'];
+  const headers = ['ID', 'Artículo', 'Motivo de Baja', 'Fecha de Baja', 'Usuario', 'Imagen', 'Exportar'];
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -37,7 +37,6 @@ export const useHistorialBajas = (createImageButton, createPDFButton) => {
       const data = await response.json();
       const mappedRows = data.map((item) => [
         item.id,
-        item.codigo,
         item.producto,
         item.motivo_baja,
         formatDate(item.fecha_baja),
@@ -45,7 +44,6 @@ export const useHistorialBajas = (createImageButton, createPDFButton) => {
         createImageButton(item.imagen_baja, () => setSelectedImage(item.imagen_baja)),
         createPDFButton([
           item.id,
-          item.codigo,
           item.producto,
           item.motivo_baja,
           formatDate(item.fecha_baja),
@@ -69,8 +67,7 @@ export const useHistorialBajas = (createImageButton, createPDFButton) => {
       general: '/registro',
       traslados: '/moduloadmin',
       bajas: '/articulosbaja',
-      bajas2: '/articulosbaja2',
-           reporte: '/reporte'
+      bajas2: '/articulosbaja2'
     };
 
     if (routes[value]) {
@@ -109,9 +106,8 @@ export const useHistorialBajas = (createImageButton, createPDFButton) => {
 
   const filteredRows = rows.filter((row) => {
     const searchFields = [
-      row[1] || '', // Codigo
-      row[2] || '', // Artículo
-      row[3] || '', // Motivo
+      row[1] || '', // Artículo
+      row[2] || '', // Motivo
       row[4] || '', // Usuario
     ];
     
@@ -136,11 +132,10 @@ export const useHistorialBajas = (createImageButton, createPDFButton) => {
   const exportToPDF = () => {
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
   
-    const columns = ['ID',  'Codigo', 'Producto', 'Motivo de Baja', 'Fecha de Baja', 'Usuario Baja'];
+    const columns = ['ID', 'Producto', 'Motivo de Baja', 'Fecha de Baja', 'Usuario Baja'];
   
     // Filtrar filas eliminando la columna de imagen y botón de exportación
     const dataRows = rows.map(row => row.slice(0, 5));
-
   
     // Cargar la imagen del encabezado
     const imagePath = '/Img/encabezado.png';
@@ -268,10 +263,10 @@ export const useHistorialBajas = (createImageButton, createPDFButton) => {
   
     const addDetails = (yPosition) => {
       const columns = [
-        { label: 'Codigo', value: row[1] },
-        { label: 'Artículo', value: row[2] },
-        { label: 'Fecha de Baja', value: row[4] },
-        { label: 'Usuario', value: row[5] }
+        { label: 'ID', value: row[0] },
+        { label: 'Artículo', value: row[1] },
+        { label: 'Fecha de Baja', value: row[3] },
+        { label: 'Usuario', value: row[4] }
       ];
   
       let currentY = yPosition;
@@ -298,7 +293,7 @@ export const useHistorialBajas = (createImageButton, createPDFButton) => {
       
       currentY += 7;
       const textHeight = addWrappedText(
-        row[3]?.toString() || '',
+        row[2]?.toString() || '',
         20,
         currentY,
         170 // Ancho máximo para el texto

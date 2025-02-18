@@ -42,7 +42,7 @@ const useArticulosBaja = () => {
     };
   
     const fetchArticulosBaja = async () => {
-      setIsLoading(true);
+      await new Promise(resolve => setTimeout(resolve, 1000));
       try {
         const response = await fetch('http://localhost:4000/api/articulos_baja');
         if (!response.ok) throw new Error('Error al obtener los datos');
@@ -69,19 +69,33 @@ const useArticulosBaja = () => {
     }, []);
   
     const handleDelete = async (id) => {
+      console.log("ID recibido para eliminar:", id); // Verifica el ID
+    
       setIsLoading(true);
       try {
         const response = await fetch(`http://localhost:4000/api/articulos_baja/${id}`, {
           method: 'DELETE',
         });
-        if (!response.ok) throw new Error('Error al eliminar el artículo');
+    
+        if (!response.ok) {
+          const errorMessage = await response.text();
+          throw new Error(`Error al eliminar el artículo: ${errorMessage}`);
+        }
+    
         setRows((prevRows) => prevRows.filter((row) => row[0] !== id));
+    
+      
+        setTimeout(async () => {
+          await fetchArticulosBaja();
+          setIsLoading(false);
+        }, 1000);
+    
       } catch (error) {
         console.error('Error al eliminar:', error);
-      } finally {
         setIsLoading(false);
-      }
+      } 
     };
+    
   
     const exportToPDF = () => {
       const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
