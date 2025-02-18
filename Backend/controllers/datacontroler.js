@@ -276,12 +276,45 @@ export const obtenerArticulosBaja = async (req, res) => {
   }
 };
 
+export const getProductosPorProveedor = async (req, res) => {
+  try {
+    const { proveedor } = req.query;
+    if (!proveedor) {
+      return res.status(400).json({ error: 'Debe proporcionar un proveedor' });
+    }
+
+    // Using = instead of ILIKE for exact matching
+    const query = `
+      (
+        SELECT descripcion, proveedor, 'Activo' AS estado
+        FROM articulos_administrativos
+        WHERE proveedor = $1
+      )
+      UNION ALL
+      (
+        SELECT descripcion, proveedor, 'Inactivo' AS estado
+        FROM articulos_baja
+        WHERE proveedor = $1
+      )
+      ORDER BY estado ASC, descripcion ASC;
+    `;
+
+    const { rows } = await pool.query(query, [proveedor]);
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error('Error al obtener productos por proveedor:', error);
+    res.status(500).json({ message: 'Error al obtener productos' });
+  }
+};
+
 export const getEstadisticasProveedor = async (req, res) => {
   try {
     const { proveedor } = req.query;
     if (!proveedor) {
       return res.status(400).json({ error: 'Debe proporcionar un proveedor' });
     }
+
+    // Using = for exact matching
     const query = `
       SELECT 
         (SELECT COUNT(*) FROM articulos_administrativos WHERE proveedor = $1) as activos,
@@ -295,6 +328,7 @@ export const getEstadisticasProveedor = async (req, res) => {
           ) as total
         ) as total
     `;
+
     const { rows } = await pool.query(query, [proveedor]);
     res.status(200).json(rows[0]);
   } catch (error) {
@@ -302,15 +336,21 @@ export const getEstadisticasProveedor = async (req, res) => {
     res.status(500).json({ message: 'Error al obtener estadísticas' });
   }
 };
+
 export const obtenerProveedores = async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT DISTINCT proveedor FROM articulos_administrativos
-      UNION
-      SELECT DISTINCT proveedor FROM articulos_baja
+    // Using DISTINCT to get unique providers
+    const query = `
+      SELECT DISTINCT proveedor 
+      FROM (
+        SELECT proveedor FROM articulos_administrativos
+        UNION
+        SELECT proveedor FROM articulos_baja
+      ) as proveedores
       ORDER BY proveedor ASC;
-    `);
+    `;
     
+    const result = await pool.query(query);
     res.status(200).json(result.rows);
   } catch (error) {
     console.error("Error al obtener los proveedores:", error);
@@ -318,28 +358,6 @@ export const obtenerProveedores = async (req, res) => {
       message: "Error al obtener los proveedores",
       details: error.message,
     });
-  }
-};
-export const getProductosPorProveedor = async (req, res) => {
-  try {
-    const { proveedor } = req.query;
-    if (!proveedor) {
-      return res.status(400).json({ error: 'Debe proporcionar un proveedor' });
-    }
-    const query = `
-      SELECT descripcion, proveedor, 'Activo' AS estado
-      FROM articulos_administrativos
-      WHERE proveedor = $1
-      UNION ALL
-      SELECT descripcion, proveedor, 'Inactivo' AS estado
-      FROM articulos_baja
-      WHERE proveedor = $1;
-    `;
-    const { rows } = await pool.query(query, [proveedor]);
-    res.status(200).json(rows);
-  } catch (error) {
-    console.error('Error al obtener productos por proveedor:', error);
-    res.status(500).json({ message: 'Error al obtener productos' });
   }
 };
 export const obtenerArticulosBajaHistorial = async (req, res) => {

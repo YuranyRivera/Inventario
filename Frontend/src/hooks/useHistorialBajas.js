@@ -67,7 +67,8 @@ export const useHistorialBajas = (createImageButton, createPDFButton) => {
       general: '/registro',
       traslados: '/moduloadmin',
       bajas: '/articulosbaja',
-      bajas2: '/articulosbaja2'
+      bajas2: '/articulosbaja2',
+        reporte: '/reporte'
     };
 
     if (routes[value]) {

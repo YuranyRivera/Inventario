@@ -24,7 +24,11 @@ const Example = () => {
   }, []);
   useEffect(() => {
     if (selectedProveedor) {
+      setProductos([]); // Limpiamos los productos antes de buscar nuevos
       buscarProductos();
+    } else {
+      setProductos([]); // Limpiamos los productos si no hay proveedor seleccionado
+      setEstadisticas({ activos: 0, inactivos: 0, total: 0 });
     }
   }, [selectedProveedor]);
   async function obtenerProveedores() {
@@ -32,30 +36,51 @@ const Example = () => {
     try {
       const response = await fetch("http://localhost:4000/api/proveedores");
       const data = await response.json();
-      setProveedores(data.map(prov => ({ value: prov.proveedor, label: prov.proveedor })));
-      setIsLoading(false); // Movido dentro del try
+      
+      // Aseguramos que cada proveedor tenga un value único
+      const proveedoresFormateados = data.map(prov => ({
+        value: prov.proveedor.trim(), // Eliminamos espacios en blanco
+        label: prov.proveedor.trim()
+      }));
+      
+      setProveedores(proveedoresFormateados);
+      setIsLoading(false);
     } catch (error) {
       console.error("Error al obtener proveedores:", error);
-      setIsLoading(false); // También lo ponemos en el catch para asegurar que se desactive
+      setIsLoading(false);
     }
   }
-  async function buscarProductos() {
-    if (!selectedProveedor) return;
+   async function buscarProductos() {
+    if (!selectedProveedor?.value) return;
     
     try {
+      const proveedorValue = encodeURIComponent(selectedProveedor.value.trim());
+      
       const [productosRes, statsRes] = await Promise.all([
-        fetch(`http://localhost:4000/api/productosproveedor?proveedor=${encodeURIComponent(selectedProveedor.value)}`),
-        fetch(`http://localhost:4000/api/estadisticas?proveedor=${encodeURIComponent(selectedProveedor.value)}`)
+        fetch(`http://localhost:4000/api/productosproveedor?proveedor=${proveedorValue}`),
+        fetch(`http://localhost:4000/api/estadisticas?proveedor=${proveedorValue}`)
       ]);
+
+      if (!productosRes.ok || !statsRes.ok) {
+        throw new Error('Error en la respuesta del servidor');
+      }
+
       const [dataProductos, dataStats] = await Promise.all([
         productosRes.json(),
         statsRes.json()
       ]);
-      setProductos(dataProductos);
-      setEstadisticas(dataStats);
 
+      // Verificamos y limpiamos los datos antes de actualizar el estado
+      const productosLimpios = dataProductos.filter(producto => 
+        producto.proveedor.trim() === selectedProveedor.value.trim()
+      );
+
+      setProductos(productosLimpios);
+      setEstadisticas(dataStats);
     } catch (error) {
       console.error("Error al obtener datos:", error);
+      setProductos([]);
+      setEstadisticas({ activos: 0, inactivos: 0, total: 0 });
     }
   }
   const handleOptionChange = (event) => {

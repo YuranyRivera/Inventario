@@ -81,7 +81,7 @@ const Moduloadmin = () => {
 
   useEffect(() => {
     const fetchTraslados = async () => {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      setIsLoading(true);
       try {
         const response = await fetch('https://inventarioschool-v1.onrender.com/api/traslados');
         const data = await response.json();
