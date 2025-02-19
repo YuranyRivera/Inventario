@@ -347,6 +347,7 @@ const Moduloadmin = () => {
           <div className="overflow-x-auto">
           <AuxMaintenanceTable
             headers={headers}
+            
             rows={filteredRows}
             onDelete={handleDeleteConfirmation} // Changed to open confirmation modal
             disableFields={['id']}

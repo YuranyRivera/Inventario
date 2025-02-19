@@ -170,7 +170,7 @@ const Login = () => {
             <div className="flex justify-center">
               <button
                 type="submit"
-                className={`bg-[#00A305] hover:bg-green-700 relative cursor-pointer font-semibold overflow-hidden border border-verde group w-[180px] h-[50px] py-[10px] rounded-[8px] mt-3 self-center `}
+                className={`bg-[#00A305] text-white hover:bg-green-700 relative cursor-pointer font-semibold overflow-hidden border border-verde group w-[180px] h-[50px] py-[10px] rounded-[8px] mt-3 self-center `}
               >
                 Iniciar sesión
               </button>

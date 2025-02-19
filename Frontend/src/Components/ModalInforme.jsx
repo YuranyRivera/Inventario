@@ -161,6 +161,7 @@ const ModalInforme = ({ isOpen, onClose, data }) => {
         </div>
       </div>
     </div>
+    
   );
 };
 

@@ -13,6 +13,7 @@ import { useContactManagement } from '../../hooks/useContactManagement';
 const Contactos = () => {
   const {
     formData,
+
     formErrors,
     showPassword,
     showConfirmPassword,
@@ -197,10 +198,11 @@ const Contactos = () => {
               X
             </button>
 
-            <h2 className="text-xl font-bold mb-4 text-center">Lista de Contactos</h2>
+        
 
-            <div className="hidden md:block">
+            <div className="">
               <Table
+    contactos={contactos}
                 title="Lista de Contactos"
                 headers={['Nombre Completo', 'Correo', 'Rol']}
                 rows={contactos}
@@ -208,39 +210,7 @@ const Contactos = () => {
               />
             </div>
 
-            <div className="block md:hidden">
-  {contactos.length > 0 ? (
-    contactos.map((contacto, index) => (
-      <div
-        key={index}
-        className="border rounded-lg p-4 mb-4 shadow-sm bg-gray-100"
-      >
-        <p className="mb-2">
-          <span className="font-bold">Nombre Completo:</span>{" "}
-          {contacto.nombre || "No disponible"} {/* Cambia 'nombre' si es necesario */}
-        </p>
-        <p className="mb-2">
-          <span className="font-bold">Correo:</span>{" "}
-          {contacto.correo || "No disponible"} {/* Cambia 'correo' si es necesario */}
-        </p>
-        <p>
-          <span className="font-bold">Rol:</span>{" "}
-          {contacto.rol || "No disponible"} {/* Cambia 'rol' si es necesario */}
-        </p>
-        <div className="mt-4 flex justify-end space-x-4">
-          <button
-            onClick={() => handleDeleteConfirmation(contacto)}
-            className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-700 transition-colors"
-          >
-            Eliminar
-          </button>
-        </div>
-      </div>
-    ))
-  ) : (
-    <p className="text-center text-gray-500">No hay contactos disponibles.</p>
-  )}
-</div>
+            
 
           </div>
         </div>
