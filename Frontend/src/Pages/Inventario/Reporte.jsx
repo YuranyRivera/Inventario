@@ -34,7 +34,7 @@ const Example = () => {
   async function obtenerProveedores() {
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:4000/api/proveedores");
+      const response = await fetch("https://inventarioschool-v1.onrender.com/api/proveedores");
       const data = await response.json();
       
       // Aseguramos que cada proveedor tenga un value único
@@ -57,8 +57,8 @@ const Example = () => {
       const proveedorValue = encodeURIComponent(selectedProveedor.value.trim());
       
       const [productosRes, statsRes] = await Promise.all([
-        fetch(`http://localhost:4000/api/productosproveedor?proveedor=${proveedorValue}`),
-        fetch(`http://localhost:4000/api/estadisticas?proveedor=${proveedorValue}`)
+        fetch(`https://inventarioschool-v1.onrender.com/api/productosproveedor?proveedor=${proveedorValue}`),
+        fetch(`https://inventarioschool-v1.onrender.com/api/estadisticas?proveedor=${proveedorValue}`)
       ]);
 
       if (!productosRes.ok || !statsRes.ok) {

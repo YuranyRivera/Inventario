@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import DateInput from '../../Components/DateInput';
-import DashboardLayout from '../../layouts/DashboardLayout';
+import DashboardLayout from '../../Layouts/DashboardLayout';
 import TablaArt from '../../Components/TablaArt';
 import ModalConfirmacion from '../../Components/ModalConf';
 import Select from 'react-select';
