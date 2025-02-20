@@ -81,7 +81,7 @@ router.post('/reset-password', async (req, res) => {
 
     // Generar un token con expiración para la recuperación de contraseña
     const resetToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '1h' }); // Token válido por 1 hora
-    const resetLink = `http://localhost:5173/ActualizarContrasena?token=${resetToken}&email=${encodeURIComponent(email)}`;
+    const resetLink = `https://front-inventarioschool-v1.onrender.com/ActualizarContrasena?token=${resetToken}&email=${encodeURIComponent(email)}`;
 
     // Configurar los detalles del correo
     const mailOptions = {
