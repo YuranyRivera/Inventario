@@ -16,6 +16,8 @@ const SelectRole = ({ value, onChange }) => {
         <option value="">Selecciona un rol</option>
         <option value="Administrativo">Administrativo</option>
         <option value="Almacenamiento">Almacenamiento</option>
+        <option value="Rector">Rector</option>
+        <option value="Talento Humano">Talento Humano</option>
       </select>
     </div>
   );

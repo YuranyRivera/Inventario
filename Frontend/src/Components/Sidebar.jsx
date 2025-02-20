@@ -1,17 +1,15 @@
 import React from 'react';
-
 import { useUser } from '../Context/UserContext';
 import { Link } from 'react-router-dom';
 
-const Sidebar = ({ onClose, isMobile, handleLogout}) => {
- 
-  const { user } = useUser();
-
-  const { logoutUser } = useUser();
+const Sidebar = ({ onClose, isMobile }) => {
+  const { user, logoutUser } = useUser();
+  
+  // Verificar si el usuario tiene acceso a la sección de contacto
+  const hasContactAccess = user?.rol === "Rector" || user?.rol === "Talento Humano";
 
   return (
-<div className="flex flex-col w-64 h-full bg-[#00A305] text-white p-4 relative">
-      {/* Close button only for mobile */}
+    <div className="flex flex-col w-64 h-full bg-[#00A305] text-white p-4 relative">
       {isMobile && (
         <button 
           onClick={onClose} 
@@ -21,8 +19,7 @@ const Sidebar = ({ onClose, isMobile, handleLogout}) => {
         </button>
       )}
 
-     {/* Logo */}
-     <div className="flex items-center mb-8">
+      <div className="flex items-center mb-8">
         <img
           src="/Img/logo.png"
           alt="Logo del Colegio"
@@ -30,19 +27,14 @@ const Sidebar = ({ onClose, isMobile, handleLogout}) => {
         />
         <div>
           <span className="text-2xl font-semibold">Inventario</span>
-    
-            {/* Mostrar el nombre del usuario si está logueado */}
-            {user && (
-       <span className="flex">
-          Hola, {user.nombre} {/* Asegúrate de que 'nombre' sea el campo correcto */}
-        </ span >
-      )}
-      </div> 
-
+          {user && (
+            <span className="flex">
+              Hola, {user.nombre}
+            </span>
+          )}
+        </div>
       </div>
 
-  
-      {/* Menu Links */}
       <div className="flex flex-col space-y-4">
         <Link 
           to="/Dashboard" 
@@ -58,13 +50,18 @@ const Sidebar = ({ onClose, isMobile, handleLogout}) => {
         >
           <i className="fas fa-box mr-3"></i> Artículo
         </Link>
-        <Link 
-          to="/Contacto" 
-          className="flex items-center text-base md:text-lg hover:bg-[#41B646] p-2 rounded transition duration-300"
-          onClick={isMobile ? onClose : undefined}
-        >
-          <i className="fas fa-address-book mr-3"></i> Contacto
-        </Link>
+        
+        {/* Mostrar el enlace de Contacto solo si tiene acceso */}
+        {hasContactAccess && (
+          <Link 
+            to="/Contacto" 
+            className="flex items-center text-base md:text-lg hover:bg-[#41B646] p-2 rounded transition duration-300"
+            onClick={isMobile ? onClose : undefined}
+          >
+            <i className="fas fa-address-book mr-3"></i> Contacto
+          </Link>
+        )}
+        
         <Link 
           to="/Registro" 
           className="flex items-center text-base md:text-lg hover:bg-[#41B646] p-2 rounded transition duration-300"
@@ -81,8 +78,7 @@ const Sidebar = ({ onClose, isMobile, handleLogout}) => {
         </Link>
       </div>
 
-     {/* Logout Option */}
-     <div 
+      <div 
         onClick={logoutUser} 
         className="mt-auto flex items-center text-lg hover:bg-[#41B646] p-2 rounded cursor-pointer"
       >
