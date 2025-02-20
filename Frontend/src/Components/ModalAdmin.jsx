@@ -258,7 +258,7 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
                         className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700 text-sm lg:text-base"
                         disabled={loading}
                       >
-                        Eliminar
+                  <i className="fas fa-trash mr-1"></i> Eliminar
                       </button>
                     ) : rowIndex === rows.length - 1 ? (
                       <button
@@ -266,7 +266,7 @@ const ModalAdmin = ({ isOpen, onClose, refreshArticulos }) => {
                         className="bg-[#00A305] text-white px-3 py-1 rounded hover:bg-green-700 text-sm lg:text-base"
                         disabled={loading}
                       >
-                        Agregar
+                         <i className="fas fa-plus mr-1"></i> Agregar 
                       </button>
                     ) : null}
                   </td>

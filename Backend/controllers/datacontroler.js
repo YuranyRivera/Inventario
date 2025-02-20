@@ -494,9 +494,10 @@ export const insertarTraslado = async (req, res) => {
 
 // Controlador para obtener productos según la ubicación
 export const getProductosPorUbicacion = async (req, res) => {
-  const { ubicacion } = req.params;  // Obtenemos la ubicación desde los parámetros de la URL
+  const ubicacion = decodeURIComponent(req.params.ubicacion); // Obtenemos la ubicación desde los parámetros de la URL
 
   try {
+    
     const result = await pool.query(
       'SELECT id, codigo, descripcion FROM articulos_administrativos WHERE ubicacion = $1',
       [ubicacion]  // Pasamos la ubicación como parámetro para la consulta

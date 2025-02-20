@@ -98,18 +98,19 @@ const ModalSalida = ({ isOpen, onClose }) => {
       setErrors({ ...errors, ubicacionInicial: 'Debe seleccionar una ubicación inicial' });
       return;
     }
-
+  
     try {
-      const response = await fetch(`https://inventarioschool-v1.onrender.com/api/productos/${selectedOption.value}`);
+      // Codificar la ubicación para la URL
+      const ubicacionCodificada = encodeURIComponent(selectedOption.value);
+      const response = await fetch(`https://inventarioschool-v1.onrender.com/api/productos/${ubicacionCodificada}`);
       const data = await response.json();
-
+  
       if (Array.isArray(data) && data.length > 0) {
         setProductosDisponibles(data.map(producto => ({
           value: producto.id,
           label: `${producto.codigo} - ${producto.descripcion} `,
-          codigo: producto.codigo, // Guardamos el código para búsqueda
-    descripcion: producto.descripcion,
-
+          codigo: producto.codigo,
+          descripcion: producto.descripcion,
         })));
       } else {
         setProductosDisponibles([]);
