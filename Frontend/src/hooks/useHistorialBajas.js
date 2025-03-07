@@ -17,7 +17,7 @@ export const useHistorialBajas = (createImageButton, createPDFButton) => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [selectedRowToDelete, setSelectedRowToDelete] = useState(null);
 
-  const headers = ['ID', 'Artículo', 'Motivo de Baja', 'Fecha de Baja', 'Usuario', 'Imagen', 'Exportar'];
+  const headers = ['ID', 'Codigo', 'Artículo', 'Motivo de Baja', 'Fecha de Baja', 'Usuario', 'Imagen', 'Exportar'];
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -37,6 +37,7 @@ export const useHistorialBajas = (createImageButton, createPDFButton) => {
       const data = await response.json();
       const mappedRows = data.map((item) => [
         item.id,
+        item.codigo,
         item.producto,
         item.motivo_baja,
         formatDate(item.fecha_baja),
