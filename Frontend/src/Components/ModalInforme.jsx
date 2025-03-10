@@ -103,7 +103,7 @@ const ModalInforme = ({ isOpen, onClose, data }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start pt-4 px-4 pb-10 overflow-y-auto z-50">
+    <div className="fixed inset-0 items-center bg-black bg-opacity-50 flex justify-center items-start pt-4 px-4 pb-10 overflow-y-auto z-50">
       <div className="bg-white rounded-lg w-full max-w-4xl max-h-full overflow-hidden flex flex-col">
         <div className="p-4 border-b flex justify-between items-center sticky top-0 bg-white z-10">
           <h3 className="text-xl font-semibold text-gray-800">Informe Detallado</h3>
