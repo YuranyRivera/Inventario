@@ -175,7 +175,7 @@ if (!responsable || !responsable.trim()) {
 
   return (
     <div className="modal z-50 fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-      <div className="bg-white p-6 rounded-lg w-1/2 max-h-[90vh] overflow-auto  max-[768px]:w-[70%]">
+      <div className="bg-white p-6 rounded-lg w-1/2 max-h-[90vh] overflow-auto  max-[768px]:w-[80%]">
         <div className="flex justify-between mb-4">
           <h3 className="text-xl font-semibold">Registro de Almacenamiento</h3>
           <button 

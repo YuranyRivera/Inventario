@@ -25,6 +25,7 @@ const ModalInforme = ({ isOpen, onClose, data }) => {
     XLSX.utils.book_append_sheet(workbook, worksheet, "Informe Detallado");
     XLSX.writeFile(workbook, "InformeDetallado.xlsx");
   };
+
   const exportToPDF = () => {
     const doc = new jsPDF({
       orientation: 'landscape', // Orientación horizontal
@@ -43,10 +44,9 @@ const ModalInforme = ({ isOpen, onClose, data }) => {
     img.src = imagePath;
     img.onload = () => {
       const imgWidth = 190; // Ancho de la imagen en mm (ajusta según sea necesario)
-    const imgHeight = (img.height * imgWidth) / img.width; // Ajustar altura proporcionalmente
-    const x = (doc.internal.pageSize.width - imgWidth) / 2; // Centrar la imagen horizontalmente
-    const y = 10; // Cambié la posición vertical para que la imagen esté más arriba
-
+      const imgHeight = (img.height * imgWidth) / img.width; // Ajustar altura proporcionalmente
+      const x = (doc.internal.pageSize.width - imgWidth) / 2; // Centrar la imagen horizontalmente
+      const y = 10; // Cambié la posición vertical para que la imagen esté más arriba
   
       // Agregar la imagen
       doc.addImage(img, 'PNG', x, y, imgWidth, imgHeight);
@@ -101,67 +101,104 @@ const ModalInforme = ({ isOpen, onClose, data }) => {
       doc.save("InformeDetallado.pdf"); // Guardar el archivo PDF
     };
   };
-  
-  
-    
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 overflow-auto">
-      <div className="bg-white p-4 sm:p-6 rounded-lg w-full sm:w-3/4 max-h-[90vh] overflow-auto relative">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg sm:text-xl font-semibold">Informe Detallado</h3>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start pt-4 px-4 pb-10 overflow-y-auto z-50">
+      <div className="bg-white rounded-lg w-full max-w-4xl max-h-full overflow-hidden flex flex-col">
+        <div className="p-4 border-b flex justify-between items-center sticky top-0 bg-white z-10">
+          <h3 className="text-xl font-semibold text-gray-800">Informe Detallado</h3>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-red-500 text-xl sm:text-2xl font-bold"
+            className="text-gray-500 hover:text-red-500 text-2xl font-bold"
+            aria-label="Cerrar"
           >
             ×
           </button>
         </div>
 
-        {/* Botones de exportación */}
-        <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4 mb-4">
-          <button
-            onClick={exportToExcel}
-            className="bg-[#00A305] text-white py-2 px-4 rounded hover:bg-green-700 w-full sm:w-auto"
-          >
-            <i className="fas fa-file-excel mr-2"></i> Excel
-          </button>
-          <button
-            onClick={exportToPDF}
-            className="bg-white text-green-600 py-2 px-4 border-2 border-green-600 rounded hover:text-white hover:bg-[#00A305] w-full sm:w-auto"
-          >
-            <i className="fas fa-file-pdf mr-2"></i> PDF
-          </button>
-        </div>
+        <div className="p-4 flex-grow overflow-auto">
+          {/* Botones de exportación */}
+          <div className="flex flex-col sm:flex-row gap-3 mb-6">
+            <button
+              onClick={exportToExcel}
+              className="bg-[#00A305] text-white py-2 px-4 rounded hover:bg-green-700 transition-colors flex items-center justify-center"
+            >
+              <i className="fas fa-file-excel mr-2"></i> Exportar a Excel
+            </button>
+            <button
+              onClick={exportToPDF}
+              className="bg-white text-green-600 py-2 px-4 border border-green-600 rounded hover:bg-[#00A305] hover:text-white transition-colors flex items-center justify-center"
+            >
+              <i className="fas fa-file-pdf mr-2"></i> Generar PDF
+            </button>
+          </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full table-auto rounded-lg overflow-hidden shadow-lg">
-            <thead>
-              <tr className="bg-[#00A305] text-white">
-                {headers.map((header, index) => (
-                  <th key={index} className="px-2 sm:px-4 py-2 text-left text-xs sm:text-sm">{header}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((item, index) => (
-                <tr
-                  key={index}
-                  className={`border-t ${index % 2 === 0 ? 'bg-gray-100' : 'bg-gray-200'} hover:bg-gray-300 transition-colors`}
-                >
-                  <td className="px-2 sm:px-4 py-2 text-xs sm:text-sm">{item.fechaSolicitud}</td>
-                  <td className="px-2 sm:px-4 py-2 text-xs sm:text-sm">{item.producto}</td>
-                  <td className="px-2 sm:px-4 py-2 text-xs sm:text-sm">{item.cantidad}</td>
-                  <td className="px-2 sm:px-4 py-2 text-xs sm:text-sm">{item.fechaEntrega}</td>
-                  <td className="px-2 sm:px-4 py-2 text-xs sm:text-sm">{item.firmaEntrega}</td>
+          {/* Tabla para pantallas medianas y grandes */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full table-auto rounded-lg overflow-hidden shadow-lg">
+              <thead>
+                <tr className="bg-[#00A305] text-white">
+                  {headers.map((header, index) => (
+                    <th key={index} className="px-4 py-2 text-left">{header}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {data.map((item, index) => (
+                  <tr
+                    key={index}
+                    className={`border-t ${index % 2 === 0 ? 'bg-gray-100' : 'bg-gray-200'} hover:bg-gray-300 transition-colors`}
+                  >
+                    <td className="px-4 py-2">{item.fechaSolicitud}</td>
+                    <td className="px-4 py-2">{item.producto}</td>
+                    <td className="px-4 py-2">{item.cantidad}</td>
+                    <td className="px-4 py-2">{item.fechaEntrega}</td>
+                    <td className="px-4 py-2">{item.firmaEntrega}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Vista de tarjetas para móviles */}
+          <div className="block md:hidden space-y-4">
+            {data.map((item, index) => (
+              <div key={index} className="border rounded-lg shadow-md p-4 bg-white">
+                {/* Fecha de Solicitud */}
+                <div className="py-2 border-b">
+                  <div className="text-sm font-medium text-gray-600">FECHA DE SOLICITUD</div>
+                  <div className="mt-1 font-medium">{item.fechaSolicitud}</div>
+                </div>
+                
+                {/* Descripción del Producto */}
+                <div className="py-2 border-b">
+                  <div className="text-sm font-medium text-gray-600">DESCRIPCION DEL PRODUCTO</div>
+                  <div className="mt-1 font-medium break-words">{item.producto}</div>
+                </div>
+                
+                {/* Cantidad */}
+                <div className="py-2 border-b">
+                  <div className="text-sm font-medium text-gray-600">CANTIDAD</div>
+                  <div className="mt-1 font-medium">{item.cantidad}</div>
+                </div>
+                
+                {/* Fecha de Entrega */}
+                <div className="py-2 border-b">
+                  <div className="text-sm font-medium text-gray-600">FECHA DE ENTREGA</div>
+                  <div className="mt-1 font-medium">{item.fechaEntrega}</div>
+                </div>
+                
+                {/* Firma de Entrega */}
+                <div className="py-2">
+                  <div className="text-sm font-medium text-gray-600">FIRMA DE ENTREGA</div>
+                  <div className="mt-1 font-medium">{item.firmaEntrega}</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
-    
   );
 };
 
